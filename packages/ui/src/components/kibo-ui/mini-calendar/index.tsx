@@ -12,9 +12,11 @@ import {
   type MouseEventHandler,
   type ReactNode,
   useContext,
+  useState,
 } from "react"
 import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
+import { AnimatePresence, motion } from "framer-motion"
 
 // Context for sharing state between components
 type MiniCalendarContextType = {
@@ -23,6 +25,7 @@ type MiniCalendarContextType = {
   startDate: Date
   onNavigate: (direction: "prev" | "next") => void
   days: number
+  direction: number
 }
 
 const MiniCalendarContext = createContext<MiniCalendarContextType | null>(null)
@@ -90,14 +93,17 @@ export const MiniCalendar = ({
     onChange: onStartDateChange,
   })
 
+  const [direction, setDirection] = useState(0)
+
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date)
   }
 
-  const handleNavigate = (direction: "prev" | "next") => {
+  const handleNavigate = (dir: "prev" | "next") => {
+    setDirection(dir === "next" ? 1 : -1)
     const newStartDate = addDays(
       currentStartDate || new Date(),
-      direction === "next" ? days : -days
+      dir === "next" ? days : -days
     )
     setCurrentStartDate(newStartDate)
   }
@@ -108,6 +114,7 @@ export const MiniCalendar = ({
     startDate: currentStartDate || new Date(),
     onNavigate: handleNavigate,
     days,
+    direction,
   }
 
   return (
@@ -179,12 +186,43 @@ export const MiniCalendarDays = ({
   children,
   ...props
 }: MiniCalendarDaysProps) => {
-  const { startDate, days: dayCount } = useMiniCalendar()
+  const { startDate, days: dayCount, direction } = useMiniCalendar()
   const days = getDays(startDate, dayCount)
 
+  const variants = {
+    enter: (dir: number) => ({
+      x: dir > 0 ? 150 : -150,
+      opacity: 0,
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1,
+    },
+    exit: (dir: number) => ({
+      zIndex: 0,
+      x: dir < 0 ? 150 : -150,
+      opacity: 0,
+    }),
+  }
+
   return (
-    <div className={cn("flex items-center gap-1", className)} {...props}>
-      {days.map((date) => children(date))}
+    <div className="relative flex w-full flex-1 justify-center overflow-hidden">
+      <AnimatePresence initial={false} custom={direction} mode="popLayout">
+        <motion.div
+          key={startDate.toString()}
+          custom={direction}
+          variants={variants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{ type: "spring", stiffness: 100, damping: 7 }}
+          className={cn("flex items-center gap-1", className)}
+          {...(props as any)}
+        >
+          {days.map((date) => children(date))}
+        </motion.div>
+      </AnimatePresence>
     </div>
   )
 }
