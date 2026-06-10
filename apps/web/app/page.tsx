@@ -10,6 +10,7 @@ import { Tasks } from "@workspace/ui/components/Tasks"
 import { GlassWalletCard } from "@workspace/ui/components/uitripled/glass-wallet-card-shadcnui"
 import WebActivities from "@workspace/ui/components/WebActivities"
 import { DeadlineCalender } from "@workspace/ui/components/deadline-calender"
+import HoverCardTasksDemo from "@workspace/ui/components/shadcn-studio/tooltip/tooltip-15"
 
 export default function Page() {
   return (
@@ -18,7 +19,7 @@ export default function Page() {
         <ResizablePanel defaultSize={"50%"}>
           <ResizablePanelGroup className="" orientation="vertical">
             <ResizablePanel
-              defaultSize={"50%"}
+              defaultSize={"55%"}
               className="h-full bg-background"
             >
               <div className="h-full bg-background">
@@ -28,7 +29,7 @@ export default function Page() {
             <ResizableHandle />
             <ResizablePanel>
               <div className="flex h-full flex-col justify-end overflow-hidden bg-background p-2">
-                2
+                <HoverCardTasksDemo />
               </div>
             </ResizablePanel>
           </ResizablePanelGroup>

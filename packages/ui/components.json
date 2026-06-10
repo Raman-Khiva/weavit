@@ -24,5 +24,12 @@
     "@uitripled": "https://ui.tripled.work/r/{name}.json",
     "@kibo-ui": "https://www.kibo-ui.com/r/{name}.json",
     "@shadcnblocks": "https://shadcnblocks.com/r/{name}.json"
+    ,
+  "@shadcn-studio": "https://shadcnstudio.com/r/{style}/{name}.json",
+  "@ss-components": "https://shadcnstudio.com/r/components/{style}/{name}.json",
+  "@ss-blocks": "https://shadcnstudio.com/r/blocks/{style}/{name}.json",
+  "@ss-themes": "https://shadcnstudio.com/r/themes/{name}.json"
+
+
   }
 }

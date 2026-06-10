@@ -204,7 +204,7 @@ export const MiniCalendarDay = ({
   return (
     <Button
       className={cn(
-        "h-auto min-w-[3rem] flex-col gap-0 p-2 text-xs",
+        "h-auto min-w-[3rem] flex-col gap-0 p-2 text-xs hover:bg-muted",
         isTodayDate && "bg-foreground text-primary hover:text-muted-foreground",
         className
       )}
@@ -212,14 +212,7 @@ export const MiniCalendarDay = ({
       type="button"
       {...props}
     >
-      <span
-        className={cn(
-          "text-[10px] font-medium text-muted-foreground",
-          isTodayDate && "text-primary/90 hover:text-muted-foreground"
-        )}
-      >
-        {month}
-      </span>
+      <span className={cn("text-[10px] font-medium")}>{month}</span>
       <span className="text-sm font-semibold">{day}</span>
     </Button>
   )
