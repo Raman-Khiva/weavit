@@ -48,7 +48,7 @@ export const Habit = ({ title, category, gap, streak }: HabitProps) => {
         </div>
       </CardHeader>
       <CardContent className="px-0 pb-3">
-        <CardDescription className="">
+        <CardDescription className="text-secondary-foreground/90">
           here comes the description
         </CardDescription>
       </CardContent>
