@@ -17,7 +17,7 @@ const hours = Array.from({ length: 24 }, (_, i) => {
 
 export const DayTimeline = () => {
   return (
-    <Sidebar001 className="h-full w-full!" defaultWidth={100}>
+    <Sidebar001 className="h-full w-full!" defaultWidth={400}>
       <Sidebar001Content className="py-0">
         <Sidebar001Section className="mt-4">
           {hours.map((item) => (
@@ -26,7 +26,7 @@ export const DayTimeline = () => {
               href={item.href}
               label={item.label}
               isActive={true}
-              className="h-32 text-xs text-muted-foreground"
+              className="h-24 text-xs text-muted-foreground"
             />
           ))}
         </Sidebar001Section>

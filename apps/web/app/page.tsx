@@ -19,8 +19,8 @@ import { DayTimeline } from "@workspace/ui/components/day-timeline"
 export default function Page() {
   return (
     <main className="flex h-screen w-full flex-col justify-between bg-background">
-      <ResizablePanelGroup>
-        <ResizablePanel defaultSize={"2%"}>
+      <ResizablePanelGroup orientation="horizontal">
+        <ResizablePanel defaultSize={"40%"}>
           <DayTimeline />
         </ResizablePanel>
         <ResizableHandle />

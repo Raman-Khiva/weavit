@@ -12,10 +12,18 @@ import {
   useRef,
   useState,
 } from "react"
-import { motion, AnimatePresence } from "motion/react"
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useTransform,
+  useSpring,
+  HTMLMotionProps,
+} from "motion/react"
 import { ChevronRight } from "lucide-react"
 import { cn } from "@workspace/ui/lib/utils"
 import { MonthCaption } from "react-day-picker"
+import { Card } from "@workspace/ui/components/card"
 
 const MotionChevron = motion.create(ChevronRight)
 
@@ -69,20 +77,24 @@ const HoverContext = createContext<{
   hovered: string | null
   hoverRect: HoverRect | null
   containerRef: React.RefObject<HTMLDivElement | null>
+  viewportRef: React.RefObject<HTMLDivElement | null>
   setHovered: (id: string | null, rect?: HoverRect | null) => void
 }>({
   hovered: null,
   hoverRect: null,
   containerRef: { current: null },
+  viewportRef: { current: null },
   setHovered: () => {},
 })
 
 function HoverProvider({
   children,
   containerRef,
+  viewportRef,
 }: {
   children: React.ReactNode
   containerRef: React.RefObject<HTMLDivElement | null>
+  viewportRef: React.RefObject<HTMLDivElement | null>
 }) {
   const [hovered, setHoveredId] = useState<string | null>(null)
   const [hoverRect, setHoverRect] = useState<HoverRect | null>(null)
@@ -96,8 +108,8 @@ function HoverProvider({
   )
 
   const value = useMemo(
-    () => ({ hovered, hoverRect, containerRef, setHovered }),
-    [hovered, hoverRect, containerRef, setHovered]
+    () => ({ hovered, hoverRect, containerRef, viewportRef, setHovered }),
+    [hovered, hoverRect, containerRef, viewportRef, setHovered]
   )
 
   return <HoverContext.Provider value={value}>{children}</HoverContext.Provider>
@@ -169,6 +181,137 @@ function HoverHighlight() {
   )
 }
 
+// ─── AnimatedLabel ────────────────────────────────────────────────────────────
+
+function AnimatedLabel({
+  className,
+  children,
+  ...props
+}: HTMLMotionProps<"span">) {
+  const { viewportRef } = useContext(HoverContext)
+  const itemRef = useRef<HTMLSpanElement>(null)
+  const { scrollYProgress } = useScroll({
+    container: viewportRef,
+    target: itemRef,
+    offset: ["start end", "end start"],
+  })
+
+  // Fade out when it approaches the center (where x > 0)
+  const opacity = useTransform(
+    scrollYProgress,
+    [0, 0.44, 0.45, 0.5, 0.55, 0.56, 1],
+    [1, 1, 0, 0, 0, 1, 1]
+  )
+
+  return (
+    <motion.span
+      ref={itemRef}
+      className={className}
+      style={{ ...props.style, opacity }}
+      {...props}
+    >
+      {children}
+    </motion.span>
+  )
+}
+
+// ─── AnimatedTick ─────────────────────────────────────────────────────────────
+
+function AnimatedTick({
+  className,
+  children,
+  ...props
+}: HTMLMotionProps<"div">) {
+  const { viewportRef } = useContext(HoverContext)
+  const itemRef = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({
+    container: viewportRef,
+    target: itemRef,
+    offset: ["start end", "end start"],
+  })
+
+  // The item will smoothly curve to the right by 30px when it hits the vertical center
+  const x = useTransform(
+    scrollYProgress,
+    [0, 0.44, 0.45, 0.5, 0.55, 0.56, 1],
+    [0, 0, 8, 30, 8, 0, 0]
+  )
+
+  return (
+    <motion.div
+      ref={itemRef}
+      className={className}
+      style={{ ...props.style, x }}
+      {...props}
+    >
+      {children}
+    </motion.div>
+  )
+}
+
+// ─── TimeCard ───────────────────
+
+export interface TimeCardProps {
+  hour: string
+  minute: string
+  period: string
+  event?: {
+    type: "Deadline" | "Event" | string
+    title: string
+    description: string
+  } | null
+}
+
+export const TimeCard = ({ hour, minute, period, event }: TimeCardProps) => {
+  return (
+    <Card className="flex w-full flex-row items-stretch gap-0 overflow-hidden border-border bg-background/62 py-0 backdrop-blur-md">
+      <div className="flex shrink-0 flex-col items-center justify-center gap-0 border-r border-border/50 bg-foreground px-4 py-3 text-3xl leading-[0.85] font-black tracking-tighter text-muted-foreground/60">
+        <span>{hour}</span>
+        <span>{minute}</span>
+        <span className="mt-1.5 text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+          {period}
+        </span>
+      </div>
+      <div className="flex flex-1 flex-col justify-center bg-primary/60 px-4 py-4">
+        {event ? (
+          <>
+            <div className="mb-1 flex items-center gap-2">
+              <div
+                className={cn(
+                  "flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[8px] font-bold tracking-wider uppercase",
+                  event.type.toLowerCase() === "deadline"
+                    ? "bg-red-500/10 text-red-500"
+                    : "bg-blue-500/10 text-blue-500"
+                )}
+              >
+                <span
+                  className={cn(
+                    "h-1 w-1 rounded-full",
+                    event.type.toLowerCase() === "deadline"
+                      ? "bg-red-500"
+                      : "bg-blue-500"
+                  )}
+                />
+                {event.type}
+              </div>
+            </div>
+            <h4 className="text-xs leading-tight font-bold text-foreground">
+              {event.title}
+            </h4>
+            <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
+              {event.description}
+            </p>
+          </>
+        ) : (
+          <p className="text-xs font-medium text-muted-foreground">
+            No events scheduled
+          </p>
+        )}
+      </div>
+    </Card>
+  )
+}
+
 // ─── Sidebar001Item ───────────────────────────────────────────────────────────
 
 export interface Sidebar001ItemProps {
@@ -188,15 +331,13 @@ export const Sidebar001Item = memo(function Sidebar001Item({
   className,
   onClick,
 }: Sidebar001ItemProps) {
-  const { hovered, setHovered, containerRef } = useContext(HoverContext)
+  const { hovered, setHovered, containerRef, viewportRef } =
+    useContext(HoverContext)
   const isHovered = hovered === href
   const itemRef = useScrollToActive(isActive)
 
-  const opacity = isActive ? 1 : hovered !== null ? (isHovered ? 1 : 0.3) : 0.55
-  const x = isActive ? 8 : isHovered ? 6 : 0
-
   return (
-    <div className={cn("relative", className)}>
+    <div ref={itemRef} className={cn("relative", className)}>
       {/* <motion.div
         ref={itemRef}
         animate={{ opacity, x }}
@@ -230,35 +371,28 @@ export const Sidebar001Item = memo(function Sidebar001Item({
         >
           <span className="relative z-1 truncate">{label}</span>
           {isNew && (
-            <span className="size-1.5 shrink-0 rounded-full bg-primary" />
+            <span className="size-1.5 shrink-0 rounded-r-full bg-primary" />
           )}
         </a>
       </motion.div>
 */}
-      {isActive && (
-        <motion.div
-          className="pointer-events-none absolute top-1/2 z-10 flex w-full -translate-y-1/2 items-center gap-1 pr-2"
-          transition={{ type: "spring", stiffness: 800, damping: 40 }}
-        >
-          <span className="shrink-0 text-[10px] font-semibold text-secondary-foreground/70">
-            {label}
-          </span>
-          <motion.span className="pointer-events-none h-[2.8px] w-6 rounded-full bg-secondary-foreground/70" />
-        </motion.div>
-      )}
-
-      <motion.span
-        className="pointer-events-none absolute top-1/2 left-0 h-px -translate-y-1/2 bg-foreground"
-        animate={{ width: isActive ? 0 : isHovered ? 26 : 18 }}
-        transition={{ type: "spring", stiffness: 600, damping: 30 }}
-      />
-      <motion.span className="pointer-events-none absolute top-0 left-1 h-[2.2px] w-[30px] bg-foreground/30" />
-      <motion.span className="pointer-events-none absolute top-1/8 left-1 h-[2.2px] w-[20px] bg-foreground/31" />
-      <motion.span className="pointer-events-none absolute top-1/4 left-1 h-[2.2px] w-[24px] bg-foreground/31" />
-      <motion.span className="pointer-events-none absolute top-3/8 left-1 h-[2.2px] w-[20px] bg-foreground/30" />
-      <motion.span className="pointer-events-none absolute top-5/8 left-1 h-[2.2px] w-[20px] bg-foreground/30" />
-      <motion.span className="pointer-events-none absolute top-7/8 left-1 h-[2.2px] w-[20px] bg-foreground/30" />
-      <motion.span className="pointer-events-none absolute top-3/4 left-1 h-[2.2px] w-[24px] bg-foreground/30" />
+      {/* <motion.div className="pointer-events-none absolute -top-2 -left-3 flex snap-center items-center justify-end">
+        <motion.span>{label}</motion.span>
+        <AnimatedTick className="h-[2.6px] w-[30px] rounded-r-full bg-foreground" />
+      </motion.div> */}
+      <motion.div className="pointer-events-none absolute -top-2 left-1 flex snap-center items-center justify-end gap-1">
+        <AnimatedTick className="pointer-events-none h-[2.6px] w-[35px] snap-center rounded-r-full bg-foreground/90" />
+        <AnimatedLabel className="pointer-events-none snap-center">
+          {label}:00
+        </AnimatedLabel>
+      </motion.div>
+      <AnimatedTick className="pointer-events-none absolute top-1/8 left-1 h-[1.8px] w-[28px] snap-center rounded-r-full bg-foreground/70" />
+      <AnimatedTick className="pointer-events-none absolute top-1/4 left-1 h-[2.0px] w-[28px] snap-center rounded-r-full bg-foreground/80" />
+      <AnimatedTick className="pointer-events-none absolute top-3/8 left-1 h-[1.8px] w-[26px] snap-center rounded-r-full bg-foreground/70" />
+      <AnimatedTick className="pointer-events-none absolute top-1/2 left-1 h-[2.2px] w-[32px] -translate-y-1/2 snap-center rounded-r-full bg-foreground/95" />
+      <AnimatedTick className="pointer-events-none absolute top-5/8 left-1 h-[1.8px] w-[26px] snap-center rounded-r-full bg-foreground/70" />
+      <AnimatedTick className="pointer-events-none absolute top-3/4 left-1 h-[2.0px] w-[28px] snap-center rounded-r-full bg-foreground/80" />
+      <AnimatedTick className="pointer-events-none absolute top-7/8 left-1 h-[1.8px] w-[26px] snap-center rounded-r-full bg-foreground/70" />
     </div>
   )
 })
@@ -418,16 +552,108 @@ export function Sidebar001Content({
   children: React.ReactNode
   className?: string
 }) {
-  const containerRef = useContext(HoverContext).containerRef
+  const { containerRef, viewportRef } = useContext(HoverContext)
+  const [time, setTime] = useState({ hour: "12", minute: "00", period: "AM" })
+
+  const handleScroll = useCallback(() => {
+    const vp = viewportRef.current
+    const container = containerRef.current
+    if (!vp || !container) return
+
+    const vpRect = vp.getBoundingClientRect()
+    const containerRect = container.getBoundingClientRect()
+
+    const yCenter = vpRect.top + vpRect.height / 2 - containerRect.top
+    const hourFloat = yCenter / 96 // 96px is h-24
+
+    let totalMinutes = Math.round(hourFloat * 60)
+    totalMinutes = Math.max(0, Math.min(23 * 60 + 59, totalMinutes))
+
+    let hr = Math.floor(totalMinutes / 60)
+    const min = totalMinutes % 60
+
+    const period = hr >= 12 ? "PM" : "AM"
+    let displayHr = hr % 12
+    if (displayHr === 0) displayHr = 12
+
+    const hrStr = displayHr.toString().padStart(2, "0")
+    const minStr = min.toString().padStart(2, "0")
+
+    setTime((prev) =>
+      prev.hour === hrStr && prev.minute === minStr && prev.period === period
+        ? prev
+        : { hour: hrStr, minute: minStr, period }
+    )
+  }, [viewportRef, containerRef])
+
+  useEffect(() => {
+    handleScroll()
+  }, [handleScroll])
 
   return (
-    <div
-      className={cn("no-scrollbar flex-1 overflow-y-auto py-4", className)}
-      data-scroll-viewport
-    >
-      <div ref={containerRef} className="relative px-1">
-        <HoverHighlight />
-        {children}
+    <div className="relative flex-1 overflow-hidden">
+      {/* Central static pointer */}
+      {/* <div className="pointer-events-none absolute top-1/2 left-4 z-50 flex -translate-y-1/2 items-center overflow-hidden"> */}
+      {/* <div className="h-0 w-0 border-y-[6px] border-l-10 border-y-transparent border-l-foreground" /> */}
+      {/* <div className="pointer-events-none z-50 flex h-10 w-10 -translate-x-[60%] items-center rounded-r-full" /> */}
+      {/* </div> */}
+      <div className="absolute top-1/2 left-19 z-50 flex w-60 -translate-y-[50%] items-center gap-1">
+        <div className="h-0 w-0 border-y-[6px] border-r-10 border-y-transparent border-r-foreground" />
+        <TimeCard
+          hour={time.hour}
+          minute={time.minute}
+          period={time.period}
+          event={
+            time.hour === "04" &&
+            (time.minute === "30" || time.minute === "38") &&
+            time.period === "PM"
+              ? {
+                  type: "Deadline",
+                  title: "Launch Timeline Feature",
+                  description: "Final review and deployment",
+                }
+              : time.hour === "09" &&
+                  time.minute === "00" &&
+                  time.period === "AM"
+                ? {
+                    type: "Event",
+                    title: "Daily Standup",
+                    description: "Sync with the engineering team",
+                  }
+              : time.hour === "05" &&
+                  time.minute === "00" &&
+                  time.period === "PM"
+                ? {
+                    type: "Event",
+                    title: "Design Review",
+                    description: "Review latest UI mockups with the team",
+                  }
+              : time.hour === "07" &&
+                  (time.minute === "30" || time.minute === "38") &&
+                  time.period === "PM"
+                ? {
+                    type: "Deadline",
+                    title: "Code Freeze",
+                    description: "All PRs must be merged for the sprint",
+                  }
+                : null
+          }
+        />
+      </div>
+
+      <div
+        ref={viewportRef}
+        onScroll={handleScroll}
+        className={cn(
+          "no-scrollbar h-full w-full snap-y snap-mandatory overflow-y-auto py-[40vh]",
+          className
+        )}
+        data-scroll-viewport
+      >
+        <div ref={containerRef} className="relative px-1">
+          <HoverHighlight />
+          {children}
+        </div>
       </div>
     </div>
   )
@@ -456,6 +682,7 @@ export function Sidebar001({
   maxWidth = 400,
 }: Sidebar001Props) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const viewportRef = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(defaultWidth)
   const dragging = useRef(false)
   const startX = useRef(0)
@@ -490,10 +717,10 @@ export function Sidebar001({
 
   return (
     <EffectsProvider defaultEnabled={defaultEffectsEnabled}>
-      <HoverProvider containerRef={containerRef}>
+      <HoverProvider containerRef={containerRef} viewportRef={viewportRef}>
         <aside
           className={cn(
-            "relative flex h-full shrink-0 flex-col bg-background",
+            "relative flex h-full shrink-0 flex-col pl-3",
             className
           )}
           style={{ width }}
