@@ -128,3 +128,9 @@
     @apply bg-background text-foreground;
     }
 }
+
+@layer components {
+  .global-heading {
+    @apply text-xl font-semibold tracking-tight text-foreground mb-1 px-4 pt-2 pb-1 border-b-[0.5px] border-secondary-foreground/80;
+  }
+}

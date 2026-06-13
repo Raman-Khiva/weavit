@@ -52,15 +52,16 @@ export const DeadlineCalender = () => {
 
   return (
     <div
-      className="w-full max-w-[29rem]"
+      className="z-50 w-full max-w-[29rem]"
       onMouseLeave={() => setHoveredData(null)}
     >
       <MiniCalendar
         days={7}
         onValueChange={(date) => date && setValue(date)}
         value={value}
+        className="z-50"
       >
-        <MiniCalendarNavigation direction="prev" />
+        <MiniCalendarNavigation className="z-50" direction="prev" />
         <MiniCalendarDays>
           {(date) => {
             const isHovered = hoveredData?.dateStr === date.toISOString()
@@ -94,7 +95,7 @@ export const DeadlineCalender = () => {
             )
           }}
         </MiniCalendarDays>
-        <MiniCalendarNavigation direction="next" />
+        <MiniCalendarNavigation direction="next" className="z-50" />
       </MiniCalendar>
 
       {mounted &&

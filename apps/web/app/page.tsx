@@ -15,66 +15,69 @@ import { TaskboardDemo } from "@workspace/ui/components/taskboard-demo"
 import { Projects } from "@workspace/ui/components/projects"
 import { Kanban, KanbanBoard } from "@workspace/ui/components/kanban"
 import { Todos } from "@workspace/ui/components/todos"
-import { DayTimeline } from "@workspace/ui/components/day-timeline"
+import { DayTimelineHorizontal } from "@workspace/ui/components/day-timeline-horizontal"
+import { Drafts } from "@workspace/ui/components/drafts"
 export default function Page() {
   return (
-    <main className="flex h-screen w-full flex-col justify-between bg-background">
-      <ResizablePanelGroup orientation="horizontal">
-        <ResizablePanel defaultSize={"40%"}>
-          <DayTimeline />
-        </ResizablePanel>
-        <ResizableHandle />
-        <ResizablePanel>
-          <ResizablePanelGroup
-            orientation="horizontal"
-            className="h-full w-full"
-          >
-            <ResizablePanel defaultSize={"50%"}>
-              <ResizablePanelGroup className="" orientation="vertical">
-                <ResizablePanel
-                  defaultSize={"55%"}
-                  className="h-full bg-background"
-                >
-                  <div className="h-full bg-background">
-                    <Habits />
-                  </div>
-                </ResizablePanel>
-                <ResizableHandle />
-                <ResizablePanel>
-                  <div className="h-full overflow-hidden bg-background p-2">
-                    <Todos />
-                  </div>
-                </ResizablePanel>
-              </ResizablePanelGroup>
+    <main className="relative flex h-screen w-full flex-col justify-between bg-background pb-19">
+      <div className="relative z-50 h-[6.7rem] border-border pt-20">
+        <div className="absolute top-0 right-0 left-0">
+          <DayTimelineHorizontal />
+        </div>
+        <div className="absolute right-0 bottom-4 flex w-full items-center justify-between">
+          <div className="flex flex-1 items-center justify-center"></div>
+          <div className="h-16 w-52" />
+          <div className="flex flex-1 items-center justify-center">
+            <h2>right</h2>
+          </div>
+        </div>
+      </div>
+      <ResizablePanelGroup orientation="vertical" className="h-full w-full">
+        <ResizablePanel defaultSize={"60%"} className="">
+          <ResizablePanelGroup className="" orientation="horizontal">
+            <ResizablePanel defaultSize={"28%"} className="h-full">
+              <div className="flex h-full w-full justify-center px-4 pb-2">
+                <Habits />
+              </div>
             </ResizablePanel>
             <ResizableHandle />
-            <ResizablePanel>
-              <ResizablePanelGroup orientation="vertical">
-                <ResizablePanel defaultSize={"60%"}>
-                  <div className="h-full overflow-hidden bg-background p-4">
-                    <Projects />
-                  </div>
-                </ResizablePanel>
-                <ResizableHandle />
-                <ResizablePanel>
-                  <div className="h-full overflow-hidden bg-background">
-                    <WebActivities />
-                  </div>
-                </ResizablePanel>
-              </ResizablePanelGroup>
+            <ResizablePanel className="w-full" defaultSize={"44%"}>
+              <div className="flex w-full flex-1 justify-center overflow-hidden px-4 pb-4">
+                <Todos />
+              </div>
+            </ResizablePanel>
+            <ResizableHandle />
+            <ResizablePanel defaultSize={"28%"}>
+              <div className="flex w-full flex-1 justify-center overflow-hidden px-4 pb-4">
+                <Drafts />
+              </div>
             </ResizablePanel>
           </ResizablePanelGroup>
         </ResizablePanel>
+        <ResizableHandle />
+        <ResizablePanel>
+          <ResizablePanelGroup orientation="horizontal">
+            <ResizablePanel defaultSize={"60%"}>
+              <div className="flex-1 overflow-hidden px-4 pb-4">
+                <Projects />
+              </div>
+            </ResizablePanel>
+            <ResizableHandle />
+            <ResizablePanel></ResizablePanel>
+          </ResizablePanelGroup>
+        </ResizablePanel>
       </ResizablePanelGroup>
-
-      <div className="relative flex items-center p-2">
+      <div className="absolute right-0 bottom-2 left-0 flex w-full items-center justify-between">
         <div className="flex flex-1 justify-center">
           <DeadlineCalender />
         </div>
-        <div className="shrink-0">
+        <div className="z-20 w-72">
           <FloatingDockDemo />
         </div>
-        <div className="flex flex-1 justify-center">empty</div>
+
+        <div className="flex flex-1 justify-center">
+          <h2>empty</h2>
+        </div>
       </div>
     </main>
   )

@@ -16,6 +16,7 @@ import { CheckCircle, Flame } from "lucide-react"
 export interface HabitProps {
   title: string
   category?: string
+  description?: string
   gap?: string
   streak?: number
 }
@@ -32,11 +33,17 @@ export const Status = ({ done }: { done: boolean }) => {
   )
 }
 
-export const Habit = ({ title, category, gap, streak }: HabitProps) => {
+export const Habit = ({
+  title,
+  category,
+  description,
+  gap,
+  streak,
+}: HabitProps) => {
   const [done, setDone] = useState<boolean>(false)
   return (
-    <Card className="min-w-10 gap-0 px-4">
-      <CardHeader className="relative px-0">
+    <Card className="w-full min-w-20 gap-0 rounded-lg bg-background px-4">
+      <CardHeader className="relative px-0 pb-1">
         {gap && (
           <Badge variant="destructive" className="absolute top-0 right-0">
             {gap}
@@ -47,11 +54,13 @@ export const Habit = ({ title, category, gap, streak }: HabitProps) => {
           <CardTitle className="font-bold">{title}</CardTitle>
         </div>
       </CardHeader>
-      <CardContent className="px-0 pb-3">
-        <CardDescription className="text-secondary-foreground/90">
-          here comes the description
-        </CardDescription>
-      </CardContent>
+      {description && (
+        <CardContent className="px-0 pb-3">
+          <CardDescription className="text-secondary-foreground/90">
+            {description}
+          </CardDescription>
+        </CardContent>
+      )}
       <CardFooter className="flex justify-between bg-background px-2 py-2">
         <div>
           {(streak || streak === 0) && (
@@ -67,9 +76,8 @@ export const Habit = ({ title, category, gap, streak }: HabitProps) => {
         </div>
         <Button
           disabled={done}
-          variant="outline"
           onClick={() => setDone(true)}
-          className="py-0 text-xs font-normal"
+          className="border border-border/40 bg-background py-0 text-xs font-normal"
         >
           Done
         </Button>
@@ -100,7 +108,8 @@ const DEFAULT_HABITS: HabitProps[] = [
 
 export const Habits = ({ habits = DEFAULT_HABITS }: HabitsProps) => {
   return (
-    <main className="flex h-full max-w-sm flex-col gap-2 px-2 py-4">
+    <main className="flex h-full w-full max-w-sm min-w-8 flex-col gap-2 px-2">
+      <h2 className="global-heading">Daily Tasks</h2>
       {habits.map((habit, index) => (
         <Habit key={index} {...habit} />
       ))}

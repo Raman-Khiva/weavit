@@ -220,6 +220,7 @@ function AnimatedLabel({
 function AnimatedTick({
   className,
   children,
+  onClick,
   ...props
 }: HTMLMotionProps<"div">) {
   const { viewportRef } = useContext(HoverContext)
@@ -240,11 +241,23 @@ function AnimatedTick({
   return (
     <motion.div
       ref={itemRef}
-      className={className}
+      className={cn("relative cursor-pointer", className)}
       style={{ ...props.style, x }}
+      onClick={(e) => {
+        if (onClick) onClick(e)
+        if (itemRef.current && viewportRef.current) {
+          const vpRect = viewportRef.current.getBoundingClientRect()
+          const itemRect = itemRef.current.getBoundingClientRect()
+          // Calculate the exact offset to put this item in the vertical center of the viewport
+          const offset =
+            itemRect.top - vpRect.top - vpRect.height / 2 + itemRect.height / 2
+          viewportRef.current.scrollBy({ top: offset, behavior: "smooth" })
+        }
+      }}
       {...props}
     >
-      {children}
+      <div className="absolute -inset-x-2 -inset-y-2" />
+      {children as React.ReactNode}
     </motion.div>
   )
 }
@@ -380,19 +393,19 @@ export const Sidebar001Item = memo(function Sidebar001Item({
         <motion.span>{label}</motion.span>
         <AnimatedTick className="h-[2.6px] w-[30px] rounded-r-full bg-foreground" />
       </motion.div> */}
-      <motion.div className="pointer-events-none absolute -top-2 left-1 flex snap-center items-center justify-end gap-1">
-        <AnimatedTick className="pointer-events-none h-[2.6px] w-[35px] snap-center rounded-r-full bg-foreground/90" />
+      <motion.div className="absolute -top-2 left-1 z-10 flex snap-center items-center justify-end gap-1">
+        <AnimatedTick className="h-[2.6px] w-[35px] snap-center rounded-r-full bg-foreground/90" />
         <AnimatedLabel className="pointer-events-none snap-center">
           {label}:00
         </AnimatedLabel>
       </motion.div>
-      <AnimatedTick className="pointer-events-none absolute top-1/8 left-1 h-[1.8px] w-[28px] snap-center rounded-r-full bg-foreground/70" />
-      <AnimatedTick className="pointer-events-none absolute top-1/4 left-1 h-[2.0px] w-[28px] snap-center rounded-r-full bg-foreground/80" />
-      <AnimatedTick className="pointer-events-none absolute top-3/8 left-1 h-[1.8px] w-[26px] snap-center rounded-r-full bg-foreground/70" />
-      <AnimatedTick className="pointer-events-none absolute top-1/2 left-1 h-[2.2px] w-[32px] -translate-y-1/2 snap-center rounded-r-full bg-foreground/95" />
-      <AnimatedTick className="pointer-events-none absolute top-5/8 left-1 h-[1.8px] w-[26px] snap-center rounded-r-full bg-foreground/70" />
-      <AnimatedTick className="pointer-events-none absolute top-3/4 left-1 h-[2.0px] w-[28px] snap-center rounded-r-full bg-foreground/80" />
-      <AnimatedTick className="pointer-events-none absolute top-7/8 left-1 h-[1.8px] w-[26px] snap-center rounded-r-full bg-foreground/70" />
+      <AnimatedTick className="absolute top-1/8 left-1 z-10 h-[1.8px] w-[28px] snap-center rounded-r-full bg-foreground/70" />
+      <AnimatedTick className="absolute top-1/4 left-1 z-10 h-[2.0px] w-[28px] snap-center rounded-r-full bg-foreground/80" />
+      <AnimatedTick className="absolute top-3/8 left-1 z-10 h-[1.8px] w-[26px] snap-center rounded-r-full bg-foreground/70" />
+      <AnimatedTick className="absolute top-1/2 left-1 z-10 h-[2.2px] w-[32px] -translate-y-1/2 snap-center rounded-r-full bg-foreground/95" />
+      <AnimatedTick className="absolute top-5/8 left-1 z-10 h-[1.8px] w-[26px] snap-center rounded-r-full bg-foreground/70" />
+      <AnimatedTick className="absolute top-3/4 left-1 z-10 h-[2.0px] w-[28px] snap-center rounded-r-full bg-foreground/80" />
+      <AnimatedTick className="absolute top-7/8 left-1 z-10 h-[1.8px] w-[26px] snap-center rounded-r-full bg-foreground/70" />
     </div>
   )
 })
@@ -620,23 +633,23 @@ export function Sidebar001Content({
                     title: "Daily Standup",
                     description: "Sync with the engineering team",
                   }
-              : time.hour === "05" &&
-                  time.minute === "00" &&
-                  time.period === "PM"
-                ? {
-                    type: "Event",
-                    title: "Design Review",
-                    description: "Review latest UI mockups with the team",
-                  }
-              : time.hour === "07" &&
-                  (time.minute === "30" || time.minute === "38") &&
-                  time.period === "PM"
-                ? {
-                    type: "Deadline",
-                    title: "Code Freeze",
-                    description: "All PRs must be merged for the sprint",
-                  }
-                : null
+                : time.hour === "05" &&
+                    time.minute === "00" &&
+                    time.period === "PM"
+                  ? {
+                      type: "Event",
+                      title: "Design Review",
+                      description: "Review latest UI mockups with the team",
+                    }
+                  : time.hour === "07" &&
+                      (time.minute === "30" || time.minute === "38") &&
+                      time.period === "PM"
+                    ? {
+                        type: "Deadline",
+                        title: "Code Freeze",
+                        description: "All PRs must be merged for the sprint",
+                      }
+                    : null
           }
         />
       </div>

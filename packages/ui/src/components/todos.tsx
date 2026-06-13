@@ -29,23 +29,26 @@ const tasks = [
 
 export const Todos = () => {
   return (
-    <main className="flex flex-col gap-4">
-      {tasks.map((task) => (
-        <TodoCard
-          key={task.id}
-          heading={task.title}
-          priority={task.priority}
-          description={task.description}
-          endDate={task.dueDate}
-        >
-          {task.assignee && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <div className="size-2 rounded-full bg-primary/20" />
-              <span className="line-clamp-1">{task.assignee}</span>
-            </div>
-          )}
-        </TodoCard>
-      ))}
+    <main className="flex w-full flex-col gap-2">
+      <h2 className="global-heading">Tasks To Do</h2>
+      <section className="grid w-full grid-cols-2 grid-rows-2 gap-1.5">
+        {tasks.map((task) => (
+          <TodoCard
+            key={task.id}
+            heading={task.title}
+            priority={task.priority}
+            description={task.description}
+            endDate={task.dueDate}
+          >
+            {task.assignee && (
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <div className="size-2 rounded-full bg-primary/20" />
+                <span className="line-clamp-1">{task.assignee}</span>
+              </div>
+            )}
+          </TodoCard>
+        ))}
+      </section>
     </main>
   )
 }
