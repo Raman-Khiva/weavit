@@ -1,6 +1,6 @@
 "use client"
 
-import { cn } from "@workspace/ui/lib/utils.ts"
+import { cn } from "@workspace/ui/lib/utils"
 import { Menu } from "lucide-react"
 import {
   AnimatePresence,

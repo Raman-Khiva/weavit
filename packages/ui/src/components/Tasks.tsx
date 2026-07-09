@@ -5,7 +5,6 @@ import { cn } from "@workspace/ui/lib/utils"
 import { motion } from "framer-motion"
 import { Calendar, CheckCircle2, Clock } from "lucide-react"
 import { PerformanceCard } from "@workspace/ui/components/PerformanceCard"
-import { StreakTracker } from "@workspace/ui/components/kibo-ui/StreakTracker"
 import { Loader } from "@workspace/ui/components/loader"
 
 interface TaskProps {
@@ -69,9 +68,7 @@ export function Task({
           </CardContent>
 
           {/* Slot for Today's progress and Streak (User provided) */}
-          <div className="w-full">
-            <StreakTracker />
-          </div>
+          <div className="w-full"></div>
         </div>
 
         <div className="">
