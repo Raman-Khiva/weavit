@@ -191,7 +191,7 @@ export const AccordionApp: FC<AccordionProps> = ({ items }) => {
   const openIndex = defaultItems.findIndex((item) => item.id === openId)
 
   return (
-    <div className="flex w-full flex-col items-center justify-center px-2 transition-colors duration-500">
+    <div className="flex w-full flex-col items-center transition-colors duration-500">
       <h2 className="global-heading mb-3 w-full">Drafts</h2>
       <ul className="w-full max-w-md min-w-xs">
         {defaultItems.map((item, index) => (

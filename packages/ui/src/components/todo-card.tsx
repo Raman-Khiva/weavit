@@ -28,7 +28,7 @@ export const TodoCard = React.forwardRef<HTMLDivElement, TodoCardProps>(
       <div
         ref={ref}
         className={cn(
-          "flex max-w-sm min-w-60 flex-col gap-2 rounded-md border bg-background p-3 shadow-xs",
+          "flex h-full max-w-sm min-w-60 flex-col gap-2 rounded-md border bg-background p-3 shadow-xs",
           className
         )}
         {...props}

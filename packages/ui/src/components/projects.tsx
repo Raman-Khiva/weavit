@@ -2,7 +2,7 @@ import { ProjectCard } from "@workspace/ui/components/project-card"
 
 export const Projects = () => {
   return (
-    <main className="h-full w-full px-4 py-1">
+    <main className="h-full w-full">
       <h2 className="global-heading mb-3">Ongoing Projects</h2>
       <div className="flex w-full gap-3">
         <ProjectCard

@@ -35,20 +35,20 @@ export default function Page() {
       <ResizablePanelGroup orientation="vertical" className="h-full w-full">
         <ResizablePanel defaultSize={"60%"} className="">
           <ResizablePanelGroup className="" orientation="horizontal">
-            <ResizablePanel defaultSize={"28%"} className="h-full">
-              <div className="flex h-full w-full justify-center px-4 pb-2">
+            <ResizablePanel defaultSize={"28%"} className="m-2 w-full">
+              <div className="flex h-full w-full flex-1 justify-center overflow-hidden rounded-lg border border-border p-4">
                 <Habits />
               </div>
             </ResizablePanel>
             <ResizableHandle />
-            <ResizablePanel className="w-full" defaultSize={"44%"}>
-              <div className="flex w-full flex-1 justify-center overflow-hidden px-4 pb-4">
+            <ResizablePanel className="m-2 w-full" defaultSize={"44%"}>
+              <div className="flex h-full w-full flex-1 justify-center overflow-hidden rounded-lg border border-border p-4">
                 <Todos />
               </div>
             </ResizablePanel>
             <ResizableHandle />
-            <ResizablePanel defaultSize={"28%"}>
-              <div className="flex w-full flex-1 justify-center overflow-hidden px-4 pb-4">
+            <ResizablePanel className="m-2 w-full" defaultSize={"28%"}>
+              <div className="flex h-full w-full flex-1 justify-center overflow-hidden rounded-lg border border-border p-4">
                 <Drafts />
               </div>
             </ResizablePanel>
@@ -57,8 +57,8 @@ export default function Page() {
         <ResizableHandle />
         <ResizablePanel>
           <ResizablePanelGroup orientation="horizontal">
-            <ResizablePanel defaultSize={"60%"}>
-              <div className="flex-1 overflow-hidden px-4 pb-4">
+            <ResizablePanel className="m-2 w-fit" defaultSize={"60%"}>
+              <div className="flex h-full w-full flex-1 justify-center overflow-hidden rounded-lg border border-border p-4">
                 <Projects />
               </div>
             </ResizablePanel>

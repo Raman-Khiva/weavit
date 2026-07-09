@@ -25,13 +25,21 @@ const tasks = [
     dueDate: "2024-04-10",
     description: "Draft API documentation using Swagger",
   },
+  {
+    id: "1",
+    title: "Add authentication",
+    priority: "high",
+    assignee: "John Doe",
+    dueDate: "2024-04-01",
+    description: "Implement OAuth2 with Google and GitHub providers",
+  },
 ]
 
 export const Todos = () => {
   return (
-    <main className="flex w-full flex-col gap-2">
+    <main className="flex h-full w-full flex-col gap-4">
       <h2 className="global-heading">Tasks To Do</h2>
-      <section className="grid w-full grid-cols-2 grid-rows-2 gap-1.5">
+      <section className="grid h-full w-full grid-cols-2 grid-rows-2 gap-4">
         {tasks.map((task) => (
           <TodoCard
             key={task.id}

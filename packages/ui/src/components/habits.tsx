@@ -42,7 +42,7 @@ export const Habit = ({
 }: HabitProps) => {
   const [done, setDone] = useState<boolean>(false)
   return (
-    <Card className="w-full min-w-20 gap-0 rounded-lg bg-background px-4">
+    <Card className="flex h-32 w-full min-w-20 justify-between gap-0 rounded-lg bg-background px-4">
       <CardHeader className="relative px-0 pb-1">
         {gap && (
           <Badge variant="destructive" className="absolute top-0 right-0">
@@ -108,7 +108,7 @@ const DEFAULT_HABITS: HabitProps[] = [
 
 export const Habits = ({ habits = DEFAULT_HABITS }: HabitsProps) => {
   return (
-    <main className="flex h-full w-full max-w-sm min-w-8 flex-col gap-2 px-2">
+    <main className="flex h-full w-full max-w-sm min-w-8 flex-col gap-2">
       <h2 className="global-heading">Daily Tasks</h2>
       {habits.map((habit, index) => (
         <Habit key={index} {...habit} />

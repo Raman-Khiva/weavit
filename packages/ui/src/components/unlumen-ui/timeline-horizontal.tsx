@@ -351,6 +351,24 @@ export function TimelineHorizontalContent({
     handleScroll()
   }, [handleScroll])
 
+  // Sync to current time on mount
+  useEffect(() => {
+    const vp = viewportRef.current
+    if (!vp) return
+
+    const now = new Date()
+    const hours = now.getHours()
+    const minutes = now.getMinutes()
+    
+    // 96px per hour, 1.6px per minute
+    const scrollAmount = hours * 96 + minutes * 1.6
+    
+    // Use setTimeout to ensure the DOM has painted and snapping doesn't interfere
+    setTimeout(() => {
+      vp.scrollTo({ left: scrollAmount, behavior: "instant" })
+    }, 50)
+  }, [viewportRef])
+
   return (
     <div className="relative flex h-full w-full flex-1 flex-col overflow-hidden">
       {/* TimeCard Area Above */}
