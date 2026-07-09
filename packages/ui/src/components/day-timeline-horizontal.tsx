@@ -19,14 +19,14 @@ export const DayTimelineHorizontal = () => {
   return (
     <TimelineHorizontal className="h-44 w-full bg-transparent">
       <TimelineHorizontalContent className="py-0">
-        <TimelineHorizontalSection className="ml-0">
+        <TimelineHorizontalSection className="mx-0">
           {hours.map((item) => (
             <TimelineHorizontalItem
               key={item.href}
               href={item.href}
               label={item.label}
-              isActive={true}
-              className="w-24 text-xs text-muted-foreground"
+              isActive={false}
+              className="w-36 text-xs text-muted-foreground"
             />
           ))}
         </TimelineHorizontalSection>

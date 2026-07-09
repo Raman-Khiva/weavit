@@ -275,19 +275,23 @@ export const TimelineHorizontalItem = memo(function TimelineHorizontalItem({
 
   return (
     <div ref={itemRef} className={cn("relative shrink-0", className)}>
-      <motion.div className="absolute top-1 -left-4 z-10 flex snap-center flex-col items-center justify-start gap-1">
+      <motion.div className="absolute top-1 left-0 z-10 flex -translate-x-[50%] snap-center flex-col items-center justify-start gap-1">
         <AnimatedTickHorizontal className="h-[25px] w-[2.6px] snap-center rounded-b-full bg-foreground/90" />
         <AnimatedLabelHorizontal className="pointer-events-none snap-center whitespace-nowrap">
           {label}:00
         </AnimatedLabelHorizontal>
       </motion.div>
-      <AnimatedTickHorizontal className="absolute top-1 left-1/8 z-10 h-[18px] w-[1.8px] snap-center rounded-b-full bg-foreground/70" />
-      <AnimatedTickHorizontal className="absolute top-1 left-1/4 z-10 h-[18px] w-[2.0px] snap-center rounded-b-full bg-foreground/80" />
-      <AnimatedTickHorizontal className="absolute top-1 left-3/8 z-10 h-[16px] w-[1.8px] snap-center rounded-b-full bg-foreground/70" />
-      <AnimatedTickHorizontal className="absolute top-1 left-1/2 z-10 h-[22px] w-[2.2px] -translate-x-1/2 snap-center rounded-b-full bg-foreground/95" />
-      <AnimatedTickHorizontal className="absolute top-1 left-5/8 z-10 h-[16px] w-[1.8px] snap-center rounded-b-full bg-foreground/70" />
-      <AnimatedTickHorizontal className="absolute top-1 left-3/4 z-10 h-[18px] w-[2.0px] snap-center rounded-b-full bg-foreground/80" />
-      <AnimatedTickHorizontal className="absolute top-1 left-7/8 z-10 h-[16px] w-[1.8px] snap-center rounded-b-full bg-foreground/70" />
+      <AnimatedTickHorizontal className="absolute top-1 left-1/12 z-10 h-[16px] w-[1.8px] -translate-x-[50%] snap-center rounded-b-full bg-foreground/70" />
+      <AnimatedTickHorizontal className="absolute top-1 left-1/6 z-10 h-[16px] w-[1.8px] -translate-x-[50%] snap-center rounded-b-full bg-foreground/70" />
+      <AnimatedTickHorizontal className="absolute top-1 left-1/4 z-10 h-[18px] w-[2.0px] -translate-x-[50%] snap-center rounded-b-full bg-foreground/80" />
+      <AnimatedTickHorizontal className="absolute top-1 left-1/3 z-10 h-[16px] w-[1.8px] -translate-x-[50%] snap-center rounded-b-full bg-foreground/70" />
+      <AnimatedTickHorizontal className="absolute top-1 left-5/12 z-10 h-[16px] w-[1.8px] -translate-x-[50%] snap-center rounded-b-full bg-foreground/70" />
+      <AnimatedTickHorizontal className="absolute top-1 left-1/2 z-10 h-[22px] w-[2.2px] -translate-x-[50%] snap-center rounded-b-full bg-foreground/95" />
+      <AnimatedTickHorizontal className="absolute top-1 left-7/12 z-10 h-[16px] w-[1.8px] -translate-x-[50%] snap-center rounded-b-full bg-foreground/70" />
+      <AnimatedTickHorizontal className="absolute top-1 left-2/3 z-10 h-[16px] w-[1.8px] -translate-x-[50%] snap-center rounded-b-full bg-foreground/70" />
+      <AnimatedTickHorizontal className="absolute top-1 left-3/4 z-10 h-[18px] w-[2.0px] -translate-x-[50%] snap-center rounded-b-full bg-foreground/80" />
+      <AnimatedTickHorizontal className="absolute top-1 left-5/6 z-10 h-[16px] w-[1.8px] -translate-x-[50%] snap-center rounded-b-full bg-foreground/70" />
+      <AnimatedTickHorizontal className="absolute top-1 left-11/12 z-10 h-[16px] w-[1.8px] -translate-x-[50%] snap-center rounded-b-full bg-foreground/70" />
     </div>
   )
 })
@@ -325,7 +329,7 @@ export function TimelineHorizontalContent({
     const containerRect = container.getBoundingClientRect()
 
     const xCenter = vpRect.left + vpRect.width / 2 - containerRect.left
-    const hourFloat = xCenter / 96 // 96px is w-24
+    const hourFloat = xCenter / 144 // 144px is w-24
 
     let totalMinutes = Math.round(hourFloat * 60)
     totalMinutes = Math.max(0, Math.min(23 * 60 + 59, totalMinutes))
@@ -354,20 +358,29 @@ export function TimelineHorizontalContent({
   // Sync to current time on mount
   useEffect(() => {
     const vp = viewportRef.current
-    if (!vp) return
+    const container = containerRef.current
+    if (!vp || !container) return
 
     const now = new Date()
     const hours = now.getHours()
     const minutes = now.getMinutes()
-    
-    // 96px per hour, 1.6px per minute
-    const scrollAmount = hours * 96 + minutes * 1.6
-    
+
+    // 144px per hour, 2.4px per minute
+    const targetX = hours * 144 + minutes * 2.4
+
     // Use setTimeout to ensure the DOM has painted and snapping doesn't interfere
     setTimeout(() => {
-      vp.scrollTo({ left: scrollAmount, behavior: "instant" })
+      const vpRect = vp.getBoundingClientRect()
+      const containerRect = container.getBoundingClientRect()
+
+      // Current center x relative to container
+      const currentXCenter = vpRect.left + vpRect.width / 2 - containerRect.left
+
+      // We want to scroll by the difference so that targetX becomes the new center
+      const diff = targetX - currentXCenter
+      vp.scrollBy({ left: diff, behavior: "instant" })
     }, 50)
-  }, [viewportRef])
+  }, [viewportRef, containerRef])
 
   return (
     <div className="relative flex h-full w-full flex-1 flex-col overflow-hidden">
