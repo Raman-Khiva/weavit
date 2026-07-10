@@ -20,7 +20,7 @@ export default function Page({
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="">
         <header className="flex h-16 shrink-0 items-center gap-2">
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
@@ -43,7 +43,7 @@ export default function Page({
             </Breadcrumb>
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">Workspace</div>
+        <div className="w-full flex-1 overflow-y-auto">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   )

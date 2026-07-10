@@ -26,6 +26,10 @@ import {
   PieChartIcon,
   MapIcon,
   TerminalIcon,
+  CheckSquare,
+  FileEdit,
+  Calendar,
+  Clock,
 } from "lucide-react"
 
 const data = {
@@ -56,21 +60,27 @@ const data = {
       ],
     },
     {
-      title: "Models",
-      url: "#",
-      icon: <BotIcon />,
+      title: "Todos",
+      url: "/workspace/todos",
+      icon: <CheckSquare />,
       items: [],
     },
     {
-      title: "Documentation",
-      url: "#",
-      icon: <BookOpenIcon />,
+      title: "Drafts",
+      url: "/workspace/drafts",
+      icon: <FileEdit />,
       items: [],
     },
     {
-      title: "Settings",
-      url: "#",
-      icon: <Settings2Icon />,
+      title: "Deadlines",
+      url: "/workspace/deadlines",
+      icon: <Calendar />,
+      items: [],
+    },
+    {
+      title: "Timeline",
+      url: "/workspace/timeline",
+      icon: <Clock />,
       items: [],
     },
   ],
