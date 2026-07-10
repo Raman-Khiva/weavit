@@ -1,4 +1,5 @@
 import { TodoCard } from "@workspace/ui/components/todo-card"
+import Link from "next/link"
 
 const tasks = [
   {
@@ -38,7 +39,15 @@ const tasks = [
 export const Todos = () => {
   return (
     <main className="flex h-full w-full flex-col gap-4">
-      <h2 className="global-heading">Tasks To Do</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="global-heading">Tasks To Do</h2>
+        <Link
+          href="/workspace/todos"
+          className="text-sm text-muted-foreground hover:underline"
+        >
+          View all
+        </Link>
+      </div>
       <section className="grid h-full w-full grid-cols-2 grid-rows-2 gap-4">
         {tasks.map((task) => (
           <TodoCard

@@ -17,7 +17,7 @@ const hours = Array.from({ length: 24 }, (_, i) => {
 
 export const DayTimelineHorizontal = () => {
   return (
-    <TimelineHorizontal className="h-44 w-full bg-transparent">
+    <TimelineHorizontal className="h-26 w-full bg-transparent">
       <TimelineHorizontalContent className="py-0">
         <TimelineHorizontalSection className="mx-0">
           {hours.map((item) => (

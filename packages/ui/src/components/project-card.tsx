@@ -72,9 +72,9 @@ export const ProjectCard = ({
               {date}
             </p>
           </div>
-          <Button variant="link" className="hover:text-secondary-foreground/90">
+          <span className="cursor-pointer text-sm font-medium hover:text-secondary-foreground/90 hover:underline">
             Details
-          </Button>
+          </span>
         </CardFooter>
       )}
     </Card>
