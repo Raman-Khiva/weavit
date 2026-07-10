@@ -12,7 +12,7 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { useState } from "react"
 import { CheckCircle, Flame } from "lucide-react"
-import Link from "next/link"
+
 
 export interface HabitProps {
   title: string
@@ -52,9 +52,9 @@ export const Habit = ({
         )}
         <div className="flex flex-row items-center gap-2">
           <Status done={done} />
-          <Link href={`/workspace/habits/${title.toLowerCase().replace(/\s+/g, '-')}`} className="hover:underline">
+          <a href={`/workspace/habits/${title.toLowerCase().replace(/\s+/g, '-')}`} className="hover:underline">
             <CardTitle className="font-bold">{title}</CardTitle>
-          </Link>
+          </a>
         </div>
       </CardHeader>
       {description && (
@@ -114,12 +114,12 @@ export const Habits = ({ habits = DEFAULT_HABITS }: HabitsProps) => {
     <main className="flex h-full w-full max-w-sm min-w-8 flex-col gap-2">
       <div className="flex items-center justify-between">
         <h2 className="global-heading">Daily Tasks</h2>
-        <Link
+        <a
           href="/workspace/habits"
           className="text-sm text-muted-foreground hover:underline"
         >
           View all
-        </Link>
+        </a>
       </div>
       {habits.map((habit, index) => (
         <Habit key={index} {...habit} />

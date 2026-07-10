@@ -15,7 +15,18 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@workspace/ui/components/sidebar"
-import { TerminalSquareIcon, BotIcon, BookOpenIcon, Settings2Icon, LifeBuoyIcon, SendIcon, FrameIcon, PieChartIcon, MapIcon, TerminalIcon } from "lucide-react"
+import {
+  TerminalSquareIcon,
+  BotIcon,
+  BookOpenIcon,
+  Settings2Icon,
+  LifeBuoyIcon,
+  SendIcon,
+  FrameIcon,
+  PieChartIcon,
+  MapIcon,
+  TerminalIcon,
+} from "lucide-react"
 
 const data = {
   user: {
@@ -25,145 +36,55 @@ const data = {
   },
   navMain: [
     {
-      title: "Playground",
-      url: "#",
-      icon: (
-        <TerminalSquareIcon
-        />
-      ),
+      title: "Daily Tasks",
+      url: "/workspace/habits",
+      icon: <TerminalSquareIcon />,
       isActive: true,
       items: [
         {
-          title: "History",
-          url: "#",
+          title: "Reading",
+          url: "/workspace/habits/reading",
         },
         {
-          title: "Starred",
-          url: "#",
+          title: "Meditation",
+          url: "/workspace/habits/meditation",
         },
         {
-          title: "Settings",
-          url: "#",
+          title: "Exercise",
+          url: "/workspace/habits/exercise",
         },
       ],
     },
     {
       title: "Models",
       url: "#",
-      icon: (
-        <BotIcon
-        />
-      ),
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
+      icon: <BotIcon />,
+      items: [],
     },
     {
       title: "Documentation",
       url: "#",
-      icon: (
-        <BookOpenIcon
-        />
-      ),
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
+      icon: <BookOpenIcon />,
+      items: [],
     },
     {
       title: "Settings",
       url: "#",
-      icon: (
-        <Settings2Icon
-        />
-      ),
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
+      icon: <Settings2Icon />,
+      items: [],
     },
   ],
-  navSecondary: [
-    {
-      title: "Support",
-      url: "#",
-      icon: (
-        <LifeBuoyIcon
-        />
-      ),
-    },
-    {
-      title: "Feedback",
-      url: "#",
-      icon: (
-        <SendIcon
-        />
-      ),
-    },
-  ],
+  navSecondary: [],
   projects: [
     {
-      name: "Design Engineering",
-      url: "#",
-      icon: (
-        <FrameIcon
-        />
-      ),
+      name: "Project Alpha",
+      url: "/workspace/projects/project-alpha",
+      icon: <FrameIcon />,
     },
     {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: (
-        <PieChartIcon
-        />
-      ),
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: (
-        <MapIcon
-        />
-      ),
+      name: "Project Beta",
+      url: "/workspace/projects/project-beta",
+      icon: <PieChartIcon />,
     },
   ],
 }

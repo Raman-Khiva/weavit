@@ -3,7 +3,6 @@ import { Layers, Send } from "lucide-react"
 import { AccordionApp } from "@workspace/ui/components/animated-accordion"
 import { PiHandTap } from "react-icons/pi"
 import { IoIosTimer } from "react-icons/io"
-import Link from "next/link"
 
 const items = [
   {
@@ -50,12 +49,12 @@ export const Drafts = () => {
     <main className="flex h-full w-full flex-col">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="global-heading">Drafts</h2>
-        <Link
+        <a
           href="/workspace/drafts"
           className="text-sm text-muted-foreground hover:underline"
         >
           View all
-        </Link>
+        </a>
       </div>
       <AccordionApp items={items} />
     </main>
