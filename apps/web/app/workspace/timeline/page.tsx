@@ -1,7 +1,9 @@
+import { AgendaTimeline } from "@workspace/ui/components/agenda-timeline"
+
 const Page = () => {
   return (
-    <div className="flex h-full w-full items-center justify-center">
-      <h1 className="text-2xl font-bold">Timeline</h1>
+    <div className="flex h-full w-full flex-col px-10 py-12">
+      <AgendaTimeline />
     </div>
   )
 }
