@@ -50,6 +50,14 @@
     --font-sans: var(--font-sans);
     --animate-skeleton: skeleton 2s -1s infinite linear;
     --color-destructive-foreground: var(--destructive-foreground);
+    --color-invert-foreground: var(--invert-foreground);
+    --color-invert: var(--invert);
+    --color-warning-foreground: var(--warning-foreground);
+    --color-warning: var(--warning);
+    --color-info-foreground: var(--info-foreground);
+    --color-info: var(--info);
+    --color-success-foreground: var(--success-foreground);
+    --color-success: var(--success);
   @keyframes skeleton {
   to {
     background-position: -200% 0;
@@ -91,6 +99,14 @@
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.708 0 0);
     --destructive-foreground: var(--color-red-700);
+    --success: var(--color-emerald-500);
+    --success-foreground: var(--color-emerald-900);
+    --info: var(--color-violet-500);
+    --info-foreground: var(--color-violet-900);
+    --warning: var(--color-yellow-500);
+    --warning-foreground: var(--color-yellow-900);
+    --invert: var(--color-zinc-900);
+    --invert-foreground: var(--color-zinc-50);
 }
 
 .dark {
@@ -126,6 +142,14 @@
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.556 0 0);
     --destructive-foreground: var(--color-red-400);
+    --success: var(--color-emerald-500);
+    --success-foreground: var(--color-emerald-600);
+    --info: var(--color-violet-500);
+    --info-foreground: var(--color-violet-600);
+    --warning: var(--color-yellow-500);
+    --warning-foreground: var(--color-yellow-600);
+    --invert: var(--color-zinc-700);
+    --invert-foreground: var(--color-zinc-50);
 }
 
 @layer base {
