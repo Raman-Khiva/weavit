@@ -84,17 +84,43 @@ const data = {
       items: [],
     },
   ],
-  navSecondary: [],
+  navSecondary: [
+    {
+      title: "Settings",
+      url: "/workspace/settings",
+      icon: <Settings2Icon />,
+    },
+  ],
   projects: [
     {
       name: "Project Alpha",
       url: "/workspace/projects/project-alpha",
       icon: <FrameIcon />,
+      items: [
+        {
+          title: "Tasks",
+          url: "/workspace/projects/project-alpha/tasks",
+        },
+        {
+          title: "Timeline",
+          url: "/workspace/projects/project-alpha/timeline",
+        },
+      ],
     },
     {
       name: "Project Beta",
       url: "/workspace/projects/project-beta",
       icon: <PieChartIcon />,
+      items: [
+        {
+          title: "Tasks",
+          url: "/workspace/projects/project-beta/tasks",
+        },
+        {
+          title: "Timeline",
+          url: "/workspace/projects/project-beta/timeline",
+        },
+      ],
     },
   ],
 }

@@ -1,12 +1,10 @@
 "use client"
 
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu"
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@workspace/ui/components/collapsible"
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -14,9 +12,12 @@ import {
   SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   useSidebar,
 } from "@workspace/ui/components/sidebar"
-import { MoreHorizontalIcon, FolderIcon, ShareIcon, Trash2Icon } from "lucide-react"
+import { ChevronRightIcon, MoreHorizontalIcon } from "lucide-react"
 
 export function NavProjects({
   projects,
@@ -25,6 +26,10 @@ export function NavProjects({
     name: string
     url: string
     icon: React.ReactNode
+    items?: {
+      title: string
+      url: string
+    }[]
   }[]
 }) {
   const { isMobile } = useSidebar()
@@ -34,51 +39,44 @@ export function NavProjects({
       <SidebarGroupLabel>Projects</SidebarGroupLabel>
       <SidebarMenu>
         {projects.map((item) => (
-          <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton asChild>
-              <a href={item.url}>
-                {item.icon}
-                <span>{item.name}</span>
-              </a>
-            </SidebarMenuButton>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuAction
-                  showOnHover
-                  className="aria-expanded:bg-muted"
-                >
-                  <MoreHorizontalIcon
-                  />
-                  <span className="sr-only">More</span>
-                </SidebarMenuAction>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="w-48"
-                side={isMobile ? "bottom" : "right"}
-                align={isMobile ? "end" : "start"}
-              >
-                <DropdownMenuItem>
-                  <FolderIcon className="text-muted-foreground" />
-                  <span>View Project</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <ShareIcon className="text-muted-foreground" />
-                  <span>Share Project</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Trash2Icon className="text-muted-foreground" />
-                  <span>Delete Project</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarMenuItem>
+          <Collapsible key={item.name} asChild defaultOpen={false}>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip={item.name}>
+                <a href={item.url}>
+                  {item.icon}
+                  <span>{item.name}</span>
+                </a>
+              </SidebarMenuButton>
+              {item.items?.length ? (
+                <>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuAction className="transition-transform duration-200 data-[state=open]:rotate-90">
+                      <ChevronRightIcon />
+                      <span className="sr-only">Toggle</span>
+                    </SidebarMenuAction>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
+                    <SidebarMenuSub>
+                      {item.items?.map((subItem) => (
+                        <SidebarMenuSubItem key={subItem.title}>
+                          <SidebarMenuSubButton asChild>
+                            <a href={subItem.url}>
+                              <span>{subItem.title}</span>
+                            </a>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </>
+              ) : null}
+            </SidebarMenuItem>
+          </Collapsible>
         ))}
         <SidebarMenuItem>
-          <SidebarMenuButton>
-            <MoreHorizontalIcon
-            />
-            <span>More</span>
+          <SidebarMenuButton className="text-sidebar-foreground/70">
+            <MoreHorizontalIcon />
+            <span>More Projects</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>

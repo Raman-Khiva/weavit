@@ -163,7 +163,7 @@ export function ProjectPhases() {
                         <div className="flex-1">
                           <Progress value={step.progress} className="h-1.5" />
                         </div>
-                        <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-open/collapsible:rotate-90" />
+                        <ChevronRightIcon className="size-4 shrink-0 cursor-pointer text-muted-foreground transition-transform duration-200 group-data-open/collapsible:rotate-90 hover:text-foreground" />
                       </div>
 
                       <div className="flex w-full flex-wrap items-center justify-between gap-4 pr-8">
@@ -191,7 +191,7 @@ export function ProjectPhases() {
                       </div>
                     </FrameHeader>
                   </CollapsibleTrigger>
-                  <CollapsibleContent className="overflow-hidden">
+                  <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
                     <ProjectTasks />
                   </CollapsibleContent>
                 </Collapsible>
