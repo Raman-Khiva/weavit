@@ -13,7 +13,6 @@ import { Button } from "@workspace/ui/components/button"
 import { useState } from "react"
 import { CheckCircle, Flame } from "lucide-react"
 
-
 export interface HabitProps {
   title: string
   category?: string
@@ -52,7 +51,10 @@ export const Habit = ({
         )}
         <div className="flex flex-row items-center gap-2">
           <Status done={done} />
-          <a href={`/workspace/habits/${title.toLowerCase().replace(/\s+/g, '-')}`} className="hover:underline">
+          <a
+            href={`/workspace/habits/${title.toLowerCase().replace(/\s+/g, "-")}`}
+            className="hover:underline"
+          >
             <CardTitle className="font-bold">{title}</CardTitle>
           </a>
         </div>

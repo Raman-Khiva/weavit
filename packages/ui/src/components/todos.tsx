@@ -25,14 +25,6 @@ const tasks = [
     dueDate: "2024-04-10",
     description: "Draft API documentation using Swagger",
   },
-  {
-    id: "1",
-    title: "Add authentication",
-    priority: "high",
-    assignee: "John Doe",
-    dueDate: "2024-04-01",
-    description: "Implement OAuth2 with Google and GitHub providers",
-  },
 ]
 
 export const Todos = () => {
@@ -47,7 +39,7 @@ export const Todos = () => {
           View all
         </a>
       </div>
-      <section className="grid h-full w-full grid-cols-2 grid-rows-2 gap-4">
+      <section className="grid h-full w-full grid-cols-1 grid-rows-3 gap-4">
         {tasks.map((task) => (
           <TodoCard
             key={task.id}
@@ -55,14 +47,7 @@ export const Todos = () => {
             priority={task.priority}
             description={task.description}
             endDate={task.dueDate}
-          >
-            {task.assignee && (
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <div className="size-2 rounded-full bg-primary/20" />
-                <span className="line-clamp-1">{task.assignee}</span>
-              </div>
-            )}
-          </TodoCard>
+          />
         ))}
       </section>
     </main>

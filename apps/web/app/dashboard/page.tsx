@@ -16,7 +16,8 @@ import { Projects } from "@workspace/ui/components/projects"
 import { Kanban, KanbanBoard } from "@workspace/ui/components/kanban"
 import { Todos } from "@workspace/ui/components/todos"
 import { DayTimelineHorizontal } from "@workspace/ui/components/day-timeline-horizontal"
-import { Drafts } from "@workspace/ui/components/drafts"
+import { RecentActivity } from "@workspace/ui/components/recent-activity"
+import { Notifications } from "@workspace/ui/components/notifications"
 export default function Page() {
   return (
     <main className="relative flex h-screen w-full flex-col justify-between bg-background pb-19">
@@ -35,21 +36,27 @@ export default function Page() {
       <ResizablePanelGroup orientation="vertical" className="h-full w-full">
         <ResizablePanel defaultSize={"60%"} className="">
           <ResizablePanelGroup className="" orientation="horizontal">
-            <ResizablePanel defaultSize={"28%"} className="m-2 w-full">
+            <ResizablePanel defaultSize={"25%"} className="m-2 w-full">
               <div className="flex h-full w-full flex-1 justify-center overflow-hidden rounded-lg border border-border p-4">
                 <Habits />
               </div>
             </ResizablePanel>
             <ResizableHandle />
-            <ResizablePanel className="m-2 w-full" defaultSize={"44%"}>
-              <div className="flex h-full w-full flex-1 justify-center overflow-hidden rounded-lg border border-border p-4">
+            <ResizablePanel className="m-2 w-full" defaultSize={"25%"}>
+              <div className="flex h-full flex-1 justify-center overflow-hidden rounded-lg border border-border p-4">
                 <Todos />
               </div>
             </ResizablePanel>
             <ResizableHandle />
-            <ResizablePanel className="m-2 w-full" defaultSize={"28%"}>
+            <ResizablePanel className="m-2 w-full" defaultSize={"25%"}>
               <div className="flex h-full w-full flex-1 justify-center overflow-hidden rounded-lg border border-border p-4">
-                <Drafts />
+                <RecentActivity />
+              </div>
+            </ResizablePanel>
+
+            <ResizablePanel className="m-2 w-full" defaultSize={"25%"}>
+              <div className="flex h-full w-full flex-1 justify-center overflow-hidden rounded-lg border border-border p-4">
+                <Notifications />
               </div>
             </ResizablePanel>
           </ResizablePanelGroup>

@@ -27,6 +27,13 @@ export const Projects = () => {
             date="Nov 12"
           />
         </a>
+        <a href="/workspace/projects/project-gamma" className="block flex-1">
+          <ProjectCard
+            title="Project Gamma"
+            description="A major initiative for Q3."
+            date="Oct 24"
+          />
+        </a>
       </div>
     </main>
   )
