@@ -11,7 +11,16 @@ import { Checkbox } from "@workspace/ui/components/checkbox"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { useState } from "react"
-import { CheckCircle, Flame } from "lucide-react"
+import { CheckCircle, Flame, Plus } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@workspace/ui/components/dialog"
+import { Input } from "@workspace/ui/components/input"
+import { Label } from "@workspace/ui/components/label"
 
 export interface HabitProps {
   title: string
@@ -111,21 +120,70 @@ const DEFAULT_HABITS: HabitProps[] = [
   },
 ]
 
-export const Habits = ({ habits = DEFAULT_HABITS }: HabitsProps) => {
+export const Habits = ({ habits: initialHabits = DEFAULT_HABITS }: HabitsProps) => {
+  const [habitsList, setHabitsList] = useState<HabitProps[]>(initialHabits)
+  const [newHabitTitle, setNewHabitTitle] = useState("")
+  const [isOpen, setIsOpen] = useState(false)
+
+  const handleAddHabit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newHabitTitle.trim()) return
+
+    const newHabit: HabitProps = {
+      title: newHabitTitle,
+      category: "custom",
+      streak: 0,
+    }
+
+    setHabitsList([...habitsList, newHabit])
+    setNewHabitTitle("")
+    setIsOpen(false)
+  }
+
   return (
     <main className="flex h-full w-full max-w-sm min-w-8 flex-col gap-2">
       <div className="flex items-center justify-between">
         <h2 className="global-heading">Daily Tasks</h2>
-        <a
-          href="/workspace/habits"
-          className="text-sm text-muted-foreground hover:underline"
-        >
-          View all
-        </a>
+        <div className="flex items-center gap-3">
+          <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full">
+                <Plus size={14} />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Habit</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleAddHabit} className="flex flex-col gap-4 py-4">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="habit-title">Habit Name</Label>
+                  <Input
+                    id="habit-title"
+                    placeholder="e.g. Drink Water"
+                    value={newHabitTitle}
+                    onChange={(e) => setNewHabitTitle(e.target.value)}
+                  />
+                </div>
+                <Button type="submit" className="w-full">
+                  Add Habit
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+          <a
+            href="/workspace/habits"
+            className="text-sm text-muted-foreground hover:underline"
+          >
+            View all
+          </a>
+        </div>
       </div>
-      {habits.map((habit, index) => (
-        <Habit key={index} {...habit} />
-      ))}
+      <div className="flex flex-col gap-2 overflow-y-auto pb-4">
+        {habitsList.map((habit, index) => (
+          <Habit key={index} {...habit} />
+        ))}
+      </div>
     </main>
   )
 }
