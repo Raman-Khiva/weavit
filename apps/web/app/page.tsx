@@ -10,7 +10,7 @@ const Page = () => {
     <main className="relative z-20 flex min-h-screen w-full flex-col items-center px-5 py-24 pt-[20vh] text-center">
       <FlickeringGrid
         className="absolute inset-0 right-0 left-0 z-0 w-full"
-        squareSize={4}
+        squareSize={8}
         gridGap={6}
         color="#6B7280"
         maxOpacity={0.08}
