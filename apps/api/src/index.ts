@@ -20,6 +20,14 @@ app.get("/health", (req: Request, res: Response) => {
 app.get("/test", (req: Request, res: Response) => {
   res.status(200).json({ status: "ok", test: "successfull" })
 })
+app.get("/random", (req:Request,res:Response)=>{
+  res.status(200).json({status:"ok", message:"nothing just something random"})
+})
+
+app.get("/anyend", (req:Request,res:Response)=>{
+  res.status(200).json({status:"ok", message:"go back from any end"})
+})
+
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is running on port ${PORT}`)

@@ -1,0 +1,19 @@
+
+services:
+   api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    ports:
+     - "0.0.0.0:4000:4000"
+    volumes:
+     - .:/usr/src/app
+     - root_node_modules:/app/node_modules
+     - api_node_modules:/app/apps/api/node_modules
+
+volumes:
+  root_node_modules: 
+  api_node_modules:
+    
+    
+

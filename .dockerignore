@@ -1,11 +1,49 @@
-packages
-apps/web 
-apps/base
-node_modules
+# Git
 .git
-.next
-dist
-out
-.turbo
 .gitignore
-README.mde
+.github
+
+# Dependencies
+**/node_modules
+.pnpm-store
+.npm
+.yarn
+
+# Build outputs
+**/.next
+**/dist
+**/build
+**/.turbo
+**/.cache
+**/coverage
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Editor
+.vscode
+.idea
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation
+README.md
+AGENTS.md
+
+# Docker
+docker-compose.yml
+
+# Misc
+task-definition.json
