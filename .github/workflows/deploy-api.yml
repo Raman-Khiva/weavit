@@ -28,7 +28,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t weavit-api .
+          docker build -f apps/api/Dockerfile -t weavit-api .
 
       - name: Tag Docker image
         run: |
