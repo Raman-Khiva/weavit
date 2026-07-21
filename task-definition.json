@@ -14,7 +14,18 @@
         }
       ],
       "essential": true,
-      "environment": [],
+      "environment": [
+        {
+          "name": "DOPPLER_TOKEN",
+          "valueFrom": "arn:aws:secretsmanager:ap-south-1:345259854146:secret:weavit-api-dev-doppler-token-LHg6aE"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "DOPPLER_TOKEN",
+          "valueFrom": "arn:aws:secretsmanager:ap-south-1:345259854146:secret:weavit-api-dev-doppler-token-LHg6aE"
+        }
+      ],
       "environmentFiles": [],
       "mountPoints": [],
       "volumesFrom": [],
@@ -41,9 +52,7 @@
     "cpuArchitecture": "X86_64",
     "operatingSystemFamily": "LINUX"
   },
-  "requiresCompatibilities": [
-    "FARGATE"
-  ],
+  "requiresCompatibilities": ["FARGATE"],
   "cpu": "512",
   "memory": "1024",
   "enableFaultInjection": false
