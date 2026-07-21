@@ -1,7 +1,8 @@
-FROM node:22-alpine
-WORKDIR /usr/src/app
-RUN corepack enable
+FROM node:22-alpine 
 
+WORKDIR /app
+
+RUN corepack enable
 
 RUN wget -q -t3 'https://packages.doppler.com/public/cli/rsa.8004D9FF50437357.key' \
     -O /etc/apk/keys/cli@doppler-8004D9FF50437357.rsa.pub && \
@@ -9,19 +10,16 @@ RUN wget -q -t3 'https://packages.doppler.com/public/cli/rsa.8004D9FF50437357.ke
     >> /etc/apk/repositories && \
     apk add --no-cache doppler 
 
-# Copy root package.json and lockfile
-COPY package.json ./
-COPY pnpm-lock.yaml ./
-COPY pnpm-workspace.yaml ./
 
-# Copy the api package.json
-COPY apps/api/package.json ./apps/api/package.json
-COPY packages ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json ./
+COPY apps/web/package.json ./apps/web/package.json
+COPY packages ./packages
 
 RUN pnpm install --frozen-lockfile
-# Copy app source
+
 COPY . .
 
-EXPOSE 4000
+EXPOSE 3000
 
-CMD [ "pnpm","--filter","api","ddev" ]
+CMD [ "pnpm", "--filter","web","ddev" ]
+

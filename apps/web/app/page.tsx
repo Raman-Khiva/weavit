@@ -1,11 +1,24 @@
-import React from "react"
+"use client"
+import React, { useEffect } from "react"
 import Link from "next/link"
 import { Zap } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { FloatingNav } from "../components/floating-nav"
 import { FlickeringGrid } from "@workspace/ui/components/flicking-grid"
+import { useAuth } from "@clerk/nextjs"
 
 const Page = () => {
+  const { getToken } = useAuth()
+
+  useEffect(() => {
+    const callGetToken = async () => {
+      const token = await getToken()
+      console.warn("Token", token)
+    }
+
+    callGetToken()
+  }, [])
+
   return (
     <main className="relative z-20 flex min-h-screen w-full flex-col items-center px-5 py-24 pt-[20vh] text-center">
       <FlickeringGrid

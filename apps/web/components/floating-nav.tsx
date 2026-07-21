@@ -1,4 +1,5 @@
 import React from "react"
+import { UserButton, Show, SignInButton, SignUpButton } from "@clerk/nextjs"
 import Link from "next/link"
 
 export const FloatingNav = () => {
@@ -29,18 +30,17 @@ export const FloatingNav = () => {
           </Link>
         </div>
         <div className="ml-2 flex items-center gap-5 sm:ml-4">
-          <Link
-            href="/login"
-            className="hidden text-sm font-medium transition-colors hover:text-foreground sm:block"
-          >
-            Log in
-          </Link>
-          <Link
-            href="/workspace"
-            className="rounded-full bg-foreground/95 px-4 py-1.5 text-sm font-medium text-background transition-colors hover:bg-foreground/90"
-          >
-            Get Started
-          </Link>
+          <Show when="signed-out">
+            <SignInButton />
+            <SignUpButton>
+              <button className="h-10 cursor-pointer rounded-full bg-[#6c47ff] px-4 text-sm font-medium text-white sm:h-12 sm:px-5 sm:text-base">
+                Sign Up
+              </button>
+            </SignUpButton>
+          </Show>
+          <Show when="signed-in">
+            <UserButton />
+          </Show>
         </div>
       </nav>
     </div>

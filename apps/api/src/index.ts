@@ -1,4 +1,6 @@
 import express, { Request, Response } from "express"
+import { clerkMiddleware, getAuth } from "@clerk/express"
+
 import cors from "cors"
 
 const app = express()
@@ -6,6 +8,13 @@ const PORT = Number(process.env.PORT) || 4000
 
 app.use(cors())
 app.use(express.json())
+
+app.use(clerkMiddleware())
+
+app.get('/auth-status',(req:Request,res:Response)=>{
+  const {isAuthenticated, userId} = getAuth(req);
+  res.json({message:`user is ${isAuthenticated? "" : "not "}Authenticated`})
+})
 
 app.get("/", (req: Request, res: Response) => {
   res.json({ message: "Hello from Express API" })
@@ -26,6 +35,10 @@ app.get("/random", (req:Request,res:Response)=>{
 
 app.get("/anyend", (req:Request,res:Response)=>{
   res.status(200).json({status:"ok", message:"go back from any end"})
+})
+
+app.get("/doppler-test",(req:Request,res:Response)=>{
+  res.status(200).json({status:'ok',message:`App is ${(process.env.DOPPLER==="OK")?"":"not"} getting secrets from doppler`})
 })
 
 

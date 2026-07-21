@@ -5,8 +5,8 @@
   "main": "index",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "ddev": "doppler run -- nodemon --exec ts-node src/index.ts",
-    "dev" : "nodemon src/index.ts",
+    "ddev": "doppler run --project weavit-api --config dev -- nodemon --exec ts-node src/index.ts",
+    "dev": "nodemon src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js"
   },
@@ -15,7 +15,9 @@
   "license": "ISC",
   "packageManager": "pnpm@10.33.4",
   "dependencies": {
+    "@clerk/express": "^2.1.43",
     "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1"
   },
   "devDependencies": {

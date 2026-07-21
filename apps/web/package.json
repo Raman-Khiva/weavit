@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "doppler run -- next dev --hostname 0.0.0.0 --port 3000",
+    "ddev": "doppler run -p weavit-web -c dev -- next dev --hostname 0.0.0.0 --port 3000",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -12,6 +13,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@clerk/nextjs": "^7.5.20",
     "@workspace/ui": "workspace:*",
     "lucide-react": "^1.17.0",
     "next": "16.2.6",
