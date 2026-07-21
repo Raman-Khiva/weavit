@@ -14,12 +14,7 @@
         }
       ],
       "essential": true,
-      "environment": [
-        {
-          "name": "DOPPLER_TOKEN",
-          "valueFrom": "arn:aws:secretsmanager:ap-south-1:345259854146:secret:weavit-api-dev-doppler-token-LHg6aE"
-        }
-      ],
+      "environment": [],
       "secrets": [
         {
           "name": "DOPPLER_TOKEN",
