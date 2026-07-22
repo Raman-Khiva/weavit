@@ -24,6 +24,6 @@ COPY . .
 
 EXPOSE 4000
 
-CMD ["doppler run -- pnpm --filter api exec pnpm dlx prisma generate"]
+RUN pnpm --filter api exec prisma generate
 
 CMD [ "pnpm","--filter","api","ddev" ]
