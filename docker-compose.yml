@@ -1,6 +1,7 @@
 
 services:
    api:
+
     build:
       context: .
       dockerfile: apps/api/Dockerfile

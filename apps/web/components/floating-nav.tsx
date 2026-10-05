@@ -11,6 +11,12 @@ export const FloatingNav = () => {
         </div>
         <div className="hidden items-center gap-6 text-sm font-medium text-muted-foreground md:flex">
           <Link
+            href="/overview"
+            className="transition-colors hover:text-foreground font-semibold text-indigo-400"
+          >
+            Overview
+          </Link>
+          <Link
             href="#features"
             className="transition-colors hover:text-foreground"
           >

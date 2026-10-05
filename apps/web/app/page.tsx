@@ -67,6 +67,14 @@ const Page = () => {
       {/* CTAs */}
       <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
         <Link
+          href="/overview"
+          className="group relative inline-flex items-center justify-center overflow-hidden rounded-md border border-indigo-500 bg-gradient-to-r from-indigo-600 to-purple-600 px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:scale-105"
+        >
+          <span className="relative z-10 flex items-center gap-2">
+            ✨ User Progress & Overview
+          </span>
+        </Link>
+        <Link
           href="/dashboard"
           className="group relative inline-flex items-center justify-center overflow-hidden rounded-md border border-transparent bg-gray-900 px-8 py-3 text-sm font-medium text-white shadow-md shadow-white/40 dark:bg-foreground dark:text-background"
         >
