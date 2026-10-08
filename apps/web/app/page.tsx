@@ -35,15 +35,25 @@ const Page = () => {
       {/* <div className="mb-8 inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-sm font-medium text-gray-900 transition-colors dark:border-gray-800 dark:bg-gray-900 dark:text-gray-100">
         ✨ Welcome to Weavit
       </div> */}
-      <div className="z-20 mb-5 flex items-center gap-3 rounded-full border border-border bg-background px-4 py-1 text-sm font-medium">
+      <div className="z-20 mb-5 flex items-center gap-3 rounded-full border border-border bg-background/80 px-4 py-1.5 text-sm font-medium backdrop-blur-md shadow-sm">
+        {/* <img src="/logo-weavit.png" alt="Weavit Logo" className="h-5 w-auto object-contain" /> */}
         <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-foreground opacity-75"></span>
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-foreground"></span>
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-500 opacity-75"></span>
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-indigo-600"></span>
         </span>
-        Welcome to Weavit<span>{process.env.NEXT_PUBLIC_VERSION || "v0"}</span>
+        Welcome to Weavit <span className="font-mono text-xs text-muted-foreground">{process.env.NEXT_PUBLIC_VERSION || "v0"}</span>
       </div>
 
       {/* Tagline */}
+
+      {/* <div className="flex items-center">
+
+        <img
+          src="/logo-weavit.png"
+          className="h-16"
+        />
+        <h2 className="text-3xl font-bold">weavit</h2>
+      </div> */}
       <h1 className="z-20 mb-6 max-w-4xl text-5xl leading-[1.1] font-extrabold tracking-wide text-foreground text-gray-900 sm:text-5xl md:text-6xl md:leading-[1.2] dark:text-foreground">
         {/* <span className="mx-2 inline-flex h-12 w-12 -translate-y-1 items-center justify-center rounded-xl bg-[#3b82f6] align-middle shadow-md ring-4 ring-white sm:h-14 sm:w-14 md:mx-3 md:h-[72px] md:w-[72px] md:-translate-y-2 md:rounded-2xl dark:ring-background">
           <Zap

@@ -8,75 +8,100 @@ import {
 } from "@workspace/ui/components/card"
 import {
   Calendar,
-  ChevronRight,
   FolderOpen,
-  LeafIcon,
+  Code2,
+  Rocket,
+  Layers,
+  CheckCircle2,
   LucideIcon,
-  MoveRight,
+  ChevronRight,
 } from "lucide-react"
 import { Progress } from "@workspace/ui/components/progress"
 import { Badge } from "@workspace/ui/components/badge"
-import { Button } from "@workspace/ui/components/button"
+import { Project, calculateProjectProgress } from "@workspace/ui/lib/projects-store"
 
 interface ProjectCardProps {
-  title: string
+  project?: Project
+  title?: string
   description?: string
   date?: string
+  category?: string
+  progress?: number
   icon?: LucideIcon
 }
 
 export const ProjectCard = ({
-  title,
-  description,
-  date,
-  icon: Icon = FolderOpen,
+  project,
+  title: directTitle,
+  description: directDescription,
+  date: directDate,
+  category: directCategory,
+  progress: directProgress,
+  icon: IconProp,
 }: ProjectCardProps) => {
+  const title = project?.title || directTitle || "Untitled Plan"
+  const description = project?.description || directDescription || ""
+  const category = project?.category || directCategory || "Roadmap"
+  const date = project?.startDate ? `${project.startDate}${project.endDate ? ` - ${project.endDate}` : ""}` : directDate || "Active Plan"
+
+  const computedStats = project ? calculateProjectProgress(project) : null
+  const progressValue = computedStats ? computedStats.percentage : (directProgress ?? 0)
+
+  const Icon = IconProp || (project?.category?.includes("Interview") ? Code2 : project?.category?.includes("Software") ? Rocket : Layers)
+
   return (
-    <Card className="max-w-xs min-w-76 justify-between gap-1">
-      <CardHeader>
-        <div className="flex items-center gap-3">
-          <div className="rounded-md border border-border bg-card p-2">
+    <Card className="flex flex-col justify-between gap-2 h-full transition-all duration-200 hover:border-primary/50 hover:shadow-md group">
+      <CardHeader className="pb-2">
+        <div className="flex items-start gap-3">
+          <div className="rounded-xl border border-border bg-card p-2.5 text-primary group-hover:bg-primary/10 transition-colors">
             <Icon
-              className="font-bold text-secondary-foreground"
-              strokeWidth={1.6}
-              size={27}
+              className="size-6 text-foreground group-hover:text-primary transition-colors"
+              strokeWidth={1.8}
             />
           </div>
-          <div>
-            <Badge className="text-[9px]" variant="outline">
-              Webdev
-            </Badge>
-            <CardTitle className="text-lg font-semibold">{title}</CardTitle>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-1">
+              <Badge className="text-[10px] px-2 py-0 font-medium" variant="outline">
+                {category}
+              </Badge>
+              {computedStats && (
+                <span className="text-[11px] font-mono font-bold text-muted-foreground">
+                  {computedStats.completedTasks}/{computedStats.totalTasks} Done
+                </span>
+              )}
+            </div>
+            <CardTitle className="mt-1 text-base font-bold line-clamp-1 group-hover:text-primary transition-colors">
+              {title}
+            </CardTitle>
           </div>
         </div>
       </CardHeader>
-      {description && (
-        <CardContent>
-          <CardDescription className="font-medium">
+
+      <CardContent className="py-2">
+        {description && (
+          <CardDescription className="text-xs font-medium line-clamp-2 min-h-8">
             {description}
           </CardDescription>
-          <div className="py-2">
-            <Progress value={80} />
+        )}
+        <div className="mt-3 flex flex-col gap-1.5">
+          <div className="flex items-center justify-between text-[11px]">
+            <span className="font-semibold text-muted-foreground">Progress</span>
+            <span className="font-mono font-bold text-foreground">{progressValue}%</span>
           </div>
-        </CardContent>
-      )}
-      {date && (
-        <CardFooter className="flex items-center justify-between bg-background px-4 py-1.5 pt-1 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Calendar
-              size={16}
-              className="font-bold text-primary-foreground"
-              strokeWidth={2.5}
-            />{" "}
-            <p className="text-sm font-semibold text-primary-foreground/80">
-              {date}
-            </p>
-          </div>
-          <span className="cursor-pointer text-sm font-medium hover:text-secondary-foreground/90 hover:underline">
-            Details
-          </span>
-        </CardFooter>
-      )}
+          <Progress value={progressValue} className="h-2" />
+        </div>
+      </CardContent>
+
+      <CardFooter className="flex items-center justify-between bg-muted/30 px-4 py-2 text-xs text-muted-foreground rounded-b-xl border-t border-border/40">
+        <div className="flex items-center gap-1.5 font-medium truncate max-w-[180px]">
+          <Calendar size={13} className="text-muted-foreground shrink-0" />
+          <span className="truncate text-[11px]">{date}</span>
+        </div>
+        <div className="flex items-center gap-0.5 text-xs font-semibold text-primary group-hover:translate-x-0.5 transition-transform">
+          <span>View Plan</span>
+          <ChevronRight size={14} />
+        </div>
+      </CardFooter>
     </Card>
   )
 }

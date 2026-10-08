@@ -11,7 +11,7 @@ import { Checkbox } from "@workspace/ui/components/checkbox"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { useState } from "react"
-import { CheckCircle, Flame, Plus } from "lucide-react"
+import { CheckCircle, Flame, Plus, Info } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -142,8 +142,16 @@ export const Habits = ({ habits: initialHabits = DEFAULT_HABITS }: HabitsProps) 
 
   return (
     <main className="flex h-full w-full max-w-sm min-w-8 flex-col gap-2">
-      <div className="flex items-center justify-between">
-        <h2 className="global-heading">Daily Tasks</h2>
+      <div className="flex items-center justify-between pb-2 border-b border-border/40">
+        <div className="flex items-center gap-2">
+          <h2 className="text-base font-bold text-foreground">Daily Tasks</h2>
+          <div className="group relative flex items-center justify-center">
+            <Info className="h-3.5 w-3.5 text-muted-foreground hover:text-primary cursor-pointer transition-colors" />
+            <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-6 opacity-0 group-hover:opacity-100 transition-opacity z-50 rounded-md bg-popover border border-border px-2.5 py-1 text-[10px] text-popover-foreground shadow-xl whitespace-nowrap">
+              Track and complete your recurring daily habits & streaks
+            </div>
+          </div>
+        </div>
         <div className="flex items-center gap-3">
           <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
@@ -173,7 +181,7 @@ export const Habits = ({ habits: initialHabits = DEFAULT_HABITS }: HabitsProps) 
           </Dialog>
           <a
             href="/workspace/habits"
-            className="text-sm text-muted-foreground hover:underline"
+            className="text-xs font-semibold text-primary hover:underline"
           >
             View all
           </a>

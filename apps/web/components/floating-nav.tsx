@@ -7,7 +7,17 @@ export const FloatingNav = () => {
     <div className="pointer-events-none fixed top-6 right-0 left-0 z-50 flex justify-center px-4">
       <nav className="pointer-events-auto flex w-full max-w-4xl items-center justify-between gap-4 rounded-2xl border border-border/40 bg-background/60 px-5 py-2 shadow-md backdrop-blur-md sm:gap-6 sm:px-9 sm:py-3 dark:bg-background/40">
         <div className="mr-2 text-lg font-bold tracking-tighter sm:mr-4">
-          <Link href="/">weavit.</Link>
+
+          <Link href="/" className="flex items-center  transition-opacity hover:opacity-90">
+            <img
+              src="/logo-weavit.png"
+              alt="Weavit Logo"
+              className="h-11 w-auto object-contain rounded-md"
+            />
+            <span className="font-bold">
+              weavit.
+            </span>
+          </Link>
         </div>
         <div className="hidden items-center gap-6 text-sm font-medium text-muted-foreground md:flex">
           <Link

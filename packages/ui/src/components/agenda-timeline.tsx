@@ -1,5 +1,6 @@
 import { CarIcon, CoffeeIcon, MapPinIcon, VideoIcon } from "lucide-react"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
+import { cn } from "@workspace/ui/lib/utils"
 
 interface Slot {
   type: "event" | "gap"
@@ -12,6 +13,7 @@ interface Slot {
   detail?: string
   gap?: { reason: string; minutes: number; Icon: typeof CoffeeIcon }
 }
+
 
 const TODAY: Slot[] = [
   {
@@ -106,10 +108,10 @@ const TONE_BG: Record<NonNullable<Slot["tone"]>, string> = {
   violet: "bg-violet-500",
 }
 
-export function AgendaTimeline() {
+export function AgendaTimeline({ className }: { className?: string }) {
   return (
-    <div className="min-h-svh bg-background">
-      <div className="mx-auto max-w-3xl">
+    <div className={cn("w-full bg-background py-2", className)}>
+      <div className="w-full max-w-none">
         <div className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
           Sat, Apr 26 · agenda
         </div>

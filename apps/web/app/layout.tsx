@@ -7,6 +7,7 @@ import { cn } from "@workspace/ui/lib/utils"
 import { TooltipProvider } from "@workspace/ui/components/tooltip"
 import { Provider } from "react-redux"
 import { store } from "@/services/store"
+import { FloatingThemeToggle } from "@/components/floating-theme-toggle"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
 
@@ -29,20 +30,22 @@ export default function RootLayout({
         fontMono.variable,
         "font-sans",
         geist.variable,
-        "fixed inset-0 h-screen w-screen overflow-hidden border-white bg-white"
+        "fixed inset-0 h-screen w-screen overflow-hidden bg-background text-foreground"
       )}
     >
       <body>
         <ThemeProvider>
           <Provider store={store}>
-          <ClerkProvider>
-            <TooltipProvider>{children}</TooltipProvider>
-
-          </ClerkProvider>
-
+            <ClerkProvider>
+              <TooltipProvider>
+                {children}
+                <FloatingThemeToggle />
+              </TooltipProvider>
+            </ClerkProvider>
           </Provider>
         </ThemeProvider>
       </body>
     </html>
   )
 }
+

@@ -132,13 +132,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="#">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <TerminalIcon className="size-4" />
+              <a href="/" className="flex items-center gap-2.5">
+                <div className="flex aspect-square size-9 items-center justify-center rounded-lg bg-sidebar-primary/10 p-1 border border-border/50 overflow-hidden">
+                  <img src="/logo-weavit.png" alt="Weavit Logo" className="h-full w-full object-contain" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">Acme Inc</span>
-                  <span className="truncate text-xs">Enterprise</span>
+                  <span className="truncate font-bold tracking-tight">Weavit</span>
+                  <span className="truncate text-xs text-muted-foreground font-medium">Workspace Engine</span>
                 </div>
               </a>
             </SidebarMenuButton>

@@ -18,6 +18,8 @@ import { Todos } from "@workspace/ui/components/todos"
 import { DayTimelineHorizontal } from "@workspace/ui/components/day-timeline-horizontal"
 import { RecentActivity } from "@workspace/ui/components/recent-activity"
 import { Notifications } from "@workspace/ui/components/notifications"
+import { ProductivityGraphicCard } from "@workspace/ui/components/productivity-graphic-card"
+
 export default function Page() {
   return (
     <main className="relative flex h-screen w-full flex-col justify-between bg-background pb-19">
@@ -25,11 +27,14 @@ export default function Page() {
         <div className="absolute top-0 right-0 left-0">
           <DayTimelineHorizontal />
         </div>
-        <div className="absolute right-0 bottom-4 flex w-full items-center justify-between">
+        <div className="absolute right-0 bottom-4 flex w-full items-center justify-between px-6">
           <div className="flex flex-1 items-center justify-center"></div>
           <div className="h-16 w-52" />
-          <div className="flex flex-1 items-center justify-center">
-            <h2>right</h2>
+          <div className="flex flex-1 items-center justify-end">
+            <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>System Nominal</span>
+            </div>
           </div>
         </div>
       </div>
@@ -70,7 +75,11 @@ export default function Page() {
               </div>
             </ResizablePanel>
             <ResizableHandle />
-            <ResizablePanel></ResizablePanel>
+            <ResizablePanel className="m-2 w-full" defaultSize={"40%"}>
+              <div className="flex h-full w-full flex-1 justify-center overflow-hidden rounded-lg border border-border p-4">
+                <ProductivityGraphicCard />
+              </div>
+            </ResizablePanel>
           </ResizablePanelGroup>
         </ResizablePanel>
       </ResizablePanelGroup>
@@ -83,7 +92,10 @@ export default function Page() {
         </div>
 
         <div className="flex flex-1 justify-center">
-          <h2>empty</h2>
+          <div className="flex items-center gap-2 rounded-full border border-border/60 bg-card/60 px-3.5 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-md shadow-xs">
+            <span className="text-emerald-500 font-bold">⚡ 96%</span>
+            <span>Focus Velocity</span>
+          </div>
         </div>
       </div>
     </main>
