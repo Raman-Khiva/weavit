@@ -1,28 +1,44 @@
 "use client"
+
 import React, { useEffect } from "react"
 import Link from "next/link"
-import { Zap } from "lucide-react"
-import { Badge } from "@workspace/ui/components/badge"
+import { ArrowRight, CheckCircle2, Shield, Sparkles, Zap } from "lucide-react"
 import { FloatingNav } from "../components/floating-nav"
 import { FlickeringGrid } from "@workspace/ui/components/flicking-grid"
+import { IntelligenceSimplicitySection } from "../components/intelligence-simplicity"
+import { LandingInteractiveShowcase } from "../components/landing-interactive-showcase"
+import { ProductivityGraphicCard } from "@workspace/ui/components/productivity-graphic-card"
 import { useAuth } from "@clerk/nextjs"
 
 const Page = () => {
-  const { getToken } = useAuth()
+  let getToken: (() => Promise<string | null>) | undefined
+  try {
+    const auth = useAuth()
+    getToken = auth?.getToken
+  } catch (err) {
+    console.log("Clerk provider optional notice:", err)
+  }
 
   useEffect(() => {
     const callGetToken = async () => {
-      const token = await getToken()
-      console.warn("Token", token)
+      try {
+        if (getToken) {
+          const token = await getToken()
+          console.warn("Token", token)
+        }
+      } catch (err) {
+        console.log("Auth token notice:", err)
+      }
     }
 
     callGetToken()
-  }, [])
+  }, [getToken])
 
   return (
-    <main className="relative z-20 flex min-h-screen w-full flex-col items-center px-5 py-24 pt-[20vh] text-center">
+    <div className="relative min-h-screen w-full bg-background text-foreground overflow-x-hidden">
+      {/* Ambient Grid Background */}
       <FlickeringGrid
-        className="absolute inset-0 right-0 left-0 z-0 w-full"
+        className="absolute inset-0 z-0 w-full h-full pointer-events-none opacity-40"
         squareSize={8}
         gridGap={6}
         color="#6B7280"
@@ -30,80 +46,128 @@ const Page = () => {
         flickerChance={0.6}
       />
 
+      {/* Floating Header Navigation */}
       <FloatingNav />
-      {/* Badge */}
-      {/* <div className="mb-8 inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-sm font-medium text-gray-900 transition-colors dark:border-gray-800 dark:bg-gray-900 dark:text-gray-100">
-        ✨ Welcome to Weavit
-      </div> */}
-      <div className="z-20 mb-5 flex items-center gap-3 rounded-full border border-border bg-background/80 px-4 py-1.5 text-sm font-medium backdrop-blur-md shadow-sm">
-        {/* <img src="/logo-weavit.png" alt="Weavit Logo" className="h-5 w-auto object-contain" /> */}
-        <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-500 opacity-75"></span>
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-indigo-600"></span>
-        </span>
-        Welcome to Weavit <span className="font-mono text-xs text-muted-foreground">{process.env.NEXT_PUBLIC_VERSION || "v0"}</span>
-      </div>
 
-      {/* Tagline */}
-
-      {/* <div className="flex items-center">
-
-        <img
-          src="/logo-weavit.png"
-          className="h-16"
-        />
-        <h2 className="text-3xl font-bold">weavit</h2>
-      </div> */}
-      <h1 className="z-20 mb-6 max-w-4xl text-5xl leading-[1.1] font-extrabold tracking-wide text-foreground text-gray-900 sm:text-5xl md:text-6xl md:leading-[1.2] dark:text-foreground">
-        {/* <span className="mx-2 inline-flex h-12 w-12 -translate-y-1 items-center justify-center rounded-xl bg-[#3b82f6] align-middle shadow-md ring-4 ring-white sm:h-14 sm:w-14 md:mx-3 md:h-[72px] md:w-[72px] md:-translate-y-2 md:rounded-2xl dark:ring-background">
-          <Zap
-            className="h-6 w-6 text-white sm:h-7 sm:w-7 md:h-10 md:w-10"
-            fill="currentColor"
-            strokeWidth={0}
-          />
-        </span> */}
-        Organize Your Work <br className="hidden sm:block" />
-        with Seamless{" "}
-        <span className="bg-foreground text-background">Workflows</span>
-      </h1>
-
-      {/* Description */}
-      <p className="text-sm:text-xl mb-10 max-w-3xl text-lg leading-relaxed tracking-wide dark:text-muted-foreground">
-        Weavit helps you manage tasks, track projects, and build better habits,
-        all in one centralized and beautiful workspace designed for peak
-        productivity.
-      </p>
-
-      {/* CTAs */}
-      <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
-        <Link
-          href="/overview"
-          className="group relative inline-flex items-center justify-center overflow-hidden rounded-md border border-indigo-500 bg-gradient-to-r from-indigo-600 to-purple-600 px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:scale-105"
-        >
-          <span className="relative z-10 flex items-center gap-2">
-            ✨ User Progress & Overview
+      {/* 1. HERO SECTION */}
+      <main className="relative z-10 flex min-h-screen w-full flex-col items-center justify-center px-5 py-20 text-center max-w-6xl mx-auto">
+        {/* Version Badge */}
+        <div className="mb-6 flex items-center gap-2.5 rounded-full border border-border/80 bg-card/80 px-4 py-1.5 text-xs font-semibold backdrop-blur-md shadow-xs transition-all hover:border-foreground/30">
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75"></span>
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
           </span>
-        </Link>
-        <Link
-          href="/dashboard"
-          className="group relative inline-flex items-center justify-center overflow-hidden rounded-md border border-transparent bg-gray-900 px-8 py-3 text-sm font-medium text-white shadow-md shadow-white/40 dark:bg-foreground dark:text-background"
-        >
-          <span className="absolute inset-0 -translate-y-[101%] bg-black transition-transform duration-200 ease-out group-hover:translate-y-0"></span>
-          <span className="relative z-10 transition-colors duration-300 group-hover:text-black dark:group-hover:text-foreground">
+          <span className="text-foreground">Welcome to Weavit</span>
+          <span className="rounded-full bg-muted px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
+            {process.env.NEXT_PUBLIC_VERSION || "v0.1"}
+          </span>
+        </div>
+
+        {/* Main Headline */}
+        <h1 className="mb-6 max-w-4xl text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-foreground leading-[1.1]">
+          Organize Your Work <br className="hidden sm:block" />
+          with Seamless{" "}
+          <span className="bg-foreground text-background px-3 py-1 rounded-xl shadow-md inline-block mt-2 sm:mt-0">
+            Workflows
+          </span>
+        </h1>
+
+        {/* Subtitle Description */}
+        <p className="mb-10 max-w-2xl text-base sm:text-lg text-muted-foreground leading-relaxed font-normal">
+          Weavit helps you manage tasks, track projects, and build better habits—all in one centralized, high-density workspace designed for peak developer productivity.
+        </p>
+
+        {/* CTA Action Buttons */}
+        <div className="flex w-full flex-col gap-3.5 sm:w-auto sm:flex-row items-center justify-center">
+          <Link
+            href="/overview"
+            className="w-full sm:w-auto group relative inline-flex items-center justify-center overflow-hidden rounded-xl bg-foreground px-7 py-3.5 text-sm font-bold text-background shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <span className="relative z-10 flex items-center gap-2">
+              Overview & Analytics
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </span>
+          </Link>
+          <Link
+            href="/dashboard"
+            className="w-full sm:w-auto group relative inline-flex items-center justify-center rounded-xl border border-border bg-card/80 px-7 py-3.5 text-sm font-semibold text-foreground backdrop-blur-md shadow-xs transition-all hover:bg-card hover:border-foreground/40"
+          >
             Go to Dashboard
-          </span>
-        </Link>
-        <Link
-          href="/workspace"
-          className="group relative inline-flex items-center justify-center overflow-hidden rounded-md border border-foreground bg-transparent px-8 py-3 text-sm font-medium text-gray-900 shadow-sm shadow-white/20 focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 focus:outline-none dark:border-border dark:bg-black dark:text-gray-100"
-        >
-          <span className="absolute inset-0 translate-y-[101%] bg-white transition-transform duration-200 ease-out group-hover:translate-y-0 hover:border hover:border-background"></span>
-          <span className="relative z-10 transition-colors duration-300 group-hover:text-black dark:group-hover:text-black">
+          </Link>
+          <Link
+            href="/workspace"
+            className="w-full sm:w-auto group relative inline-flex items-center justify-center rounded-xl border border-border bg-card/80 px-7 py-3.5 text-sm font-semibold text-foreground backdrop-blur-md shadow-xs transition-all hover:bg-card hover:border-foreground/40"
+          >
             Open Workspace
-          </span>
-        </Link>
-      </div>
-    </main>
+          </Link>
+        </div>
+      </main>
+
+      {/* 2. DESIGN SYSTEM FEATURE GRID */}
+      <IntelligenceSimplicitySection />
+
+      {/* 3. INTERACTIVE SHOWCASE, WORKFLOW & FAQ SECTIONS */}
+      <LandingInteractiveShowcase />
+
+      {/* 3. PERFORMANCE & SYSTEM HIGHLIGHTS */}
+      <section className="w-full py-16 border-t border-b border-border/40 bg-card/30 backdrop-blur-md">
+        <div className="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          <div className="space-y-1">
+            <p className="text-3xl sm:text-4xl font-extrabold text-foreground font-mono">100%</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Client-Side Architecture</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-3xl sm:text-4xl font-extrabold text-foreground font-mono">&lt; 1ms</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">State Sync Latency</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-3xl sm:text-4xl font-extrabold text-foreground font-mono">80+</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Vector Metric Bars</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-3xl sm:text-4xl font-extrabold text-foreground font-mono">0 Config</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Setup Required</p>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. CALL TO ACTION BANNER */}
+      <section className="w-full py-20 px-6 max-w-5xl mx-auto text-center">
+        <div className="rounded-3xl border border-border/60 bg-gradient-to-b from-card/80 to-card/40 p-10 sm:p-14 backdrop-blur-xl shadow-2xl space-y-6">
+          <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-foreground">
+            Ready to elevate your personal roadmap?
+          </h2>
+          <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto">
+            Experience the productivity environment crafted with high-density components, vector graphics, and intelligent task execution.
+          </p>
+          <div className="pt-2 flex items-center justify-center gap-4">
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 rounded-xl bg-foreground px-6 py-3 text-sm font-bold text-background shadow-md transition-all hover:scale-[1.02]"
+            >
+              Launch Dashboard Now
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. FOOTER */}
+      <footer className="w-full border-t border-border/40 py-8 px-6 text-center text-xs text-muted-foreground">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2 font-bold text-foreground">
+            <img src="/logo-weavit.png" alt="Weavit Logo" className="h-5 w-auto" />
+            <span>weavit</span>
+          </div>
+          <p>© {new Date().getFullYear()} Weavit Platform. Intelligence meets simplicity.</p>
+          <div className="flex items-center gap-4">
+            <Link href="/overview" className="hover:text-foreground transition-colors">Overview</Link>
+            <Link href="/dashboard" className="hover:text-foreground transition-colors">Dashboard</Link>
+            <Link href="/workspace" className="hover:text-foreground transition-colors">Workspace</Link>
+          </div>
+        </div>
+      </footer>
+    </div>
   )
 }
 

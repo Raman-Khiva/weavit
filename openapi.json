@@ -1,0 +1,818 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Weavit Platform API",
+    "description": "Comprehensive REST API specification for Weavit productivity, roadmap management, habits, todos, deadlines, and activity analytics platform.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Weavit Engineering Team",
+      "url": "https://weavit.dev"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:4000",
+      "description": "Local Development Server"
+    },
+    {
+      "url": "https://api.weavit.dev",
+      "description": "Production API Server"
+    }
+  ],
+  "security": [
+    {
+      "ClerkAuth": []
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health Check Endpoint",
+        "description": "Check operational health and database status",
+        "responses": {
+          "200": {
+            "description": "System operational",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" },
+                    "health": { "type": "string", "example": "100%" },
+                    "timestamp": { "type": "string", "format": "date-time" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth-status": {
+      "get": {
+        "summary": "Get Authentication Status",
+        "description": "Verify Clerk session authentication state",
+        "responses": {
+          "200": {
+            "description": "Authentication status response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string", "example": "user is Authenticated" },
+                    "userId": { "type": "string", "example": "user_2x9A..." }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/syncUser": {
+      "post": {
+        "summary": "Sync User Profile with Database",
+        "description": "Ensures authenticated Clerk user is created/updated in the Prisma database",
+        "responses": {
+          "200": {
+            "description": "User profile synchronized successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string", "example": "Existing user found" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": { "$ref": "#/components/schemas/User" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/projects": {
+      "get": {
+        "summary": "List User Projects",
+        "description": "Fetch all active roadmaps and plans for authenticated user",
+        "responses": {
+          "200": {
+            "description": "List of projects",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Project" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Project / Roadmap",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateProjectInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Project created successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Project" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/projects/{id}": {
+      "get": {
+        "summary": "Get Project by ID",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project details with nested phases and tasks",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Project" }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update Project",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateProjectInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Project updated successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Project" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Project",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project deleted successfully"
+          }
+        }
+      }
+    },
+    "/projects/{projectId}/phases": {
+      "post": {
+        "summary": "Add Phase to Project",
+        "parameters": [
+          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreatePhaseInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Phase created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProjectPhase" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/projects/{projectId}/phases/{phaseId}/tasks": {
+      "post": {
+        "summary": "Add Executable Task to Phase",
+        "parameters": [
+          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "phaseId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateTaskInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Task created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProjectTask" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/projects/{projectId}/phases/{phaseId}/tasks/{taskId}": {
+      "patch": {
+        "summary": "Update Task Status / Details",
+        "parameters": [
+          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "phaseId", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "taskId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateTaskInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProjectTask" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/projects/{projectId}/phases/{phaseId}/tasks/{taskId}/notes": {
+      "post": {
+        "summary": "Log Note on Task Execution",
+        "parameters": [
+          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "phaseId", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "taskId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateTaskNoteInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Note added to task",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TaskLogNote" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/habits": {
+      "get": {
+        "summary": "List User Habits",
+        "responses": {
+          "200": {
+            "description": "Array of user habits with streaks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Habit" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Habit",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateHabitInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Habit created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Habit" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/habits/{id}/toggle": {
+      "post": {
+        "summary": "Toggle Habit Completion Today",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Habit status toggled",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Habit" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/todos": {
+      "get": {
+        "summary": "List Todos",
+        "responses": {
+          "200": {
+            "description": "Array of todos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Todo" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Todo",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateTodoInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Todo created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Todo" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/todos/{id}": {
+      "patch": {
+        "summary": "Update Todo",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateTodoInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Todo updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Todo" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Todo",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Todo deleted" }
+        }
+      }
+    },
+    "/deadlines": {
+      "get": {
+        "summary": "List Deadlines",
+        "responses": {
+          "200": {
+            "description": "Array of deadlines",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Deadline" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Deadline",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateDeadlineInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Deadline created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Deadline" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/activities": {
+      "get": {
+        "summary": "Get Activity Logs",
+        "responses": {
+          "200": {
+            "description": "Array of activity entries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Activity" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notifications": {
+      "get": {
+        "summary": "List Notifications",
+        "responses": {
+          "200": {
+            "description": "Array of notifications",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Notification" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/drafts": {
+      "get": {
+        "summary": "List Draft Notes",
+        "responses": {
+          "200": {
+            "description": "Array of drafts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Draft" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Draft Note",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateDraftInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Draft created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Draft" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ClerkAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Clerk Session Bearer Token"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "clerkId": { "type": "string" },
+          "email": { "type": "string", "nullable": true },
+          "name": { "type": "string", "nullable": true },
+          "avatarUrl": { "type": "string", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "clerkId"]
+      },
+      "Project": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "userId": { "type": "string" },
+          "title": { "type": "string" },
+          "description": { "type": "string", "nullable": true },
+          "category": { "type": "string" },
+          "icon": { "type": "string", "nullable": true },
+          "status": { "type": "string", "enum": ["DRAFT", "ACTIVE", "COMPLETED", "ARCHIVED"] },
+          "startDate": { "type": "string", "format": "date-time", "nullable": true },
+          "endDate": { "type": "string", "format": "date-time", "nullable": true },
+          "phases": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ProjectPhase" }
+          },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "userId", "title", "category", "status"]
+      },
+      "CreateProjectInput": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "category": { "type": "string" },
+          "icon": { "type": "string" },
+          "startDate": { "type": "string" },
+          "endDate": { "type": "string" }
+        },
+        "required": ["title"]
+      },
+      "UpdateProjectInput": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "category": { "type": "string" },
+          "status": { "type": "string", "enum": ["DRAFT", "ACTIVE", "COMPLETED", "ARCHIVED"] }
+        }
+      },
+      "ProjectPhase": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "projectId": { "type": "string" },
+          "title": { "type": "string" },
+          "description": { "type": "string", "nullable": true },
+          "category": { "type": "string", "nullable": true },
+          "status": { "type": "string", "enum": ["PENDING", "ACTIVE", "COMPLETED"] },
+          "order": { "type": "integer" },
+          "tasks": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ProjectTask" }
+          }
+        },
+        "required": ["id", "projectId", "title", "status"]
+      },
+      "CreatePhaseInput": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "category": { "type": "string" }
+        },
+        "required": ["title"]
+      },
+      "ProjectTask": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "phaseId": { "type": "string" },
+          "title": { "type": "string" },
+          "description": { "type": "string", "nullable": true },
+          "status": { "type": "string", "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "SKIPPED"] },
+          "category": { "type": "string", "nullable": true },
+          "priority": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"] },
+          "notes": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TaskLogNote" }
+          }
+        },
+        "required": ["id", "phaseId", "title", "status"]
+      },
+      "CreateTaskInput": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "category": { "type": "string" },
+          "priority": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"] }
+        },
+        "required": ["title"]
+      },
+      "UpdateTaskInput": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "status": { "type": "string", "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "SKIPPED"] },
+          "note": { "type": "string" }
+        }
+      },
+      "TaskLogNote": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "taskId": { "type": "string" },
+          "text": { "type": "string" },
+          "author": { "type": "string", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "taskId", "text"]
+      },
+      "CreateTaskNoteInput": {
+        "type": "object",
+        "properties": {
+          "text": { "type": "string" }
+        },
+        "required": ["text"]
+      },
+      "Habit": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "userId": { "type": "string" },
+          "title": { "type": "string" },
+          "frequency": { "type": "string", "enum": ["DAILY", "WEEKLY", "MONTHLY"] },
+          "category": { "type": "string" },
+          "streakCount": { "type": "integer" },
+          "bestStreak": { "type": "integer" }
+        },
+        "required": ["id", "userId", "title"]
+      },
+      "CreateHabitInput": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "frequency": { "type": "string", "enum": ["DAILY", "WEEKLY", "MONTHLY"] },
+          "category": { "type": "string" }
+        },
+        "required": ["title"]
+      },
+      "Todo": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "userId": { "type": "string" },
+          "title": { "type": "string" },
+          "status": { "type": "string", "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "SKIPPED"] },
+          "priority": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"] },
+          "tags": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["id", "userId", "title"]
+      },
+      "CreateTodoInput": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "priority": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"] },
+          "tags": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["title"]
+      },
+      "UpdateTodoInput": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "status": { "type": "string", "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "SKIPPED"] }
+        }
+      },
+      "Deadline": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "userId": { "type": "string" },
+          "title": { "type": "string" },
+          "course": { "type": "string", "nullable": true },
+          "time": { "type": "string", "nullable": true },
+          "dueDate": { "type": "string", "format": "date-time" },
+          "priority": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"] },
+          "isCompleted": { "type": "boolean" }
+        },
+        "required": ["id", "userId", "title", "dueDate"]
+      },
+      "CreateDeadlineInput": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "course": { "type": "string" },
+          "time": { "type": "string" },
+          "dueDate": { "type": "string", "format": "date-time" },
+          "priority": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"] }
+        },
+        "required": ["title", "dueDate"]
+      },
+      "Activity": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "userId": { "type": "string" },
+          "title": { "type": "string" },
+          "type": { "type": "string" },
+          "durationMinutes": { "type": "integer" },
+          "timestamp": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "userId", "title", "type"]
+      },
+      "Notification": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "userId": { "type": "string" },
+          "title": { "type": "string" },
+          "body": { "type": "string" },
+          "status": { "type": "string", "enum": ["UNREAD", "READ", "ARCHIVED"] },
+          "actionUrl": { "type": "string", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "userId", "title", "body", "status"]
+      },
+      "Draft": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "userId": { "type": "string" },
+          "title": { "type": "string" },
+          "content": { "type": "string" },
+          "category": { "type": "string" },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "isPinned": { "type": "boolean" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "userId", "title", "content"]
+      },
+      "CreateDraftInput": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "content": { "type": "string" },
+          "category": { "type": "string" },
+          "tags": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["title", "content"]
+      }
+    }
+  }
+}

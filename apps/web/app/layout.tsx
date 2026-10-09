@@ -30,7 +30,7 @@ export default function RootLayout({
         fontMono.variable,
         "font-sans",
         geist.variable,
-        "fixed inset-0 h-screen w-screen overflow-hidden bg-background text-foreground"
+        "min-h-screen w-full bg-background text-foreground"
       )}
     >
       <body>

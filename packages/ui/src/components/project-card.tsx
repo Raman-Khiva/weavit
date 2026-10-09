@@ -28,6 +28,7 @@ interface ProjectCardProps {
   category?: string
   progress?: number
   icon?: LucideIcon
+  showDescription?: boolean
 }
 
 export const ProjectCard = ({
@@ -38,6 +39,7 @@ export const ProjectCard = ({
   category: directCategory,
   progress: directProgress,
   icon: IconProp,
+  showDescription = true,
 }: ProjectCardProps) => {
   const title = project?.title || directTitle || "Untitled Plan"
   const description = project?.description || directDescription || ""
@@ -78,16 +80,12 @@ export const ProjectCard = ({
       </CardHeader>
 
       <CardContent className="py-2">
-        {description && (
+        {showDescription && description && (
           <CardDescription className="text-xs font-medium line-clamp-2 min-h-8">
             {description}
           </CardDescription>
         )}
-        <div className="mt-3 flex flex-col gap-1.5">
-          <div className="flex items-center justify-between text-[11px]">
-            <span className="font-semibold text-muted-foreground">Progress</span>
-            <span className="font-mono font-bold text-foreground">{progressValue}%</span>
-          </div>
+        <div className={showDescription && description ? "mt-3" : "mt-1"}>
           <Progress value={progressValue} className="h-2" />
         </div>
       </CardContent>

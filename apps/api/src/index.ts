@@ -75,8 +75,22 @@ app.post('/db-test',async (req:Request, res:Response)=>{
 })
 
 
+import path from "path"
+import fs from "fs"
+
+app.get("/openapi.json", (req: Request, res: Response) => {
+  try {
+    const openapiPath = path.join(__dirname, "../openapi.json")
+    const spec = fs.readFileSync(openapiPath, "utf8")
+    res.setHeader("Content-Type", "application/json")
+    res.send(spec)
+  } catch (error) {
+    res.status(500).json({ error: "Failed to load OpenAPI spec", details: error })
+  }
+})
+
 app.get("/", (req: Request, res: Response) => {
-  res.json({ message: "Hello from Express API" })
+  res.json({ message: "Hello from Express API", openapi: "/openapi.json" })
 })
 
 app.get("/health", (req: Request, res: Response) => {

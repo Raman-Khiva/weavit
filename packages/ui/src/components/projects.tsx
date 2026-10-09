@@ -37,7 +37,7 @@ export const Projects = () => {
             href={`/workspace/projects/${project.id}`}
             className="block h-full min-w-0"
           >
-            <ProjectCard project={project} />
+            <ProjectCard project={project} showDescription={false} />
           </a>
         ))}
         {displayProjects.length === 0 && (

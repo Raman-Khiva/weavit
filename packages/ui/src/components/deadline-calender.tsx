@@ -1,9 +1,10 @@
 "use client"
 
-import { addDays, format } from "date-fns"
+import { addDays, format, isToday } from "date-fns"
 import { useState, useEffect } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { createPortal } from "react-dom"
+import { cn } from "@workspace/ui/lib/utils"
 import {
   MiniCalendar,
   MiniCalendarDay,
@@ -37,6 +38,15 @@ const deadlines = [
   },
 ]
 
+const getDeadlineCount = (date: Date) => {
+  if (isToday(date)) return 3
+  const day = date.getDate()
+  if (day % 3 === 0) return 2
+  if (day % 4 === 0) return 1
+  if (day % 2 === 1) return 1
+  return 0
+}
+
 export const DeadlineCalender = () => {
   const [value, setValue] = useState(addDays(new Date(), 1))
   const [hoveredData, setHoveredData] = useState<{
@@ -65,6 +75,9 @@ export const DeadlineCalender = () => {
         <MiniCalendarDays>
           {(date) => {
             const isHovered = hoveredData?.dateStr === date.toISOString()
+            const isCurrentDay = isToday(date)
+            const count = getDeadlineCount(date)
+
             return (
               <div
                 key={date.toISOString()}
@@ -88,8 +101,20 @@ export const DeadlineCalender = () => {
                     transition={{ type: "spring", duration: 0.6 }}
                   />
                 )}
-                <div className="relative z-10">
-                  <MiniCalendarDay date={date} className="" />
+                <div className="relative z-10 flex items-center justify-center">
+                  <MiniCalendarDay date={date} className="relative" />
+                  {count > 0 && (
+                    <span
+                      className={cn(
+                        "absolute top-1 right-1 z-20 flex h-3.5 min-w-[0.875rem] pointer-events-none items-center justify-center rounded-full px-1 text-[8.5px] font-extrabold shadow-xs",
+                        isCurrentDay
+                          ? "bg-rose-500 text-white ring-1 ring-background"
+                          : "bg-amber-400 text-amber-950"
+                      )}
+                    >
+                      {count}
+                    </span>
+                  )}
                 </div>
               </div>
             )
