@@ -36,7 +36,12 @@ export default function RootLayout({
       <body>
         <ThemeProvider>
           <Provider store={store}>
-            <ClerkProvider>
+            <ClerkProvider
+              signInUrl="/login"
+              signUpUrl="/login"
+              signInFallbackRedirectUrl="/dashboard"
+              signUpFallbackRedirectUrl="/dashboard"
+            >
               <TooltipProvider>
                 {children}
                 <FloatingThemeToggle />

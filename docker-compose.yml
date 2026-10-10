@@ -11,8 +11,8 @@ services:
      - "0.0.0.0:4000:4000"
     volumes:
      - .:/usr/src/app
-     - root_node_modules:/app/node_modules
-     - api_node_modules:/app/apps/api/node_modules
+     - root_node_modules:/usr/src/app/node_modules
+     - api_node_modules:/usr/src/app/apps/api/node_modules
      - api_prisma_generated:/usr/src/app/apps/api/src/generated
    
 

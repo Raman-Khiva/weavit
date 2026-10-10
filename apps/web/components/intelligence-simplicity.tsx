@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { Layers, Workflow, BarChart3 } from "lucide-react"
+import { FolderOpen, BarChart2, Zap } from "lucide-react"
 
 interface FeatureItem {
   icon: React.ReactNode
@@ -11,22 +11,22 @@ interface FeatureItem {
 
 const features: FeatureItem[] = [
   {
-    icon: <Layers className="h-5 w-5 text-foreground" />,
-    title: "Modular Architecture",
+    icon: <FolderOpen className="h-5 w-5 text-foreground" />,
+    title: "Multi-Phase Roadmap Engine",
     description:
-      "Component-based design system that scales with your project complexity and requirements.",
+      "Structure engineering goals and interview prep into multi-phase plans with executable subtasks, category stats, and timestamped note logs.",
   },
   {
-    icon: <Workflow className="h-5 w-5 text-foreground" />,
-    title: "Smart Automation",
+    icon: <BarChart2 className="h-5 w-5 text-foreground" />,
+    title: "High-Density Productivity HUD",
     description:
-      "Intelligent workflows that reduce manual tasks and accelerate your development process.",
+      "Track focus velocity and system metrics in real-time with borderless HUD panels, vector metric bars, and horizontal day timelines.",
   },
   {
-    icon: <BarChart3 className="h-5 w-5 text-foreground" />,
-    title: "Data Intelligence",
+    icon: <Zap className="h-5 w-5 text-foreground" />,
+    title: "Habit & Deadline Execution Loop",
     description:
-      "Advanced analytics engine providing actionable insights from your application data.",
+      "Maintain active habit streaks, monitor color-coded pending deadline badges in mini calendars, and manage prioritized todo checklists.",
   },
 ]
 
@@ -34,19 +34,22 @@ export function IntelligenceSimplicitySection() {
   return (
     <section className="w-full py-20 px-6 max-w-5xl mx-auto flex flex-col items-center text-center">
       {/* Header */}
-      <div className="mb-14 max-w-3xl space-y-3 flex flex-col items-center">
+      <div className="text-center space-y-3 mb-14 flex flex-col items-center">
         <div className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-card/80 px-3.5 py-1.5 text-xs font-semibold text-foreground backdrop-blur-md shadow-xs mb-1">
           <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-white"></span>
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75"></span>
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
           </span>
-          <span>System Features</span>
+          <span>Core Capabilities</span>
         </div>
-        <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-foreground">
-          Intelligence meets simplicity
+
+        <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-center text-foreground max-w-4xl mx-auto leading-tight">
+          Engineered for <span className="font-serif italic font-normal text-foreground/90">developer</span> <br />
+          productivity & execution
         </h2>
+
         <p className="text-sm md:text-base text-muted-foreground font-medium max-w-2xl mx-auto leading-relaxed">
-          Smart solutions that adapt to your workflow while maintaining the simplicity you need to stay productive.
+          High-density tools that streamline your daily workflow, habit execution, and multi-phase roadmap tracking.
         </p>
       </div>
 

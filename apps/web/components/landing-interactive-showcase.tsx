@@ -4,128 +4,141 @@ import React, { useState } from "react"
 import Link from "next/link"
 import {
   FolderOpen,
-  CheckSquare,
+  Zap,
   Clock,
   BarChart2,
   CheckCircle2,
-  Circle,
-  Flame,
   ArrowRight,
-  Zap,
-  ShieldCheck,
-  Cpu,
-  HelpCircle,
-  Plus,
-  Palette,
-  Users,
-  Rocket,
   Sliders,
-  Megaphone,
   Code,
   Headphones,
-  Boxes,
+  FileText,
   MinusCircle,
-  Grid,
-  FileText
+  Calendar,
+  CheckSquare,
+  Sparkles
 } from "lucide-react"
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@workspace/ui/components/accordion"
 
-const PERSONAS = [
+const WORKSPACE_MODULES = [
   {
-    id: "designers",
-    label: "Designers",
-    icon: Palette,
-    headline: "Craft pixel-perfect systems with ease",
-    cta: "See the designer toolkit",
+    id: "roadmaps",
+    label: "Roadmaps Engine",
+    icon: FolderOpen,
+    headline: "Multi-Phase Goal & Sprint Execution",
+    description: "Structure complex objectives into categorized phases, executable tasks, and live note logs.",
+    cta: "Explore Roadmaps",
+    link: "/workspace/projects",
     features: [
       {
-        title: "Unified design tokens",
-        description: "Sync typography, color tokens, and UI components directly with engineering workflows for zero-friction handoffs.",
+        title: "Nested Phase Progression",
+        description: "Break down multi-week goals like SDE interview prep or software MVPs into structured, executable phases.",
       },
       {
-        title: "Visual asset management",
-        description: "Organize vector graphics, design specs, and interactive prototypes into high-density reference dashboards.",
+        title: "Context-Aware Task Log Notes",
+        description: "Append timestamped note logs to tasks directly during execution without context switching.",
       },
     ],
+    mockup: {
+      title: "SDE Technical Interview Master Prep",
+      phase: "Phase 1: Data Structures & Algorithms",
+      tasks: [
+        { title: "Arrays & Hashing: LeetCode 1, 49, 347", status: "completed", note: "Mastered hash map lookups & prefix sums." },
+        { title: "Sliding Window: Trapping Rain Water", status: "completed", note: "Shrinking window contract logic verified." },
+        { title: "Trees & BST: BFS, DFS, LCA", status: "in_progress", note: "Practiced Lowest Common Ancestor." }
+      ]
+    }
   },
   {
-    id: "team-leads",
-    label: "Team Leads",
-    icon: Users,
-    headline: "Streamline team velocity & alignment",
-    cta: "See the lead toolkit",
+    id: "habits",
+    label: "Habit Loop",
+    icon: Zap,
+    headline: "Daily Streak & Habit Management",
+    description: "Build consistency with daily habit trackers, category tags, and streak counters.",
+    cta: "Manage Habits",
+    link: "/workspace/habits",
     features: [
       {
-        title: "Cross-functional visibility",
-        description: "Keep engineering, product, and design synchronized with phase-based execution roadmaps and metric tracking.",
+        title: "Category Streak Tracking",
+        description: "Monitor daily habit streaks with instant completion toggles and best-streak records.",
       },
       {
-        title: "Context-aware sprint logs",
-        description: "Audit task completions, note logs, and daily execution velocity without meeting overhead.",
+        title: "Prioritized Todo Checklist",
+        description: "Maintain high-priority daily tasks with tags, subtasks, and progress indicators.",
       },
     ],
+    mockup: {
+      title: "Daily Focus Routine",
+      habits: [
+        { name: "LeetCode Daily Challenge", streak: "14 Day Streak", status: "completed" },
+        { name: "System Design Chapter Review", streak: "8 Day Streak", status: "completed" },
+        { name: "Code Refactoring & Unit Tests", streak: "5 Day Streak", status: "pending" }
+      ]
+    }
   },
   {
-    id: "founders",
-    label: "Founders",
-    icon: Rocket,
-    headline: "From first sketch to final ship",
-    cta: "See the founder toolkit",
+    id: "deadlines",
+    label: "Deadline HUD",
+    icon: Clock,
+    headline: "Mini Calendar & Count Badges",
+    description: "Never miss a deadline with date-specific pending count badges and priority alerts.",
+    cta: "View Deadlines",
+    link: "/workspace/deadlines",
     features: [
       {
-        title: "One source of truth",
-        description: "Pull roadmap, revenue, and team status into a single place so every conversation starts from the same page.",
+        title: "Prioritized Color Badges",
+        description: "Current-day deadlines feature rose badges, while upcoming dates display amber indicator badges.",
       },
       {
-        title: "Move fast, stay calm",
-        description: "Ship more in less time with lightweight planning that respects how small teams actually work day-to-day.",
+        title: "Hover Context Tooltips",
+        description: "Hover over calendar days to view detailed deadline titles, time slots, and course info.",
       },
     ],
+    mockup: {
+      title: "Upcoming Milestones",
+      deadlines: [
+        { title: "OS Virtual Memory Assignment", course: "CS 401", tag: "Today", color: "text-rose-400 bg-rose-500/10 border-rose-500/20" },
+        { title: "System Design Prototype Review", course: "Project Alpha", tag: "Tomorrow", color: "text-amber-400 bg-amber-500/10 border-amber-500/20" }
+      ]
+    }
   },
   {
-    id: "operations",
-    label: "Operations",
-    icon: Sliders,
-    headline: "Automate workflows & system execution",
-    cta: "See the ops toolkit",
+    id: "analytics",
+    label: "Focus Velocity",
+    icon: BarChart2,
+    headline: "Vector Metrics & Focus Tracking",
+    description: "Visualize focus score, active work sessions, and daily execution velocity.",
+    cta: "View Overview",
+    link: "/overview",
     features: [
       {
-        title: "Deterministic process engine",
-        description: "Standardize recurring operations, sprint checklists, and infrastructure milestones with zero configuration.",
+        title: "75-Bar Vector Meter",
+        description: "Dynamic productivity score calculation combining task completions and habit velocity.",
       },
       {
-        title: "Real-time status gauges",
-        description: "Track system latency, resource allocations, and operational health metrics across all active initiatives.",
+        title: "Horizontal Day Timeline",
+        description: "Track work sessions and system events chronologically across the dashboard top bar.",
       },
     ],
-  },
-  {
-    id: "marketers",
-    label: "Marketers",
-    icon: Megaphone,
-    headline: "Accelerate growth & campaign execution",
-    cta: "See the marketer toolkit",
-    features: [
-      {
-        title: "Campaign roadmap alignment",
-        description: "Map launch dates, content deliverables, and marketing funnels seamlessly alongside core engineering updates.",
-      },
-      {
-        title: "High-impact messaging logs",
-        description: "Document positioning, copy iterations, and performance analytics with centralized note logs.",
-      },
-    ],
+    mockup: {
+      title: "Productivity Score",
+      score: "92 / 100",
+      stats: [
+        { label: "Active Focus", val: "4.5 hrs" },
+        { label: "Task Velocity", val: "94%" },
+        { label: "Habit Rate", val: "100%" }
+      ]
+    }
   },
 ]
 
 export function LandingInteractiveShowcase() {
-  const [activePersonaId, setActivePersonaId] = useState<string>("founders")
-
-  const currentPersona = PERSONAS.find((p) => p.id === activePersonaId) ?? PERSONAS[2]!
+  const [activeModuleId, setActiveModuleId] = useState<string>("roadmaps")
+  const currentModule = WORKSPACE_MODULES.find((m) => m.id === activeModuleId) ?? WORKSPACE_MODULES[0]!
 
   return (
     <div className="w-full space-y-28 py-12">
-      {/* SECTION 1: INTERACTIVE WORKFLOW SHOWCASE TABS */}
+      {/* SECTION 1: INTERACTIVE WORKSPACE PREVIEW TABS */}
       <section className="w-full max-w-6xl mx-auto px-6">
         <div className="text-center space-y-3 mb-10 flex flex-col items-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-card/80 px-3.5 py-1.5 text-xs font-semibold text-foreground backdrop-blur-md shadow-xs mb-2">
@@ -137,31 +150,31 @@ export function LandingInteractiveShowcase() {
           </div>
 
           <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-center text-foreground max-w-4xl mx-auto leading-tight">
-            Built to <span className="font-serif italic font-normal text-foreground/90">power</span> <br />
-            the teams behind great work
+            Explore the <span className="font-serif italic font-normal text-foreground/90">modules</span> <br />
+            powering your execution
           </h2>
         </div>
 
-        {/* 5 Persona Tabs Cards Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 mb-14">
-          {PERSONAS.map((persona) => {
-            const Icon = persona.icon
-            const isActive = activePersonaId === persona.id
+        {/* 4 Workspace Module Tab Buttons */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-10">
+          {WORKSPACE_MODULES.map((module) => {
+            const Icon = module.icon
+            const isActive = activeModuleId === module.id
             return (
               <button
-                key={persona.id}
-                onClick={() => setActivePersonaId(persona.id)}
-                className={`group relative rounded-2xl border p-6 sm:p-8 flex flex-col items-center justify-center gap-4 transition-all duration-300 cursor-pointer ${
+                key={module.id}
+                onClick={() => setActiveModuleId(module.id)}
+                className={`group relative rounded-2xl border p-5 sm:p-6 flex flex-col items-center justify-center gap-3 transition-all duration-300 cursor-pointer ${
                   isActive
                     ? "bg-card/90 border-border/80 shadow-xl ring-1 ring-border/50 scale-[1.02]"
                     : "bg-card/30 border-border/30 hover:bg-card/60 hover:border-border/60 text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <div
-                  className={`h-12 w-12 rounded-full flex items-center justify-center transition-all duration-300 ${
+                  className={`h-11 w-11 rounded-xl flex items-center justify-center transition-all duration-300 ${
                     isActive
-                      ? "bg-muted/90 text-foreground border border-border/80 shadow-xs"
-                      : "bg-muted/30 text-muted-foreground/70 group-hover:bg-muted/50 group-hover:text-foreground"
+                      ? "bg-foreground text-background shadow-md"
+                      : "bg-muted/40 text-muted-foreground group-hover:bg-muted/70 group-hover:text-foreground"
                   }`}
                 >
                   <Icon className="h-5 w-5 shrink-0" />
@@ -171,44 +184,143 @@ export function LandingInteractiveShowcase() {
                     isActive ? "text-foreground font-bold" : "text-muted-foreground group-hover:text-foreground"
                   }`}
                 >
-                  {persona.label}
+                  {module.label}
                 </span>
               </button>
             )
           })}
         </div>
 
-        {/* Content Box with Headline, CTA Button, and 2 Feature Columns */}
-        <div className="pt-10 border-t border-border/40 space-y-12">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-            {/* Left Column: Role Headline & CTA Button */}
-            <div className="lg:col-span-5 space-y-6">
-              <h3 className="text-2xl sm:text-4xl font-bold tracking-tight text-foreground leading-[1.2]">
-                {currentPersona.headline}
-              </h3>
-              <div>
+        {/* Active Module Content Showcase & Live Mockup */}
+        <div className="rounded-3xl border border-border/60 bg-card/60 p-6 sm:p-10 backdrop-blur-xl shadow-2xl space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            {/* Left Column: Headline & Features */}
+            <div className="lg:col-span-6 space-y-6">
+              <div className="space-y-2">
+                <span className="text-xs font-mono font-bold uppercase tracking-wider text-muted-foreground">
+                  Featured Module
+                </span>
+                <h3 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
+                  {currentModule.headline}
+                </h3>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                  {currentModule.description}
+                </p>
+              </div>
+
+              <div className="space-y-4 pt-2">
+                {currentModule.features.map((feature, idx) => (
+                  <div key={idx} className="space-y-1">
+                    <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                      <span>{feature.title}</span>
+                    </h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed pl-6">
+                      {feature.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pt-2">
                 <Link
-                  href="/dashboard"
-                  className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-card/80 px-5 py-2.5 text-xs sm:text-sm font-semibold text-foreground backdrop-blur-md shadow-xs transition-all hover:bg-card hover:border-foreground/40 hover:scale-[1.02]"
+                  href={currentModule.link}
+                  className="inline-flex items-center gap-2 rounded-xl bg-foreground px-5 py-2.5 text-xs sm:text-sm font-bold text-background shadow-md transition-all hover:scale-[1.02]"
                 >
-                  <span>{currentPersona.cta}</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
+                  <span>{currentModule.cta}</span>
+                  <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
             </div>
 
-            {/* Right Column: 2 Feature Bullet Points */}
-            <div className="lg:col-span-7 space-y-8">
-              {currentPersona.features.map((feature, idx) => (
-                <div key={idx} className="space-y-2">
-                  <h4 className="text-base sm:text-lg font-bold text-foreground tracking-tight">
-                    {feature.title}
-                  </h4>
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-xl font-normal">
-                    {feature.description}
-                  </p>
+            {/* Right Column: Mini Interactive UI Card Mockup */}
+            <div className="lg:col-span-6">
+              <div className="rounded-2xl border border-border/80 bg-background/90 p-5 sm:p-6 shadow-xl backdrop-blur-md space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-border/40">
+                  <div className="flex items-center gap-2">
+                    <div className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-xs font-mono font-bold text-foreground">
+                      {currentModule.mockup.title}
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono text-muted-foreground uppercase">
+                    Live Status
+                  </span>
                 </div>
-              ))}
+
+                {/* Module-specific Mockup Content */}
+                {currentModule.id === "roadmaps" && (
+                  <div className="space-y-3">
+                    <p className="text-xs font-semibold text-muted-foreground">
+                      {currentModule.mockup.phase}
+                    </p>
+                    <div className="space-y-2">
+                      {currentModule.mockup.tasks?.map((t, i) => (
+                        <div key={i} className="p-3 rounded-xl border border-border/60 bg-card/50 text-xs space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold text-foreground">{t.title}</span>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                              t.status === "completed" ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" : "bg-amber-500/10 text-amber-500 border border-amber-500/20"
+                            }`}>
+                              {t.status}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground italic">"{t.note}"</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {currentModule.id === "habits" && (
+                  <div className="space-y-2">
+                    {currentModule.mockup.habits?.map((h, i) => (
+                      <div key={i} className="flex items-center justify-between p-3 rounded-xl border border-border/60 bg-card/50 text-xs">
+                        <div className="flex items-center gap-2.5">
+                          <CheckCircle2 className={`h-4 w-4 ${h.status === "completed" ? "text-emerald-500" : "text-muted-foreground/40"}`} />
+                          <span className="font-semibold text-foreground">{h.name}</span>
+                        </div>
+                        <span className="text-[10px] font-mono font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20">
+                          {h.streak}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {currentModule.id === "deadlines" && (
+                  <div className="space-y-3">
+                    {currentModule.mockup.deadlines?.map((d, i) => (
+                      <div key={i} className="flex items-center justify-between p-3 rounded-xl border border-border/60 bg-card/50 text-xs">
+                        <div className="space-y-0.5">
+                          <p className="font-bold text-foreground">{d.title}</p>
+                          <p className="text-[10px] text-muted-foreground">{d.course}</p>
+                        </div>
+                        <span className={`text-[10px] font-mono font-bold px-2.5 py-1 rounded-full border ${d.color}`}>
+                          {d.tag}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {currentModule.id === "analytics" && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 rounded-xl border border-border/60 bg-card/50">
+                      <span className="text-xs font-semibold text-muted-foreground">Focus Score</span>
+                      <span className="text-xl font-extrabold font-mono text-emerald-500">{currentModule.mockup.score}</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {currentModule.mockup.stats?.map((s, i) => (
+                        <div key={i} className="p-2.5 rounded-xl border border-border/40 bg-card/30 text-center space-y-0.5">
+                          <p className="text-[10px] font-semibold text-muted-foreground">{s.label}</p>
+                          <p className="text-xs font-bold font-mono text-foreground">{s.val}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -219,14 +331,17 @@ export function LandingInteractiveShowcase() {
         <div className="text-center space-y-3 mb-16 flex flex-col items-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-card/80 px-3.5 py-1.5 text-xs font-semibold text-foreground backdrop-blur-md shadow-xs mb-1">
             <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-white"></span>
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75"></span>
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
             </span>
             <span>Workflow Architecture</span>
           </div>
-          <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-foreground">
-            From Chaos to Peak Flow in 3 Steps
+
+          <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-center text-foreground max-w-4xl mx-auto leading-tight">
+            From chaos to <span className="font-serif italic font-normal text-foreground/90">peak flow</span> <br />
+            in 3 simple steps
           </h2>
+
           <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto">
             A structured execution pipeline engineered to keep you focused on what matters most.
           </p>
@@ -273,14 +388,21 @@ export function LandingInteractiveShowcase() {
       {/* SECTION 3: FEATURE MATRIX COMPARISON */}
       <section className="w-full max-w-5xl mx-auto px-6 py-8">
         <div className="text-center space-y-3 mb-16 flex flex-col items-center">
-          <div className="inline-flex items-center rounded-full border border-border/80 bg-card/80 px-4 py-1 text-xs font-semibold text-foreground backdrop-blur-md shadow-xs mb-1">
+          <div className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-card/80 px-3.5 py-1.5 text-xs font-semibold text-foreground backdrop-blur-md shadow-xs mb-1">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75"></span>
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+            </span>
             <span>Comparison</span>
           </div>
-          <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-foreground text-center max-w-3xl leading-tight">
-            See how Weavit stacks up <br className="hidden sm:block" /> against manual workflow
+
+          <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-center text-foreground max-w-4xl mx-auto leading-tight">
+            See how Weavit <span className="font-serif italic font-normal text-foreground/90">stacks up</span> <br />
+            against manual workflows
           </h2>
+
           <p className="text-sm sm:text-base text-muted-foreground text-center max-w-2xl mx-auto">
-            Discover why developers choose Weavit over manual tracking & fragmented spreadsheets
+            Discover why developers choose Weavit over manual tracking & fragmented spreadsheets.
           </p>
         </div>
 
@@ -317,39 +439,34 @@ export function LandingInteractiveShowcase() {
           {/* Feature Rows */}
           {[
             {
-              icon: Users,
-              title: "Team Overview",
-              badge: null,
-              weavit: { status: "check", detail: "Comprehensive real-time dashboard" },
-              manual: { status: "minus", detail: "Basic overview only" },
+              icon: FolderOpen,
+              title: "Multi-Phase Roadmaps",
+              weavit: { status: "check", detail: "Structured plans with note logs" },
+              manual: { status: "minus", detail: "Flat text notes & spreadsheets" },
             },
             {
               icon: Sliders,
-              title: "Custom Branding",
-              badge: null,
-              weavit: { status: "check", detail: "Full system customization" },
-              manual: { status: "check", detail: "Limited options" },
+              title: "Habit & Streak Logic",
+              weavit: { status: "check", detail: "Automated streak calculations" },
+              manual: { status: "minus", detail: "Manual calendar cross-offs" },
             },
             {
               icon: Code,
               title: "API Access",
-              badge: null,
-              weavit: { status: "check", detail: "Robust developer API" },
+              weavit: { status: "check", detail: "Robust developer API & OpenAPI spec" },
               manual: { status: "minus", detail: "No API available" },
             },
             {
               icon: BarChart2,
-              title: "Advanced Analytics",
-              badge: null,
-              weavit: { status: "check", detail: "Real-time focus & velocity tracking" },
-              manual: { status: "minus", detail: "Static spreadsheets & charts" },
+              title: "Focus Velocity Meter",
+              weavit: { status: "check", detail: "Real-time 75-bar vector meter" },
+              manual: { status: "minus", detail: "No focus measurement" },
             },
             {
               icon: Headphones,
-              title: "Customer Support",
-              badge: null,
-              weavit: { status: "check", detail: "24/7 dedicated engineering team" },
-              manual: { status: "minus", detail: "Email support only" },
+              title: "Instant Client Engine",
+              weavit: { status: "check", detail: "Sub-1ms local state response" },
+              manual: { status: "minus", detail: "Slow page loads & cloud lags" },
             },
           ].map((row, idx) => {
             const RowIcon = row.icon
@@ -358,17 +475,10 @@ export function LandingInteractiveShowcase() {
                 {/* Col 1 Label */}
                 <div className="col-span-4 flex items-center gap-3 border-b border-border/40 pr-4 sm:pr-6 py-4">
                   <RowIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs sm:text-sm font-bold text-foreground">{row.title}</span>
-                    {row.badge && (
-                      <span className="rounded-full bg-muted/80 border border-border px-2.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
-                        {row.badge}
-                      </span>
-                    )}
-                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-foreground">{row.title}</span>
                 </div>
 
-                {/* Col 2 Weavit (Middle Borderless Elevated Card Body) */}
+                {/* Col 2 Weavit */}
                 <div className="col-span-4 bg-card/90 border-b border-border/40 p-4 flex flex-col items-center justify-center text-center relative z-10 shadow-2xl backdrop-blur-xl">
                   <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0 mb-1.5" />
                   <span className="text-xs font-medium text-foreground">{row.weavit.detail}</span>
@@ -376,28 +486,23 @@ export function LandingInteractiveShowcase() {
 
                 {/* Col 3 Manual Workflow */}
                 <div className="col-span-4 flex flex-col items-center justify-center text-center border-b border-border/40 pl-4 sm:pl-6 p-4">
-                  {row.manual.status === "check" ? (
-                    <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0 mb-1.5" />
-                  ) : (
-                    <MinusCircle className="h-5 w-5 text-rose-500 shrink-0 mb-1.5" />
-                  )}
+                  <MinusCircle className="h-5 w-5 text-rose-500 shrink-0 mb-1.5" />
                   <span className="text-xs font-medium text-muted-foreground">{row.manual.detail}</span>
                 </div>
               </div>
             )
           })}
 
-          {/* Footer Row (Weavit Card Bottom CTA Button) */}
+          {/* Footer Row */}
           <div className="grid grid-cols-12 items-stretch gap-0">
             <div className="col-span-4 pr-4 sm:pr-6" />
 
-            {/* Weavit Card Bottom */}
             <div className="col-span-4 bg-card/90 rounded-b-3xl p-5 sm:p-7 relative z-10 shadow-2xl backdrop-blur-xl">
               <Link
                 href="/dashboard"
                 className="w-full rounded-xl bg-foreground py-3 text-xs sm:text-sm font-bold text-background shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all text-center block"
               >
-                Try Weavit today
+                Try Weavit Today
               </Link>
             </div>
 
@@ -411,15 +516,18 @@ export function LandingInteractiveShowcase() {
         <div className="text-center space-y-3 mb-12 flex flex-col items-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-card/80 px-3.5 py-1.5 text-xs font-semibold text-foreground backdrop-blur-md shadow-xs mb-1">
             <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-white"></span>
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75"></span>
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
             </span>
             <span>Got Questions?</span>
           </div>
-          <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground">
-            Frequently Asked Questions
+
+          <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-center text-foreground max-w-4xl mx-auto leading-tight">
+            Frequently asked <span className="font-serif italic font-normal text-foreground/90">questions</span> <br />
+            & system answers
           </h2>
-          <p className="text-sm md:text-base text-muted-foreground">
+
+          <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto">
             Everything you need to know about the Weavit platform and workflow engine.
           </p>
         </div>
@@ -428,7 +536,7 @@ export function LandingInteractiveShowcase() {
           {[
             {
               q: "Is Weavit fully client-side and fast?",
-              a: "Yes! Weavit operates using an instant client-side state engine powered by Redux Toolkit, providing sub-millisecond response times without lag or cloud loading states.",
+              a: "Yes! Weavit operates using an instant client-side state engine, providing sub-millisecond response times without lag or cloud loading states.",
             },
             {
               q: "Can I customize engineering roadmaps for interview prep or projects?",

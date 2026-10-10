@@ -1,5 +1,4 @@
-import React from "react"
-import { UserButton, Show, SignInButton, SignUpButton } from "@clerk/nextjs"
+import { UserButton, Show } from "@clerk/nextjs"
 import Link from "next/link"
 
 export const FloatingNav = () => {
@@ -45,14 +44,20 @@ export const FloatingNav = () => {
             About
           </Link>
         </div>
-        <div className="ml-2 flex items-center gap-5 sm:ml-4">
+        <div className="ml-2 flex items-center gap-3 sm:ml-4">
           <Show when="signed-out">
-            <SignInButton />
-            <SignUpButton>
-              <button className="h-10 cursor-pointer rounded-full bg-[#6c47ff] px-4 text-sm font-medium text-white sm:h-12 sm:px-5 sm:text-base">
-                Sign Up
-              </button>
-            </SignUpButton>
+            <Link
+              href="/login"
+              className="px-3 py-1.5 text-xs sm:text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Log In
+            </Link>
+            <Link
+              href="/login?mode=sign-up"
+              className="inline-flex items-center justify-center rounded-xl bg-foreground px-4 py-2 text-xs sm:text-sm font-semibold text-background shadow-xs transition-all hover:opacity-90 active:scale-[0.98]"
+            >
+              Sign Up
+            </Link>
           </Show>
           <Show when="signed-in">
             <UserButton />
