@@ -1,3 +1,7 @@
+"use client"
+
+import * as React from "react"
+import { usePathname } from "next/navigation"
 import { AppSidebar } from "@workspace/ui/components/app-sidebar"
 import {
   Breadcrumb,
@@ -13,34 +17,68 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@workspace/ui/components/sidebar"
+import { Sparkles, Command } from "lucide-react"
 
-export default function Page({
+const ROUTE_LABELS: Record<string, string> = {
+  "/workspace": "Dashboard",
+  "/workspace/habits": "Daily Habits",
+  "/workspace/todos": "Tasks & Todos",
+  "/workspace/projects": "Roadmaps & Plans",
+  "/workspace/deadlines": "Deadlines & Milestones",
+  "/workspace/timeline": "Timeline & Activity",
+  "/workspace/drafts": "Drafts & Notes",
+  "/workspace/settings": "Settings",
+}
+
+export default function WorkspaceLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const pathname = usePathname()
+
+  const currentLabel = React.useMemo(() => {
+    if (!pathname) return "Workspace"
+    if (ROUTE_LABELS[pathname]) return ROUTE_LABELS[pathname]
+    if (pathname.startsWith("/workspace/projects/")) return "Roadmap Details"
+    if (pathname.startsWith("/workspace/habits/")) return "Habit Details"
+    return "Workspace"
+  }, [pathname])
+
   return (
     <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset className="">
-        <header className="flex h-16 shrink-0 items-center gap-2">
-          <div className="flex items-center gap-2 px-4">
-            <SidebarTrigger className="-ml-1" />
+      <AppSidebar currentPath={pathname} />
+      <SidebarInset className="bg-background">
+        <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border/50 px-4 transition-[width,height] ease-linear">
+          <div className="flex items-center gap-2">
+            <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />
             <Separator
               orientation="vertical"
-              className="mr-2 data-[orientation=vertical]:h-4"
+              className="mr-2 data-[orientation=vertical]:h-4 bg-border/60"
             />
             <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">
-                    Build Your Application
+              <BreadcrumbList className="text-xs">
+                <BreadcrumbItem className="hidden sm:block">
+                  <BreadcrumbLink
+                    href="/workspace"
+                    className="text-muted-foreground hover:text-foreground font-medium"
+                  >
+                    Workspace
                   </BreadcrumbLink>
                 </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
+                <BreadcrumbSeparator className="hidden sm:block text-muted-foreground/40" />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>Data Fetching</BreadcrumbPage>
+                  <BreadcrumbPage className="font-semibold text-foreground">
+                    {currentLabel}
+                  </BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-2 rounded-lg border border-border/60 bg-muted/30 px-2.5 py-1 text-xs text-muted-foreground">
+              <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="font-medium text-[11px]">Sync Active</span>
+            </div>
           </div>
         </header>
         <div className="w-full flex-1 overflow-y-auto">{children}</div>

@@ -1,8 +1,5 @@
+import { redirect } from "next/navigation"
 
-const Page = () => {
-  return (
-    <div>workspace</div>
-  )
+export default function Page() {
+  redirect("/workspace/habits")
 }
-
-export default Page

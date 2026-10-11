@@ -40,10 +40,10 @@ const Page = () => {
     <ReactLenis
       root
       options={{
-        duration: 1.5,
-        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-        wheelMultiplier: 2.2,
-        touchMultiplier: 2.0,
+        duration: 1.8,
+        easing: (t) => 1 - Math.pow(1 - t, 4),
+        wheelMultiplier: 1.6,
+        touchMultiplier: 1.5,
         smoothWheel: true,
       }}
     >

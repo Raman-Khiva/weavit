@@ -199,33 +199,53 @@ export function ProjectPhases({
             const isCompleted = finishedTasks > 0 && finishedTasks === totalTasks
 
             return (
-              <TimelineItem key={phase.id} step={index + 1} className="ms-8 pb-8">
+              <TimelineItem key={phase.id} step={index + 1} className="ms-8 pb-10">
                 <TimelineHeader>
-                  <TimelineSeparator className="group-data-[orientation=vertical]/timeline:-left-6 group-data-[orientation=vertical]/timeline:h-[calc(100%-1.5rem-0.25rem)] group-data-[orientation=vertical]/timeline:translate-y-7" />
-                  <div className="flex items-center gap-2">
-                    <TimelineTitle className="text-base font-bold text-foreground">
+                  <TimelineSeparator className="group-data-[orientation=vertical]/timeline:-left-6 group-data-[orientation=vertical]/timeline:h-[calc(100%-1.75rem-0.25rem)] group-data-[orientation=vertical]/timeline:translate-y-8" />
+                  <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 py-1">
+                    <span className="font-mono text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-primary/15 text-primary border border-primary/25 shrink-0">
+                      Phase {String(index + 1).padStart(2, "0")}
+                    </span>
+
+                    <TimelineTitle className="text-xl sm:text-2xl font-black tracking-tight text-foreground">
                       {phase.title}
                     </TimelineTitle>
+
                     {phase.category && (
-                      <Badge variant="outline" className="text-[10px] px-2 py-0">
+                      <Badge variant="outline" className="text-xs font-semibold px-2.5 py-0.5 border-border/80 bg-card text-foreground/80 shadow-2xs">
                         {phase.category}
                       </Badge>
                     )}
-                    <Badge
-                      variant={isCompleted ? "success-light" : progress > 0 ? "info-light" : "warning-light"}
-                      size="sm"
-                    >
-                      {isCompleted ? "Completed" : `${progress}% Done`}
-                    </Badge>
+
+                    <div className="flex items-center gap-2">
+                      {isCompleted ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-xs">
+                          <CheckIcon className="size-3.5 stroke-[3]" /> Completed
+                        </span>
+                      ) : progress > 0 ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-black bg-sky-500/15 text-sky-400 border border-sky-500/30 shadow-xs">
+                          <span className="size-1.5 rounded-full bg-sky-400 animate-pulse" />
+                          {progress}% Done
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold bg-muted/80 text-muted-foreground border border-border">
+                          0% Done
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <TimelineIndicator
                     className={cn(
-                      "flex size-6 items-center justify-center border-none bg-muted text-muted-foreground group-data-completed/timeline-item:bg-primary group-data-completed/timeline-item:text-primary-foreground group-data-[orientation=vertical]/timeline:-left-6",
-                      progress > 0 && !isCompleted && "ring-2 ring-primary/20 bg-primary/80 text-primary-foreground"
+                      "flex size-7 items-center justify-center border-none group-data-[orientation=vertical]/timeline:-left-6",
+                      isCompleted
+                        ? "bg-emerald-500 text-black shadow-md shadow-emerald-500/25 ring-2 ring-emerald-500/30"
+                        : progress > 0
+                        ? "ring-4 ring-primary/20 bg-primary text-primary-foreground shadow-md"
+                        : "bg-card border-2 border-border text-muted-foreground"
                     )}
                   >
-                    {isCompleted ? <CheckIcon className="size-3.5" /> : <CircleIcon className="size-3.5" />}
+                    {isCompleted ? <CheckIcon className="size-4 stroke-[3]" /> : <CircleIcon className="size-3.5 stroke-[2.5]" />}
                   </TimelineIndicator>
                 </TimelineHeader>
 
