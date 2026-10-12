@@ -1,0 +1,86 @@
+{
+    "taskDefinitionArn": "arn:aws:ecs:ap-southeast-2:823969993319:task-definition/weavit-api:1",
+    "containerDefinitions": [
+        {
+            "name": "api",
+            "image": "823969993319.dkr.ecr.ap-southeast-2.amazonaws.com/weavit/api:latest",
+            "cpu": 0,
+            "portMappings": [
+                {
+                    "containerPort": 4000,
+                    "hostPort": 4000,
+                    "protocol": "tcp",
+                    "name": "api-4000-tcp",
+                    "appProtocol": "http"
+                }
+            ],
+            "essential": true,
+            "environment": [],
+            "environmentFiles": [],
+            "mountPoints": [],
+            "volumesFrom": [],
+            "ulimits": [],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/weavit-api",
+                    "awslogs-create-group": "true",
+                    "awslogs-region": "ap-southeast-2",
+                    "awslogs-stream-prefix": "ecs"
+                },
+                "secretOptions": []
+            },
+            "systemControls": []
+        }
+    ],
+    "family": "weavit-api",
+    "executionRoleArn": "arn:aws:iam::823969993319:role/ecsTaskExecutionRole",
+    "networkMode": "awsvpc",
+    "revision": 1,
+    "volumes": [],
+    "status": "ACTIVE",
+    "requiresAttributes": [
+        {
+            "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+        },
+        {
+            "name": "ecs.capability.execution-role-awslogs"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.ecr-auth"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+        },
+        {
+            "name": "ecs.capability.execution-role-ecr-pull"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+        },
+        {
+            "name": "ecs.capability.task-eni"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.29"
+        }
+    ],
+    "placementConstraints": [],
+    "compatibilities": [
+        "EC2",
+        "FARGATE",
+        "MANAGED_INSTANCES"
+    ],
+    "runtimePlatform": {
+        "cpuArchitecture": "X86_64",
+        "operatingSystemFamily": "LINUX"
+    },
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "512",
+    "memory": "2048",
+    "registeredAt": "2026-10-12T11:23:41.601000+00:00",
+    "registeredBy": "arn:aws:sts::823969993319:assumed-role/AccountFullAccessRole/44e8f468-9011-702b-ae73-19e37045535c",
+    "enableFaultInjection": false
+}
