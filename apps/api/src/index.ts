@@ -1,11 +1,21 @@
-import express, { Request, Response } from "express"
+import express, { Request, response, Response } from "express"
 import { clerkMiddleware, getAuth } from "@clerk/express"
 import { prisma } from '../src/config/db'
 import swaggerUi from "swagger-ui-express"
 import openapiSpec from "../openapi.json"
 import cors from "cors"
 import { Habit, User } from "@prisma/client"
-import { PostHabitsBody } from "./zod/api"
+import {
+  GetProjectsResponse,
+  GetTodosResponse,
+  PostHabitsBody, PostHabitsResponse,
+  PostProjectsBody,
+  PostProjectsProjectIdPhasesBody,
+  PostProjectsProjectIdPhasesResponse,
+  PostProjectsResponse,
+  PostTodosBody, PostTodosResponse,
+} from "./zod/api"
+import { includes, string } from "zod"
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000
@@ -146,13 +156,15 @@ app.post("/habits", async (req: Request, res: Response) => {
 
     })
 
-    res.status(200).json({
-      message: "Habit posted successfully",
-      postedHabit,
-    })
+    // Parse through the OpenAPI response schema to enforce the contract.
+    // This strips internal DB fields (e.g. description, createdAt) not
+    // declared in the spec, and throws if the shape is invalid.
+    const response = PostHabitsResponse.parse(postedHabit)
+    res.status(201).json(response);
 
 
   } catch (error) {
+
 
     res.status(400).json({
       message: "failed while posting habit"
@@ -197,6 +209,266 @@ app.post('/syncUser', async (req: Request, res: Response) => {
     })
   }
 })
+
+
+
+
+
+// Todos Routes
+
+
+// Get Todos
+
+app.get('/todos', async (req: Request, res: Response) => {
+  try {
+
+    const userId = await getUserId(req, res);
+
+    if (!userId) return;
+
+    const todos = await prisma.todo.findMany({
+      where: {
+        userId
+      }
+    });
+
+    const result = GetTodosResponse.safeParse(todos);
+
+    if (!result.success) {
+      return res.status(400).json({
+        message: "Invalid response structure"
+        , error: result.error.flatten()
+      })
+    }
+
+    const validResponse = result.data;
+
+    return res.status(200).json(validResponse)
+
+
+
+
+
+  } catch (error) {
+    return res.status(400).json({
+      message: "Server error while fetching todos"
+      , error: error
+    })
+
+  }
+})
+
+
+
+// Post Todo
+
+app.post('/todos', async (req: Request, res: Response) => {
+  try {
+    const userId: string | null = await getUserId(req, res);
+
+    if (!userId) {
+      return res.status(400).json({
+        error: "failed while finding user"
+      })
+    }
+
+    const result = await PostTodosBody.safeParse(req.body);
+
+    if (!result.success) {
+      return res.status(400).json({
+        message: "Invalid request payload"
+        , error: result.error.flatten()
+      })
+    }
+
+    const validData = result.data;
+
+    const postedTodo = await prisma.todo.create({
+      data: {
+        ...validData,
+        userId: userId
+      }
+    })
+
+
+
+    // Enforce OpenAPI contract: only declared fields are sent to the client.
+    const response = PostTodosResponse.parse(postedTodo)
+    res.status(201).json(response)
+
+
+
+  }
+  catch (error) {
+    return res.status(400).json({
+      message: "Server error while posting todo"
+      , error: error
+    })
+
+  }
+})
+
+
+
+
+// Project Routes
+
+
+
+// Get Projects
+
+app.get('/projects', async (req: Request, res: Response) => {
+  try {
+
+    const userId = await getUserId(req, res);
+    if (!userId) return;
+
+    // Bug fix: was missing `await` — projects was a Promise, not an array
+    const projects = await prisma.project.findMany({
+      where: { userId },
+      include: { phases: { include: { tasks: { include: { notes: true } } } } }
+    })
+
+    const validateRes = GetProjectsResponse.safeParse(JSON.parse(JSON.stringify(projects)));
+
+    if (!validateRes.success) {
+      return res.status(400).json({
+        message: "Invalid response structure",
+        error: validateRes.error.flatten()
+      })
+    }
+
+    // Bug fix: was returning the safeParse wrapper {success, data} instead of the data
+    return res.status(200).json(validateRes.data);
+
+  } catch (error) {
+    return res.status(400).json({
+      message: "Server error while getting projects",
+      error: error
+    })
+  }
+})
+
+
+
+
+// Post Projects
+
+app.post('/projects', async (req: Request, res: Response) => {
+  try {
+
+    const userId = await getUserId(req, res);
+    if (!userId) return;
+
+    const result = PostProjectsBody.safeParse(req.body);
+
+    if (!result.success) {
+      return res.status(400).json({
+        message: "Invalid request payload",
+        error: result.error.flatten()
+      })
+    }
+
+    const validData = result.data;
+
+    const postedProject = await prisma.project.create({
+      data: {
+        userId,
+        ...validData
+      }
+    });
+
+    const resResult = PostProjectsResponse.safeParse({
+      ...postedProject,
+      createdAt: postedProject.createdAt.toISOString(),
+      updatedAt: postedProject.updatedAt.toISOString(),
+    });
+
+    if (!resResult.success) {
+      return res.status(500).json({
+        message: "Response did not match OpenAPI contract",
+        error: resResult.error.flatten()
+      })
+    }
+
+    return res.status(201).json(resResult.data);
+
+  } catch (error) {
+    return res.status(400).json({
+      message: "Server error while posting project",
+      error: error
+    })
+  }
+})
+
+
+// Phase route
+
+
+// Post phase
+app.post('/projects/:projectId/phases', async (req: Request, res: Response) => {
+  try {
+
+    const userId = await getUserId(req, res);
+    if (!userId) return;
+
+    const projectId = req.params.projectId;
+
+    if ((typeof projectId !== "string") || !projectId) {
+      return res.status(400).json({
+        error: "Invalid project id"
+      })
+    }
+
+
+    const result = PostProjectsProjectIdPhasesBody.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json({
+        message: "Invalid request payload",
+        error: result.error.flatten()
+      })
+    }
+
+
+    const validData = result.data;
+    const postedData = await prisma.projectPhase.create({
+      data: {
+        projectId,
+        ...validData
+      }
+      , include: {
+        tasks:
+        {
+          include: { notes: true }
+        }
+      }
+
+
+
+    })
+
+    const validatePostedData = PostProjectsProjectIdPhasesResponse.safeParse(postedData);
+
+    if (!validatePostedData.success) {
+      return res.status(400).json({
+        message: "Invalid response structure",
+        error: validatePostedData.error.flatten()
+      })
+    }
+
+    return res.status(201).json(validatePostedData.data);
+
+  } catch (error) {
+
+    res.status(400).json({
+      message: "Server error while posting error"
+      , error: error instanceof Error ? error.message : String(error)
+    })
+
+  }
+})
+
+
 
 
 app.post('/db-test', async (req: Request, res: Response) => {
