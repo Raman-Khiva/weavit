@@ -6,8 +6,11 @@ import openapiSpec from "../openapi.json"
 import cors from "cors"
 import { Habit, User } from "@prisma/client"
 import {
+  GetDeadlinesResponse,
   GetProjectsResponse,
   GetTodosResponse,
+  PostDeadlinesBody,
+  PostDeadlinesResponse,
   PostHabitsBody, PostHabitsResponse,
   PostProjectsBody,
   PostProjectsProjectIdPhasesBody,
@@ -16,6 +19,7 @@ import {
   PostTodosBody, PostTodosResponse,
 } from "./zod/api"
 import { includes, string } from "zod"
+import { JsonNull } from "@prisma/client/runtime/client"
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000
@@ -469,6 +473,90 @@ app.post('/projects/:projectId/phases', async (req: Request, res: Response) => {
 })
 
 
+// Deadline routes
+
+// Post deadline
+
+app.post('/deadlines', async (req: Request, res: Response) => {
+  try {
+
+    const userId = await getUserId(req, res);
+
+    if (!userId) return;
+
+    const result = PostDeadlinesBody.safeParse(req.body);
+
+    if (!result.success) {
+      return res.status(400).json({
+        message: "Invalid request payload",
+        error: result.error.flatten()
+      })
+    }
+
+    const postedData = await prisma.deadline.create({
+      data: {
+        userId,
+        ...result.data
+      }
+    })
+
+    const validatePostedData = PostDeadlinesResponse.safeParse(JSON.parse(JSON.stringify(postedData)));
+
+    if (!validatePostedData.success) {
+      return res.status(400).json({
+        message: "Response didn't match openapi contract",
+        error: validatePostedData.error.flatten()
+      })
+    }
+
+    return res.status(201).json(validatePostedData.data);
+
+  } catch (error) {
+
+    return res.status(400).json({
+      message: "Server error while deadline",
+      error: error instanceof Error ? error.message : String(error)
+    })
+
+  }
+})
+
+
+// Get deadlines
+
+app.get('/deadlines', async (req: Request, res: Response) => {
+  try {
+
+    const userId = await getUserId(req, res);
+
+    if (!userId) return;
+
+    const deadlines = await prisma.deadline.findMany({
+      where: {
+        userId
+      }
+    });
+
+    const validateDeadlinesResponse = GetDeadlinesResponse.safeParse(JSON.parse(JSON.stringify(deadlines)));
+
+    if (!validateDeadlinesResponse.success) {
+      return res.status(400).json({
+        message: "Response didn't match the OpenAPI contract",
+        error: validateDeadlinesResponse.error.flatten()
+      })
+    }
+
+    return res.status(200).json(validateDeadlinesResponse.data)
+
+
+  } catch (error) {
+
+    return res.status(400).json({
+      message: "Server error while fetching deadlines",
+      error: error instanceof Error ? error.message : String(error)
+    })
+  }
+})
 
 
 app.post('/db-test', async (req: Request, res: Response) => {
