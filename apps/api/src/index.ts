@@ -5,6 +5,7 @@ import swaggerUi from "swagger-ui-express"
 import openapiSpec from "../openapi.json"
 import cors from "cors"
 import { Habit, User } from "@prisma/client"
+import pinoHttp from "pino-http"
 import {
   GetDeadlinesResponse,
   GetProjectsResponse,
@@ -18,11 +19,35 @@ import {
   PostProjectsResponse,
   PostTodosBody, PostTodosResponse,
 } from "./zod/api"
-import { includes, string } from "zod"
-import { JsonNull } from "@prisma/client/runtime/client"
+import { logger } from "./lib/logger.dev"
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000
+
+
+app.use(
+  pinoHttp({
+    logger,
+
+    serializers: {
+      req: (req) => ({
+        method: req.method,
+        url: req.url,
+        requestId: req.id,
+      }),
+      res: (res) => ({
+        statusCode: res.statusCode,
+      }),
+    },
+
+    customSuccessMessage: (req, res) =>
+      `${req.method} ${req.url} completed with ${res.statusCode}`,
+
+    customErrorMessage: (req, res, error) =>
+      `${req.method} ${req.url} failed with ${res.statusCode}: ${error.message}`,
+  })
+);
+
 
 app.get("/openapi.json", (_req: Request, res: Response) => {
   res.json(openapiSpec)
@@ -610,5 +635,4 @@ app.get("/doppler-test", (req: Request, res: Response) => {
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is running on port ${PORT}`)
-  console.log(`DATABASE_URL  ${process.env.DATABASE_URL}`)
 })
