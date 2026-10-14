@@ -8,6 +8,7 @@ import { Habit, User } from "@prisma/client"
 import pinoHttp from "pino-http"
 import {
   GetDeadlinesResponse,
+  GetHabitsResponse,
   GetProjectsResponse,
   GetTodosResponse,
   PostDeadlinesBody,
@@ -139,17 +140,22 @@ app.get("/habits", async (req: Request, res: Response) => {
       }
     })
 
-    res.status(200).json({
-      message: "habbits data fetched successfully"
-      , data: {
-        habits
-      }
-    })
+    const validateResponse = GetHabitsResponse.safeParse(JSON.parse(JSON.stringify(habits)));
+
+    if (!validateResponse.success) {
+      return res.status(500).json({
+        message: "Response didn't match OpenApi contract",
+        error: validateResponse.error.flatten()
+      })
+    }
+
+
+    res.status(200).json(validateResponse.data);
 
 
   } catch (error) {
 
-    res.status(400).json({
+    res.status(500).json({
       message: "Server error while getting habits data",
       error: error
     })

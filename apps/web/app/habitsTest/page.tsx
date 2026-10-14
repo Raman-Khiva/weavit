@@ -4,7 +4,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useGetHabitsQuery } from "@/features/habits/habits.api";
 
 const Page = () => {
-    const { getToken, isLoaded, isSignedIn } = useAuth();
+    const { isLoaded, isSignedIn } = useAuth();
 
     const {
         data,
