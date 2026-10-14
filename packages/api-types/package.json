@@ -1,0 +1,12 @@
+{
+    "name": "@weavit/api-types",
+    "version": "1.0.0",
+    "private": true,
+    "types": "./src/generated.ts",
+    "exports": {
+        ".": {
+            "types": "./src/generated.ts",
+            "default": "./src/generated.ts"
+        }
+    }
+}

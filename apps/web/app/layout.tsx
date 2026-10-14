@@ -8,6 +8,7 @@ import { TooltipProvider } from "@workspace/ui/components/tooltip"
 import { Provider } from "react-redux"
 import { store } from "@/services/store"
 import { FloatingThemeToggle } from "@/components/floating-theme-toggle"
+import { ClerkTokenProvider } from "@/lib/providers/ClerkTokenProvider"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
 
@@ -43,6 +44,7 @@ export default function RootLayout({
               signUpFallbackRedirectUrl="/dashboard"
             >
               <TooltipProvider>
+                <ClerkTokenProvider />
                 {children}
                 <FloatingThemeToggle />
               </TooltipProvider>
