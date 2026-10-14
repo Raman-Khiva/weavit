@@ -1,0 +1,16 @@
+{
+    "name": "@weavit/api-contract",
+    "version": "0.0.0.0",
+    "types": "",
+    "main": "",
+    "exports": {
+        ".": "./src/index.ts",
+        "./zod": "./src/generated/zod.ts",
+        "./types": "./src/generated/types.ts"
+    },
+    "devDependencies": {
+        "openapi-typescript": "^7.13.0",
+        "orval": "^8.41.0",
+        "zod": "^4.4.3"
+    }
+}

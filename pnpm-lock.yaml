@@ -161,6 +161,18 @@ importers:
         specifier: ^5
         version: 5.9.3
 
+  packages/api-contract:
+    devDependencies:
+      openapi-typescript:
+        specifier: ^7.13.0
+        version: 7.13.0(typescript@5.9.3)
+      orval:
+        specifier: ^8.41.0
+        version: 8.41.0(@modelcontextprotocol/sdk@1.29.0(zod@4.4.3))(effect@3.20.0)(msw@2.14.6(@types/node@20.19.41)(typescript@5.9.3))(prettier@3.8.3)(typescript@5.9.3)(zod@4.4.3)
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+
   packages/api-types: {}
 
   packages/eslint-config:
