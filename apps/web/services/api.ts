@@ -38,7 +38,7 @@ export const api = createApi({
         }
 
     }),
-    tagTypes: ["Habit"],
+    tagTypes: ["Habit", "Todos"],
     endpoints: () => ({})
 
 })

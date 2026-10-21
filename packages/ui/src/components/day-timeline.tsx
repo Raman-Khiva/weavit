@@ -15,7 +15,7 @@ const hours = Array.from({ length: 24 }, (_, i) => {
   }
 })
 
-export const DayTimeline = () => {
+export function DayTimeline(): JSX.Element {
   return (
     <Sidebar001 className="h-full w-full!" defaultWidth={400}>
       <Sidebar001Content className="py-0">

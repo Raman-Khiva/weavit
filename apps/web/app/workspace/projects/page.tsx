@@ -8,7 +8,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Search, Sparkles, RefreshCw, FolderPlus } from "lucide-react"
 
-const Page = () => {
+function Page(): JSX.Element {
   const { projects, addProject, resetToDefault } = useProjectsStore()
   const [search, setSearch] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string>("all")

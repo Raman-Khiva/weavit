@@ -25,7 +25,7 @@ export function Task({
   status = "todo",
   className,
   children,
-}: TaskProps) {
+}: TaskProps): JSX.Element {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -79,7 +79,7 @@ export function Task({
   )
 }
 
-export function Tasks() {
+export function Tasks(): JSX.Element {
   return (
     <main className="grid h-full grid-cols-6 grid-rows-3 gap-4 p-4">
       <div className="relative col-span-2 row-span-1 flex flex-col items-center justify-center">

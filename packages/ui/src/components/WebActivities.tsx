@@ -2,7 +2,7 @@ import React from "react"
 import { OpenaiIcon } from "@workspace/ui/components/icons/simple-icons-openai"
 import { ChatgptIcon } from "@workspace/ui/components/icons/chatgpt"
 
-export const WebActivity = () => {
+export function WebActivity(): JSX.Element {
   return (
     <main>
       <div className="WebActivitiesflex gap-2">
@@ -13,7 +13,7 @@ export const WebActivity = () => {
   )
 }
 
-const WebActivities = () => {
+export function WebActivities(): JSX.Element {
   return (
     <main>
       <h2> WebActivities</h2>

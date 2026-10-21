@@ -1,6 +1,6 @@
 import { DetailedCalendar } from "@workspace/ui/components/detailed-calendar"
 
-const Page = () => {
+function Page(): JSX.Element {
   return (
     <div className="flex h-full w-full flex-col gap-8 px-16 py-8">
       <header>

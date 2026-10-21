@@ -47,7 +47,7 @@ const getDeadlineCount = (date: Date) => {
   return 0
 }
 
-export const DeadlineCalender = () => {
+export function DeadlineCalender(): JSX.Element {
   const [value, setValue] = useState(addDays(new Date(), 1))
   const [hoveredData, setHoveredData] = useState<{
     dateStr: string

@@ -27,7 +27,7 @@ const activities = [
   }
 ]
 
-export const RecentActivity = () => {
+export function RecentActivity(): JSX.Element {
   return (
     <main className="flex h-full w-full flex-col">
       <div className="flex items-center justify-between pb-2 border-b border-border/40">

@@ -7,7 +7,7 @@ import { ProjectPhases } from "@workspace/ui/components/project-phases"
 import { Button } from "@workspace/ui/components/button"
 import { ArrowLeft, Layers, AlertCircle } from "lucide-react"
 
-const Page = () => {
+function Page(): JSX.Element {
   const params = useParams()
   const router = useRouter()
   const projectId = params?.id ? String(params.id) : ""

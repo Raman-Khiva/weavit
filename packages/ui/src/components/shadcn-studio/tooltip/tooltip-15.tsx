@@ -33,7 +33,7 @@ const tasks = [
   }
 ]
 
-const HoverCardTasksDemo = () => {
+export function HoverCardTasksDemo(): JSX.Element {
   return (
     <HoverCard openDelay={0} closeDelay={0}>
       <HoverCardTrigger asChild>

@@ -1,6 +1,6 @@
 import React from 'react'
 
-const Page = () => {
+function Page(): JSX.Element {
     return (
         <div>This is profile page</div>
     )

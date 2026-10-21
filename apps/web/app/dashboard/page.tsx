@@ -28,7 +28,7 @@ import {
 } from "@workspace/ui/components/sheet"
 import { Bell } from "lucide-react"
 
-export default function Page() {
+export default function Page(): React.ReactElement {
   return (
     <main className="relative flex h-screen w-full flex-col justify-between bg-background pb-19">
       {/* Top Right Corner Notch Button (Touching Sides) */}

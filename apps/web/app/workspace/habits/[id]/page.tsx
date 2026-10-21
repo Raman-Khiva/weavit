@@ -15,7 +15,7 @@ import {
   TrophyIcon,
 } from "lucide-react"
 
-const Page = () => {
+function Page(): JSX.Element {
   const { id } = useParams()
 
   // Dummy data for the habit

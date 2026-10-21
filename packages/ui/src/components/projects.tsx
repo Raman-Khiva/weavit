@@ -4,7 +4,7 @@ import { ProjectCard } from "@workspace/ui/components/project-card"
 import { useProjectsStore, Project } from "@workspace/ui/lib/projects-store"
 import { FolderOpen, ArrowRight, Info } from "lucide-react"
 
-export const Projects = () => {
+export function Projects(): JSX.Element {
   const { projects } = useProjectsStore()
   const displayProjects = projects.slice(0, 3)
 

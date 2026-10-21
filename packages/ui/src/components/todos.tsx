@@ -28,7 +28,7 @@ const tasks = [
   },
 ]
 
-export const Todos = () => {
+export function Todos(): JSX.Element {
   return (
     <main className="flex h-full w-full flex-col gap-4">
       <div className="flex items-center justify-between pb-2 border-b border-border/40">

@@ -31,8 +31,9 @@ const data = days.map((date) => {
   }
 })
 
-const ActivityGraph = () => (
-  <ContributionGraph data={data}>
+export function ActivityGraph(): JSX.Element {
+  return (
+    <ContributionGraph data={data}>
     <ContributionGraphCalendar>
       {({ activity, dayIndex, weekIndex }) => (
         <ContributionGraphBlock
@@ -51,6 +52,5 @@ const ActivityGraph = () => (
     </ContributionGraphCalendar>
     <ContributionGraphFooter />
   </ContributionGraph>
-)
-
-export { ActivityGraph }
+  )
+}

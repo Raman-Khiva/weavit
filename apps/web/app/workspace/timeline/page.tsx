@@ -1,6 +1,6 @@
 import { AgendaTimeline } from "@workspace/ui/components/agenda-timeline"
 
-const Page = () => {
+function Page(): JSX.Element {
   return (
     <div className="flex h-full w-full flex-col px-10 py-12">
       <AgendaTimeline />

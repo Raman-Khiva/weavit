@@ -6,7 +6,7 @@ import { stringify } from "querystring";
 
 
 
-const Page = () => {
+function Page(): JSX.Element {
     const {data,isLoading,isError,error} = useGetHealthQuery();
 
     if(isLoading){

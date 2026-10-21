@@ -3,7 +3,7 @@
 import { useAuth } from "@clerk/nextjs";
 import { useGetHabitsQuery } from "@/features/habits/habits.api";
 
-const Page = () => {
+function Page(): JSX.Element {
     const { isLoaded, isSignedIn } = useAuth();
 
     const {

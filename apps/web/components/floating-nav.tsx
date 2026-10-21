@@ -1,7 +1,7 @@
 import { UserButton, Show } from "@clerk/nextjs"
 import Link from "next/link"
 
-export const FloatingNav = () => {
+export const FloatingNav = (): JSX.Element => {
   return (
     <div className="pointer-events-none fixed top-6 right-0 left-0 z-50 flex justify-center px-4">
       <nav className="pointer-events-auto flex w-full max-w-4xl items-center justify-between gap-4 rounded-2xl border border-border/40 bg-background/60 px-5 py-2 shadow-md backdrop-blur-md sm:gap-6 sm:px-9 sm:py-3 dark:bg-background/40">

@@ -28,7 +28,6 @@ function ResizablePanel({
     <ResizablePrimitive.Panel
       className={cn(className)}
       data-slot="resizable-panel"
-      minSize={"10%"}
       {...props}
     />
   )

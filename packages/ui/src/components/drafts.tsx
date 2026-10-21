@@ -44,7 +44,7 @@ const items = [
   },
 ]
 
-export const Drafts = () => {
+export function Drafts(): JSX.Element {
   return (
     <main className="flex h-full w-full flex-col">
       <div className="mb-3 flex items-center justify-between">

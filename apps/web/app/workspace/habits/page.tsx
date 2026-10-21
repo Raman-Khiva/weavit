@@ -44,7 +44,7 @@ type Ritual = {
 const STATIC_RITUALS: Ritual[] = [
   {
     id: "reading",
-    title: "Reading",
+    title: "Demo: Reading",
     description: "Read 10 pages of a physical book",
     streak: 9,
     cadence: "DAILY",
@@ -54,7 +54,7 @@ const STATIC_RITUALS: Ritual[] = [
   },
   {
     id: "exercise",
-    title: "Exercise",
+    title: "Demo: Exercise",
     description: "30 mins cardio or resistance",
     streak: 36,
     cadence: "DAILY",
@@ -64,53 +64,13 @@ const STATIC_RITUALS: Ritual[] = [
   },
   {
     id: "drink-water",
-    title: "Drink Water",
+    title: "Demo: Drink Water",
     description: "2.5 Liters throughout the day",
     streak: 12,
     cadence: "DAILY",
     category: "Health",
     done: true,
     chip: "Done Today",
-  },
-  {
-    id: "coding-practice",
-    title: "Coding Practice",
-    description: "Solve 1 LeetCode or commit to side-project",
-    streak: 5,
-    cadence: "DAILY",
-    category: "Learning",
-    done: false,
-    chip: "Evening",
-  },
-  {
-    id: "journaling",
-    title: "Journaling",
-    description: "Write 3 things you are grateful for",
-    streak: 2,
-    cadence: "DAILY",
-    category: "Mindfulness",
-    done: true,
-    chip: "Done Today",
-  },
-  {
-    id: "language-practice",
-    title: "Language Practice",
-    description: "Complete 1 Spanish / French lesson",
-    streak: 18,
-    cadence: "DAILY",
-    category: "Learning",
-    done: true,
-    chip: "Done Today",
-  },
-  {
-    id: "github-contribution",
-    title: "GitHub Contribution",
-    description: "Ship code or open-source PR",
-    streak: 7,
-    cadence: "DAILY",
-    category: "Career",
-    done: false,
-    chip: "Daily green dot",
   },
 ]
 
@@ -237,7 +197,7 @@ function CompletedRitualCard({ ritual }: { ritual: Ritual }) {
   )
 }
 
-const Page = () => {
+function Page(): JSX.Element {
   const { isSignedIn, isLoaded } = useAuth()
   const [postHabit, { isLoading: isPostingHabit }] = usePostHabitMutation()
   const { data, isLoading, isError } = useGetHabitsQuery(undefined, {
@@ -247,10 +207,18 @@ const Page = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [createHabitForm, setCreateHabitForm] = useState<CreateHabitInput>(INITIAL_FORM)
 
+
   const rituals = useMemo(() => {
-    const apiRituals = (data ?? []).map(mapApiHabit)
-    return [...STATIC_RITUALS, ...apiRituals]
-  }, [data])
+    const apiRituals = (data ?? []).map(mapApiHabit);
+
+    const uniqueRituals = new Map<string, Ritual>();
+
+    for (const ritual of [...STATIC_RITUALS, ...apiRituals]) {
+      uniqueRituals.set(ritual.id, ritual);
+    }
+
+    return [...uniqueRituals.values()];
+  }, [data]);
 
   const dailyRituals = useMemo(
     () => rituals.filter((ritual) => ritual.cadence === "DAILY"),
@@ -477,6 +445,38 @@ const Page = () => {
             ))}
           </div>
         </section>
+        {/*
+        <section className="mt-7 border-t border-border pt-5">
+          <div className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+            <p className="flex items-center gap-2 text-success">
+              From Backend
+              <span className="rounded-full border border-success/25 bg-success/10 px-2 py-0.5 text-[10px]">
+                {doneCount} rituals locked in
+              </span>
+            </p>
+            <p>All streaks maintained</p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            {data?.map((habit) => (
+              <HabitCard key={habit.id}
+                ritual={{
+                  id: habit.id,
+                  title: habit.title,
+                  description: "description",
+                  cadence: "DAILY",
+                  category: "Learning",
+                  gap: "2 days",
+                  streak: 2,
+                  done: true
+                }}
+
+
+              />))}
+
+          </div>
+        </section>
+        */}
       </div>
     </div>
   )

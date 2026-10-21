@@ -15,7 +15,7 @@ const hours = Array.from({ length: 24 }, (_, i) => {
   }
 })
 
-export const DayTimelineHorizontal = () => {
+export function DayTimelineHorizontal(): JSX.Element {
   return (
     <TimelineHorizontal className="h-26 w-full bg-transparent">
       <TimelineHorizontalContent className="py-0">
