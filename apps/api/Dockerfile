@@ -3,10 +3,16 @@ WORKDIR /usr/src/app
 RUN corepack enable
 
 
-RUN wget -q -t3 'https://packages.doppler.com/public/cli/rsa.8004D9FF50437357.key' \
-    -O /etc/apk/keys/cli@doppler-8004D9FF50437357.rsa.pub && \
-    echo 'https://packages.doppler.com/public/cli/alpine/any-version/main' \
-    >> /etc/apk/repositories && \
+ RUN set -eux; \
+    id; \
+    ls -l /etc/apk/repositories; \
+    touch /tmp/write-test; \
+    wget -q -t3 \
+      https://packages.doppler.com/public/cli/rsa.8004D9FF50437357.key \
+      -O /etc/apk/keys/cli@doppler-8004D9FF50437357.rsa.pub; \
+    printf '%s\n' \
+      'https://packages.doppler.com/public/cli/alpine/any-version/main' \
+      >> /etc/apk/repositories; \
     apk add --no-cache doppler
 
 # Copy root package.json and lockfile
