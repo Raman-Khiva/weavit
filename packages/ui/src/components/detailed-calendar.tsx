@@ -31,8 +31,9 @@ import {
 } from "@workspace/ui/components/select"
 import { ClockIcon, MapPinIcon, PlusIcon } from "lucide-react"
 import { cn } from "@workspace/ui/lib/utils"
+import { components } from "@weavit/api-types"
 
-const EVENTS = [
+const STATIC_EVENTS = [
   {
     id: "1",
     title: "Mobile QA Handoff",
@@ -118,14 +119,18 @@ const EVENTS = [
   },
 ]
 
+type DEADLINE = components["schemas"]["Deadline"];
+
 export interface DetailedCalendarProps {
   className?: string
   calendarClassName?: string
   cellSize?: string | number
+  deadlines: DEADLINE[]
 }
 
 export function DetailedCalendar({
   className,
+  deadlines,
   calendarClassName,
   cellSize,
 }: DetailedCalendarProps) {
@@ -134,12 +139,17 @@ export function DetailedCalendar({
     new Date(2026, 5, 11)
   )
 
+
+
+  const EVENTS = STATIC_EVENTS;
+
+
   const formattedDate = date
     ? date.toLocaleDateString("en-US", {
-        weekday: "long",
-        month: "long",
-        day: "numeric",
-      })
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+    })
     : "Select a date"
 
   return (
@@ -162,9 +172,9 @@ export function DetailedCalendar({
           style={
             cellSize
               ? ({
-                  "--cell-size":
-                    typeof cellSize === "number" ? `${cellSize}px` : cellSize,
-                } as React.CSSProperties)
+                "--cell-size":
+                  typeof cellSize === "number" ? `${cellSize}px` : cellSize,
+              } as React.CSSProperties)
               : ({ "--cell-size": "32px" } as React.CSSProperties)
           }
         />
@@ -273,7 +283,57 @@ export function DetailedCalendar({
         <div
           className="flex flex-col gap-3 overflow-y-auto pr-2"
           style={{ maxHeight: "420px" }}
-        >
+        >{deadlines.map((event) => (
+          <div
+            key={event.id}
+            className="flex flex-col gap-3 rounded-xl border bg-card p-4 transition-colors hover:bg-accent/50"
+          >
+            <h3 className="text-base leading-none font-semibold">
+              {event.title}
+            </h3>
+
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+              <Badge
+                variant="outline"
+                className={cn(
+                  "rounded-md px-2 py-0.5 font-medium before:bg-current",
+                  !event.isCompleted
+                    ? "border-orange-500/20 bg-orange-500/10 text-orange-500 dark:text-orange-400"
+                    : event.isCompleted
+                      ? "border-green-500/20 bg-green-500/10 text-green-600 dark:text-green-400"
+                      : "border-purple-500/20 bg-purple-500/10 text-purple-600 dark:text-purple-400"
+                )}
+              >
+                {event.isCompleted ? "Completed" : "Pending"}
+              </Badge>
+
+              {/*<AvatarGroup>
+                  {event.attendees.map((attendee, i) => (
+                    <Avatar key={i} size="sm">
+                      <AvatarImage src={attendee.avatar} alt={attendee.name} />
+                      <AvatarFallback>{attendee.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                  ))}
+                  {event.additionalAttendees && (
+                    <AvatarGroupCount className="bg-muted/50 text-[10px]">
+                      +{event.additionalAttendees}
+                    </AvatarGroupCount>
+                  )}
+                </AvatarGroup>
+                */}
+
+              <div className="flex items-center gap-1.5">
+                <ClockIcon className="size-4" />
+                <span>{event.time}</span>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <MapPinIcon className="size-4" />
+                <span>Home</span>
+              </div>
+            </div>
+          </div>
+        ))}
           {EVENTS.map((event) => (
             <div
               key={event.id}

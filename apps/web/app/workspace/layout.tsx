@@ -46,41 +46,45 @@ export default function WorkspaceLayout({
   return (
     <SidebarProvider>
       <AppSidebar currentPath={pathname} />
-      <SidebarInset className="bg-background">
-        <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border/50 px-4 transition-[width,height] ease-linear">
-          <div className="flex items-center gap-2">
-            <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />
-            <Separator
-              orientation="vertical"
-              className="mr-2 data-[orientation=vertical]:h-4 bg-border/60"
-            />
-            <Breadcrumb>
-              <BreadcrumbList className="text-xs">
-                <BreadcrumbItem className="hidden sm:block">
-                  <BreadcrumbLink
-                    href="/workspace"
-                    className="text-muted-foreground hover:text-foreground font-medium"
-                  >
-                    Workspace
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden sm:block text-muted-foreground/40" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage className="font-semibold text-foreground">
-                    {currentLabel}
-                  </BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          </div>
+      
+      {/* Fixed Header - completely independent of sidebar inset */}
+      <header className="fixed top-0 left-0 right-0 z-50 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border/50 px-4 bg-background/95 backdrop-blur">
+        <div className="flex items-center gap-2">
+          <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />
+          <Separator
+            orientation="vertical"
+            className="mr-2 data-[orientation=vertical]:h-4 bg-border/60"
+          />
+          <Breadcrumb>
+            <BreadcrumbList className="text-xs">
+              <BreadcrumbItem className="hidden sm:block">
+                <BreadcrumbLink
+                  href="/workspace"
+                  className="text-muted-foreground hover:text-foreground font-medium"
+                >
+                  Workspace
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator className="hidden sm:block text-muted-foreground/40" />
+              <BreadcrumbItem>
+                <BreadcrumbPage className="font-semibold text-foreground">
+                  {currentLabel}
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
 
-          <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center gap-2 rounded-lg border border-border/60 bg-muted/30 px-2.5 py-1 text-xs text-muted-foreground">
-              <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="font-medium text-[11px]">Sync Active</span>
-            </div>
+        <div className="flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2 rounded-lg border border-border/60 bg-muted/30 px-2.5 py-1 text-xs text-muted-foreground">
+            <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="font-medium text-[11px]">Sync Active</span>
           </div>
-        </header>
+        </div>
+      </header>
+
+      {/* Sidebar Inset - starts below fixed header */}
+      <SidebarInset className="bg-background pt-14">
         <div className="w-full flex-1 overflow-y-auto">{children}</div>
       </SidebarInset>
     </SidebarProvider>

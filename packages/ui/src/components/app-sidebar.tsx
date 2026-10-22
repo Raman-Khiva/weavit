@@ -24,6 +24,8 @@ import {
   FolderKanban,
   Settings,
   BookOpen,
+  Target,
+  ClipboardCheck,
 } from "lucide-react"
 import { useProjectsStore } from "@workspace/ui/lib/projects-store"
 
@@ -59,12 +61,17 @@ export function AppSidebar({
 
   const user = propUser || defaultUser
 
+  // Silverwite icon style with subtle glow
+  const silverwiteIcon = (Icon: React.ComponentType<React.SVGProps<SVGSVGElement>>) => (
+    <Icon className="size-[18px] stroke-[2.2] text-slate-100/90 drop-shadow-[0_0_4px_rgba(226,232,240,0.6)] dark:text-slate-50/95 dark:drop-shadow-[0_0_6px_rgba(203,213,225,0.5)]" />
+  )
+
   const navMain = React.useMemo(
     () => [
       {
         title: "Daily Habits",
         url: "/workspace/habits",
-        icon: <Flame className="size-[18px] stroke-[2.2] text-amber-500" />,
+        icon: silverwiteIcon(Target),
         items: [
           {
             title: "Reading",
@@ -83,28 +90,28 @@ export function AppSidebar({
       {
         title: "Tasks & Todos",
         url: "/workspace/todos",
-        icon: <CheckSquare2 className="size-[18px] stroke-[2.2] text-emerald-500" />,
+        icon: silverwiteIcon(ClipboardCheck),
       },
       {
         title: "Roadmaps & Plans",
         url: "/workspace/projects",
-        icon: <Layers className="size-[18px] stroke-[2.2] text-indigo-400" />,
+        icon: silverwiteIcon(Layers),
         badge: projects?.length ? String(projects.length) : undefined,
       },
       {
         title: "Deadlines",
         url: "/workspace/deadlines",
-        icon: <CalendarClock className="size-[18px] stroke-[2.2] text-rose-400" />,
+        icon: silverwiteIcon(CalendarClock),
       },
       {
         title: "Timeline & Activity",
         url: "/workspace/timeline",
-        icon: <Activity className="size-[18px] stroke-[2.2] text-sky-400" />,
+        icon: silverwiteIcon(Activity),
       },
       {
         title: "Drafts & Notes",
         url: "/workspace/drafts",
-        icon: <FileText className="size-[18px] stroke-[2.2] text-teal-400" />,
+        icon: silverwiteIcon(FileText),
       },
     ],
     [projects]
@@ -115,12 +122,12 @@ export function AppSidebar({
       {
         title: "Documentation",
         url: "/overview",
-        icon: <BookOpen className="size-[18px] stroke-[2]" />,
+        icon: silverwiteIcon(BookOpen),
       },
       {
         title: "Settings",
         url: "/workspace/settings",
-        icon: <Settings className="size-[18px] stroke-[2]" />,
+        icon: silverwiteIcon(Settings),
       },
     ],
     []
@@ -132,13 +139,13 @@ export function AppSidebar({
         {
           name: "SDE 2 Interview Prep",
           url: "/workspace/projects/sde-interview-prep",
-          icon: <FolderKanban className="size-[18px] stroke-[2.2] text-violet-400" />,
+          icon: silverwiteIcon(FolderKanban),
           badge: "1/4",
         },
         {
           name: "Distributed DB Engine",
           url: "/workspace/projects/distributed-key-value-store",
-          icon: <FolderKanban className="size-[18px] stroke-[2.2] text-indigo-400" />,
+          icon: silverwiteIcon(FolderKanban),
           badge: "0/3",
         },
       ]
@@ -150,7 +157,7 @@ export function AppSidebar({
       return {
         name: p.title,
         url: `/workspace/projects/${p.id}`,
-        icon: <FolderKanban className="size-[18px] stroke-[2.2] text-violet-400" />,
+        icon: silverwiteIcon(FolderKanban),
         badge: `${completed}/${allTasks.length}`,
       }
     })
