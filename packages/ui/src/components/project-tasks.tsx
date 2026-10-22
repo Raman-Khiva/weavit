@@ -19,11 +19,15 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Input } from "@workspace/ui/components/input"
 import { ExecutableTask } from "@workspace/ui/lib/projects-store"
 import { TaskNoteDialog } from "@workspace/ui/components/task-note-dialog"
+import { components } from "@weavit/api-types"
+
+
+type TASK = components["schemas"]["ProjectTask"];
 
 interface ProjectTasksProps {
   projectId: string
   phaseId: string
-  tasks: ExecutableTask[]
+  tasks: TASK[]
   onToggleTask: (projectId: string, phaseId: string, taskId: string, noteText?: string) => void
   onAddNote: (projectId: string, phaseId: string, taskId: string, text: string) => void
   onAddTask: (projectId: string, phaseId: string, task: { title: string; description?: string; category?: string; priority?: "low" | "medium" | "high" }) => void
@@ -61,16 +65,15 @@ export function ProjectTasks({
     <div className="mt-4 rounded-2xl border border-border/70 bg-card/40 px-5 py-4">
       {/* Task List */}
       <div className="flex flex-col divide-y divide-border/40">
-        {tasks.map((task) => {
-          const isDone = task.status === "completed"
+        {tasks?.map((task) => {
+          const isDone = task?.status === "COMPLETED"
           const noteCount = task.notes?.length || 0
 
           return (
             <div
               key={task.id}
-              className={`group relative flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between transition-colors rounded-lg px-2 hover:bg-muted/30 ${
-                isDone ? "opacity-75" : ""
-              }`}
+              className={`group relative flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between transition-colors rounded-lg px-2 hover:bg-muted/30 ${isDone ? "opacity-75" : ""
+                }`}
             >
               {/* Checkbox & Details */}
               <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -79,11 +82,10 @@ export function ProjectTasks({
                   type="button"
                   onClick={() => onToggleTask(projectId, phaseId, task.id)}
                   title={isDone ? "Mark pending" : "Mark completed"}
-                  className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-md border transition-all ${
-                    isDone
-                      ? "border-emerald-500 bg-emerald-500 text-white shadow-sm"
-                      : "border-muted-foreground/40 bg-background hover:border-primary"
-                  }`}
+                  className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-md border transition-all ${isDone
+                    ? "border-emerald-500 bg-emerald-500 text-white shadow-sm"
+                    : "border-muted-foreground/40 bg-background hover:border-primary"
+                    }`}
                 >
                   {isDone && <CheckIcon className="size-3.5 stroke-[3]" />}
                 </button>
@@ -91,9 +93,8 @@ export function ProjectTasks({
                 <div className="flex flex-col flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <span
-                      className={`text-sm font-semibold transition-all ${
-                        isDone ? "line-through text-muted-foreground" : "text-foreground"
-                      }`}
+                      className={`text-sm font-semibold transition-all ${isDone ? "line-through text-muted-foreground" : "text-foreground"
+                        }`}
                     >
                       {task.title}
                     </span>
@@ -106,13 +107,12 @@ export function ProjectTasks({
 
                     {task.priority && (
                       <span
-                        className={`text-[9px] uppercase font-mono font-bold px-1.5 py-0.5 rounded ${
-                          task.priority === "high"
-                            ? "bg-rose-500/15 text-rose-500"
-                            : task.priority === "medium"
+                        className={`text-[9px] uppercase font-mono font-bold px-1.5 py-0.5 rounded ${task.priority === "HIGH"
+                          ? "bg-rose-500/15 text-rose-500"
+                          : task.priority === "MEDIUM"
                             ? "bg-amber-500/15 text-amber-500"
                             : "bg-muted text-muted-foreground"
-                        }`}
+                          }`}
                       >
                         {task.priority}
                       </span>
@@ -130,14 +130,14 @@ export function ProjectTasks({
                     <div className="mt-1.5 flex items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => setActiveTaskForNote({ task, mode: "view_notes" })}
+                        //onClick={() => setActiveTaskForNote({ task, mode: "view_notes" })}
                         className="inline-flex items-center gap-1 rounded-md border border-primary/30 bg-primary/5 px-2 py-0.5 text-[10px] font-medium text-primary hover:bg-primary/10 transition-colors"
                       >
                         <MessageSquare className="size-3" />
                         <span>{noteCount} Note Log{noteCount > 1 ? "s" : ""}</span>
                       </button>
                       <span className="text-[10px] text-muted-foreground truncate max-w-[280px] italic">
-                        "{task.notes[0]?.text}"
+                        "{task?.notes?.[0]?.text}"
                       </span>
                     </div>
                   )}
@@ -149,7 +149,7 @@ export function ProjectTasks({
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => setActiveTaskForNote({ task, mode: "add_note" })}
+                  //onClick={() => setActiveTaskForNote({ task, mode: "add_note" })}
                   className="h-7 px-2 text-[11px] text-muted-foreground hover:text-foreground gap-1"
                   title="Add Note Log"
                 >
@@ -160,17 +160,16 @@ export function ProjectTasks({
                 <Button
                   size="sm"
                   variant={isDone ? "outline" : "default"}
-                  onClick={() =>
-                    setActiveTaskForNote({
-                      task,
-                      mode: isDone ? "add_note" : "complete_with_note"
-                    })
-                  }
-                  className={`h-7 text-[11px] font-semibold gap-1.5 ${
-                    isDone
-                      ? "border-emerald-500/50 text-emerald-500 hover:bg-emerald-500/10"
-                      : "bg-primary text-primary-foreground hover:bg-primary/90"
-                  }`}
+                  // onClick={() =>
+                  //   setActiveTaskForNote({
+                  //     task,
+                  //     mode: isDone ? "add_note" : "complete_with_note"
+                  //   })
+                  // }
+                  className={`h-7 text-[11px] font-semibold gap-1.5 ${isDone
+                    ? "border-emerald-500/50 text-emerald-500 hover:bg-emerald-500/10"
+                    : "bg-primary text-primary-foreground hover:bg-primary/90"
+                    }`}
                 >
                   {isDone ? (
                     <>

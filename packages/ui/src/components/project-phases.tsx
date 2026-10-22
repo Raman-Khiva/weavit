@@ -36,13 +36,16 @@ import {
   Plus,
   Layers,
   Sparkles
-} from "lucide-react"
-import { ProjectTasks } from "@workspace/ui/components/project-tasks"
-import { Progress } from "@workspace/ui/components/progress"
-import { Project, ProjectPhase } from "@workspace/ui/lib/projects-store"
+} from "lucide-react";
+import { ProjectTasks } from "@workspace/ui/components/project-tasks";
+import { Progress } from "@workspace/ui/components/progress";
+import { Project, ProjectPhase } from "@workspace/ui/lib/projects-store";
+import { components } from "@weavit/api-types";
+
+type PROJECT = components["schemas"]["Project"];
 
 interface ProjectPhasesProps {
-  project: Project
+  project: PROJECT
   onToggleTask: (projectId: string, phaseId: string, taskId: string, noteText?: string) => void
   onAddNote: (projectId: string, phaseId: string, taskId: string, text: string) => void
   onAddTask: (projectId: string, phaseId: string, task: { title: string; description?: string; category?: string; priority?: "low" | "medium" | "high" }) => void
@@ -58,7 +61,7 @@ export function ProjectPhases({
 }: ProjectPhasesProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<"all" | "in_progress" | "completed">("all")
-  
+
   const [isAddingPhase, setIsAddingPhase] = useState(false)
   const [newPhaseTitle, setNewPhaseTitle] = useState("")
   const [newPhaseCategory, setNewPhaseCategory] = useState("")
@@ -96,27 +99,24 @@ export function ProjectPhases({
             <button
               type="button"
               onClick={() => setStatusFilter("all")}
-              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
-                statusFilter === "all" ? "bg-background text-foreground shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"
-              }`}
+              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all ${statusFilter === "all" ? "bg-background text-foreground shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"
+                }`}
             >
               All Phases
             </button>
             <button
               type="button"
               onClick={() => setStatusFilter("in_progress")}
-              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
-                statusFilter === "in_progress" ? "bg-background text-foreground shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"
-              }`}
+              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all ${statusFilter === "in_progress" ? "bg-background text-foreground shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"
+                }`}
             >
               In Progress
             </button>
             <button
               type="button"
               onClick={() => setStatusFilter("completed")}
-              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
-                statusFilter === "completed" ? "bg-background text-foreground shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"
-              }`}
+              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all ${statusFilter === "completed" ? "bg-background text-foreground shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"
+                }`}
             >
               Completed
             </button>
@@ -174,15 +174,14 @@ export function ProjectPhases({
 
       {/* Phase Timeline List */}
       <Timeline defaultValue={1}>
-        {project.phases
-          .filter((phase) => {
-            if (statusFilter === "completed") return phase.status === "completed"
-            if (statusFilter === "in_progress") return phase.status === "active"
-            return true
-          })
+        {project?.phases?.filter((phase) => {
+          if (statusFilter === "completed") return phase.status === "COMPLETED"
+          if (statusFilter === "in_progress") return phase.status === "ACTIVE"
+          return true
+        })
           .map((phase, index) => {
             // Filter tasks inside phase by searchQuery
-            const filteredTasks = phase.tasks.filter((t) => {
+            const filteredTasks = phase?.tasks?.filter((t) => {
               if (!searchQuery) return true
               const q = searchQuery.toLowerCase()
               return (
@@ -192,9 +191,9 @@ export function ProjectPhases({
               )
             })
 
-            const totalTasks = phase.tasks.length
-            const finishedTasks = phase.tasks.filter((t) => t.status === "completed").length
-            const ongoingTasks = phase.tasks.filter((t) => t.status === "in_progress" || t.status === "pending").length
+            const totalTasks = phase?.tasks?.length ?? 0;
+            const finishedTasks = phase?.tasks?.filter((t) => t.status === "COMPLETED")?.length ?? 0
+            const ongoingTasks = phase.tasks?.filter((t) => t.status === "IN_PROGRESS" || t.status === "PENDING")?.length
             const progress = totalTasks > 0 ? Math.round((finishedTasks / totalTasks) * 100) : 0
             const isCompleted = finishedTasks > 0 && finishedTasks === totalTasks
 
@@ -241,8 +240,8 @@ export function ProjectPhases({
                       isCompleted
                         ? "bg-emerald-500 text-black shadow-md shadow-emerald-500/25 ring-2 ring-emerald-500/30"
                         : progress > 0
-                        ? "ring-4 ring-primary/20 bg-primary text-primary-foreground shadow-md"
-                        : "bg-card border-2 border-border text-muted-foreground"
+                          ? "ring-4 ring-primary/20 bg-primary text-primary-foreground shadow-md"
+                          : "bg-card border-2 border-border text-muted-foreground"
                     )}
                   >
                     {isCompleted ? <CheckIcon className="size-4 stroke-[3]" /> : <CircleIcon className="size-3.5 stroke-[2.5]" />}
@@ -277,11 +276,11 @@ export function ProjectPhases({
                               </div>
                             </div>
 
-                            {phase.startDate && (
+                            {(
                               <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono">
                                 <CalendarIcon className="size-3.5" />
                                 <span>
-                                  {phase.startDate} {phase.endDate ? `- ${phase.endDate}` : ""}
+                                  Oct 1, 2026 - phase.endDate
                                 </span>
                               </div>
                             )}
@@ -298,7 +297,7 @@ export function ProjectPhases({
                         <ProjectTasks
                           projectId={project.id}
                           phaseId={phase.id}
-                          tasks={filteredTasks}
+                          tasks={filteredTasks ?? []}
                           onToggleTask={onToggleTask}
                           onAddNote={onAddNote}
                           onAddTask={onAddTask}
@@ -311,7 +310,7 @@ export function ProjectPhases({
             )
           })}
 
-        {project.phases.length === 0 && (
+        {project?.phases?.length === 0 && (
           <div className="rounded-2xl border border-dashed border-border p-12 text-center text-sm text-muted-foreground">
             No phases found in this project. Click "Add Phase" above to create your first module.
           </div>

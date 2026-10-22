@@ -44,9 +44,9 @@ export default function WorkspaceLayout({
   }, [pathname])
 
   return (
-    <SidebarProvider>
+    <SidebarProvider className="bg-blue-200">
       <AppSidebar currentPath={pathname} />
-      
+
       {/* Fixed Header - completely independent of sidebar inset */}
       <header className="fixed top-0 left-0 right-0 z-50 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border/50 px-4 bg-background/95 backdrop-blur">
         <div className="flex items-center gap-2">

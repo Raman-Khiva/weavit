@@ -25,6 +25,7 @@ import {
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { RadioGroup, RadioGroupItem } from "@workspace/ui/components/radio-group"
+import { SkeletonWrapper, HabitsPageSkeleton } from "@workspace/ui/components/skeleton-wrapper"
 
 type CreateHabitInput = components["schemas"]["CreateHabitInput"]
 type Habit = components["schemas"]["Habit"]
@@ -253,199 +254,200 @@ function Page(): JSX.Element {
   }
 
   return (
-    <div className="min-h-full bg-background px-6 py-5 text-foreground md:px-8">
-      <div className="mx-auto w-full max-w-7xl">
-        <div className="mb-4 flex items-center justify-end gap-3">
-          <span className="inline-flex items-center gap-2 rounded-full border border-warning/25 bg-warning/10 px-3 py-1 text-xs font-semibold text-warning">
-            <Flame className="size-3.5" /> Overall Consistency: {consistency}%
-          </span>
+    <SkeletonWrapper skeleton={<HabitsPageSkeleton />} delay={2000}>
+      <div className="min-h-full bg-background px-6 py-5 text-foreground  md:px-8 md:pl-16">
+        <div className="mx-auto w-full max-w-7xl">
+          <div className="mb-4 flex items-center justify-end gap-3">
+            <span className="inline-flex items-center gap-2 rounded-full border border-warning/25 bg-warning/10 px-3 py-1 text-xs font-semibold text-warning">
+              <Flame className="size-3.5" /> Overall Consistency: {consistency}%
+            </span>
 
-          <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-              <Button className="h-8 rounded-md px-3 text-xs font-semibold">
-                <Plus className="mr-1 size-3.5" /> New Ritual
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="border-border bg-popover text-popover-foreground">
-              <DialogHeader>
-                <DialogTitle>Add New Habit</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleCreateHabit} className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="habit-title">Habit Name</Label>
-                  <Input
-                    id="habit-title"
-                    className="border-input bg-background"
-                    placeholder="e.g. Drink Water"
-                    value={createHabitForm.title}
-                    onChange={(event) =>
-                      setCreateHabitForm((prev) => ({ ...prev, title: event.target.value }))
-                    }
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="habit-category">Category</Label>
-                  <Input
-                    id="habit-category"
-                    className="border-input bg-background"
-                    placeholder="e.g. Health"
-                    value={createHabitForm.category ?? ""}
-                    onChange={(event) =>
-                      setCreateHabitForm((prev) => ({ ...prev, category: event.target.value }))
-                    }
-                  />
-                </div>
-
-                <RadioGroup
-                  value={createHabitForm.frequency ?? "DAILY"}
-                  onValueChange={(value) =>
-                    setCreateHabitForm((prev) => ({
-                      ...prev,
-                      frequency: value as CreateHabitInput["frequency"],
-                    }))
-                  }
-                  className="flex gap-4"
-                >
-                  {CADENCES.map((freq) => (
-                    <label key={freq} htmlFor={`freq-${freq}`} className="flex items-center gap-2 text-sm">
-                      <RadioGroupItem id={`freq-${freq}`} value={freq} />
-                      {freq}
-                    </label>
-                  ))}
-                </RadioGroup>
-
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isPostingHabit}
-                >
-                  {isPostingHabit ? "Saving..." : "Add Habit"}
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+              <DialogTrigger asChild>
+                <Button className="h-8 rounded-md px-3 text-xs font-semibold">
+                  <Plus className="mr-1 size-3.5" /> New Ritual
                 </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
+              </DialogTrigger>
+              <DialogContent className="border-border bg-popover text-popover-foreground">
+                <DialogHeader>
+                  <DialogTitle>Add New Habit</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleCreateHabit} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="habit-title">Habit Name</Label>
+                    <Input
+                      id="habit-title"
+                      className="border-input bg-background"
+                      placeholder="e.g. Drink Water"
+                      value={createHabitForm.title}
+                      onChange={(event) =>
+                        setCreateHabitForm((prev) => ({ ...prev, title: event.target.value }))
+                      }
+                    />
+                  </div>
 
-        <section className="rounded-2xl border border-border bg-card p-6">
-          <div className="grid gap-4 lg:grid-cols-[1fr_290px] lg:items-start">
-            <div>
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-warning">
-                Wednesday, Oct 14 · Deep Focus Day
-              </p>
-              <h1 className="text-4xl font-bold tracking-tight">Good morning, Alex.</h1>
-              <p className="mt-2 text-sm text-muted-foreground">
-                You&apos;re maintaining momentum. {todoCount} habits remaining to close today&apos;s ring.
-              </p>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="habit-category">Category</Label>
+                    <Input
+                      id="habit-category"
+                      className="border-input bg-background"
+                      placeholder="e.g. Health"
+                      value={createHabitForm.category ?? ""}
+                      onChange={(event) =>
+                        setCreateHabitForm((prev) => ({ ...prev, category: event.target.value }))
+                      }
+                    />
+                  </div>
+
+                  <RadioGroup
+                    value={createHabitForm.frequency ?? "DAILY"}
+                    onValueChange={(value) =>
+                      setCreateHabitForm((prev) => ({
+                        ...prev,
+                        frequency: value as CreateHabitInput["frequency"],
+                      }))
+                    }
+                    className="flex gap-4"
+                  >
+                    {CADENCES.map((freq) => (
+                      <label key={freq} htmlFor={`freq-${freq}`} className="flex items-center gap-2 text-sm">
+                        <RadioGroupItem id={`freq-${freq}`} value={freq} />
+                        {freq}
+                      </label>
+                    ))}
+                  </RadioGroup>
+
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={isPostingHabit}
+                  >
+                    {isPostingHabit ? "Saving..." : "Add Habit"}
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          <section className="rounded-2xl border border-border bg-card p-6">
+            <div className="grid gap-4 lg:grid-cols-[1fr_290px] lg:items-start">
+              <div>
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-warning">
+                  Wednesday, Oct 14 · Deep Focus Day
+                </p>
+                <h1 className="text-4xl font-bold tracking-tight">Good morning, Alex.</h1>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  You&apos;re maintaining momentum. {todoCount} habits remaining to close today&apos;s ring.
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-border bg-muted/35 p-3">
+                <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Daily Momentum</span>
+                  <span className="font-semibold text-success">
+                    {doneCount} of {total} ({consistency}%)
+                  </span>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-muted">
+                  <div className="h-1.5 rounded-full bg-success" style={{ width: `${consistency}%` }} />
+                </div>
+                <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
+                  <span>Goal: 100% daily</span>
+                  <span className="text-success">Active streak intact</span>
+                </div>
+              </div>
             </div>
 
-            <div className="rounded-xl border border-border bg-muted/35 p-3">
-              <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
-                <span>Daily Momentum</span>
-                <span className="font-semibold text-success">
-                  {doneCount} of {total} ({consistency}%)
-                </span>
-              </div>
-              <div className="h-1.5 w-full rounded-full bg-muted">
-                <div className="h-1.5 rounded-full bg-success" style={{ width: `${consistency}%` }} />
-              </div>
-              <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
-                <span>Goal: 100% daily</span>
-                <span className="text-success">Active streak intact</span>
-              </div>
+            <div className="mt-5 flex flex-wrap items-center gap-2 text-xs">
+              <span className="rounded-lg border border-warning/30 bg-warning/10 px-3 py-1 text-warning">To Do Today {todoCount}</span>
+              <span className="px-2 text-success">Completed {doneCount}</span>
+              <span className="px-2 text-muted-foreground">All Rituals {total}</span>
+              <span className="px-2 text-muted-foreground">Morning Routine</span>
             </div>
-          </div>
+          </section>
 
-          <div className="mt-5 flex flex-wrap items-center gap-2 text-xs">
-            <span className="rounded-lg border border-warning/30 bg-warning/10 px-3 py-1 text-warning">To Do Today {todoCount}</span>
-            <span className="px-2 text-success">Completed {doneCount}</span>
-            <span className="px-2 text-muted-foreground">All Rituals {total}</span>
-            <span className="px-2 text-muted-foreground">Morning Routine</span>
-          </div>
-        </section>
+          <section className="mt-6">
+            <div className="mb-2 flex items-center justify-between text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+              <p className="flex items-center gap-2 text-warning">
+                <Sparkles className="size-3.5" /> Recommended Next
+              </p>
+              <p>Estimated 10 mins</p>
+            </div>
 
-        <section className="mt-6">
-          <div className="mb-2 flex items-center justify-between text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-            <p className="flex items-center gap-2 text-warning">
-              <Sparkles className="size-3.5" /> Recommended Next
-            </p>
-            <p>Estimated 10 mins</p>
-          </div>
-
-          {recommended ? (
-            <div className="rounded-2xl border border-border bg-card p-5">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-start gap-3">
-                  <Circle className="mt-0.5 size-6 text-muted-foreground" />
-                  <div>
-                    <p className="text-2xl font-semibold tracking-tight">{recommended.title}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">{recommended.description}</p>
-                    <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                      <span className="inline-flex items-center gap-1 text-warning">
-                        <Flame className="size-3.5" /> {recommended.streak}D Streak
-                      </span>
-                      <span className="rounded-full border border-warning/30 bg-warning/10 px-2 py-0.5 text-warning">
-                        <Bolt className="mr-1 inline size-3" /> Morning Anchor
-                      </span>
-                      <span>Time window: 08:00 - 10:00</span>
+            {recommended ? (
+              <div className="rounded-2xl border border-border bg-card p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    <Circle className="mt-0.5 size-6 text-muted-foreground" />
+                    <div>
+                      <p className="text-2xl font-semibold tracking-tight">{recommended.title}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">{recommended.description}</p>
+                      <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                        <span className="inline-flex items-center gap-1 text-warning">
+                          <Flame className="size-3.5" /> {recommended.streak}D Streak
+                        </span>
+                        <span className="rounded-full border border-warning/30 bg-warning/10 px-2 py-0.5 text-warning">
+                          <Bolt className="mr-1 inline size-3" /> Morning Anchor
+                        </span>
+                        <span>Time window: 08:00 - 10:00</span>
+                      </div>
                     </div>
                   </div>
+
+                  <Button variant="outline" className="border-border bg-transparent">
+                    <Play className="mr-1 size-3.5" /> Start Guided Audio
+                  </Button>
                 </div>
-
-                <Button variant="outline" className="border-border bg-transparent">
-                  <Play className="mr-1 size-3.5" /> Start Guided Audio
-                </Button>
               </div>
+            ) : null}
+          </section>
+
+          <section className="mt-6">
+            <div className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+              <p className="flex items-center gap-2 text-warning">
+                Remaining Today
+                <span className="rounded-full border border-warning/30 bg-warning/10 px-2 py-0.5 text-[10px]">
+                  {todoCount} to complete
+                </span>
+              </p>
+              <p>Sorted by priority & risk</p>
             </div>
-          ) : null}
-        </section>
 
-        <section className="mt-6">
-          <div className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-            <p className="flex items-center gap-2 text-warning">
-              Remaining Today
-              <span className="rounded-full border border-warning/30 bg-warning/10 px-2 py-0.5 text-[10px]">
-                {todoCount} to complete
-              </span>
-            </p>
-            <p>Sorted by priority & risk</p>
-          </div>
+            {isLoading ? (
+              <p className="rounded-2xl border border-border bg-card px-4 py-6 text-sm text-muted-foreground">
+                Please wait.. fetching data
+              </p>
+            ) : isError ? (
+              <p className="rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-6 text-sm text-destructive">
+                Error while fetching data
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+                {remainingRituals.map((ritual) => (
+                  <HabitCard key={ritual.id} ritual={ritual} />
+                ))}
+              </div>
+            )}
+          </section>
 
-          {isLoading ? (
-            <p className="rounded-2xl border border-border bg-card px-4 py-6 text-sm text-muted-foreground">
-              Please wait.. fetching data
-            </p>
-          ) : isError ? (
-            <p className="rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-6 text-sm text-destructive">
-              Error while fetching data
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {remainingRituals.map((ritual) => (
-                <HabitCard key={ritual.id} ritual={ritual} />
+          <section className="mt-7 border-t border-border pt-5">
+            <div className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+              <p className="flex items-center gap-2 text-success">
+                Completed Today
+                <span className="rounded-full border border-success/25 bg-success/10 px-2 py-0.5 text-[10px]">
+                  {doneCount} rituals locked in
+                </span>
+              </p>
+              <p>All streaks maintained</p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+              {completedRituals.map((ritual) => (
+                <CompletedRitualCard key={ritual.id} ritual={ritual} />
               ))}
             </div>
-          )}
-        </section>
-
-        <section className="mt-7 border-t border-border pt-5">
-          <div className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-            <p className="flex items-center gap-2 text-success">
-              Completed Today
-              <span className="rounded-full border border-success/25 bg-success/10 px-2 py-0.5 text-[10px]">
-                {doneCount} rituals locked in
-              </span>
-            </p>
-            <p>All streaks maintained</p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-            {completedRituals.map((ritual) => (
-              <CompletedRitualCard key={ritual.id} ritual={ritual} />
-            ))}
-          </div>
-        </section>
-        {/*
+          </section>
+          {/*
         <section className="mt-7 border-t border-border pt-5">
           <div className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
             <p className="flex items-center gap-2 text-success">
@@ -477,8 +479,9 @@ function Page(): JSX.Element {
           </div>
         </section>
         */}
+        </div>
       </div>
-    </div>
+    </SkeletonWrapper>
   )
 }
 

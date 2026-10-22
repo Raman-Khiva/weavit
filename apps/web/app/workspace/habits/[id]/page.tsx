@@ -14,6 +14,7 @@ import {
   CheckCircle2Icon,
   TrophyIcon,
 } from "lucide-react"
+import { SkeletonWrapper, HabitDetailPageSkeleton } from "@workspace/ui/components/skeleton-wrapper"
 
 function Page(): JSX.Element {
   const { id } = useParams()
@@ -32,7 +33,8 @@ function Page(): JSX.Element {
   }
 
   return (
-    <main className="flex min-h-full w-full flex-col gap-10 px-10 py-16 xl:flex-row xl:justify-between">
+    <SkeletonWrapper skeleton={<HabitDetailPageSkeleton />} delay={2000}>
+      <main className="flex min-h-full w-full flex-col gap-10 px-10 py-16 xl:flex-row xl:justify-between">
       <div className="flex w-full flex-col gap-12 xl:max-w-[70%]">
         <header className="flex flex-col gap-4">
           <h1 className="border-b border-secondary-foreground/60 pb-3 text-5xl font-bold tracking-tight capitalize">
@@ -114,6 +116,7 @@ function Page(): JSX.Element {
         <StreakCalender />
       </div>
     </main>
+    </SkeletonWrapper>
   )
 }
 

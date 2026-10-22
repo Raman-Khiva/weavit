@@ -164,7 +164,7 @@ export function AppSidebar({
   }, [projects])
 
   return (
-    <Sidebar variant="inset" {...props}>
+    <Sidebar variant="inset" {...props} className="max-w-68">
       <SidebarHeader className="border-b border-sidebar-border/50 pb-2">
         <SidebarMenu>
           <SidebarMenuItem>

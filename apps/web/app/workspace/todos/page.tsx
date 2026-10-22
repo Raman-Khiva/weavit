@@ -17,6 +17,7 @@ import { Label } from "@workspace/ui/components/label"
 import { RadioGroup, RadioGroupItem } from "@workspace/ui/components/radio-group"
 import { Button } from "@workspace/ui/components/button"
 import { Plus } from "lucide-react"
+import { SkeletonWrapper, TodosPageSkeleton } from "@workspace/ui/components/skeleton-wrapper"
 
 
 type TODO = components["schemas"]["Todo"];
@@ -109,7 +110,8 @@ function Page(): JSX.Element {
 
 
   return (
-    <div className="flex min-h-full w-full flex-col items-center gap-10 px-16 py-15">
+    <SkeletonWrapper skeleton={<TodosPageSkeleton />} delay={2000}>
+      <div className="flex min-h-full w-full flex-col items-center gap-10 px-16 py-15">
       {/* ADD TODO Model*/}
       <header className="w-full flex justify-between border-b">
         <h1 className="pb-4 text-4xl font-bold">
@@ -186,7 +188,8 @@ function Page(): JSX.Element {
         <Pattern plannedData={plannedData} buildingData={buildingData} shippedData={shippedData} />
       </div>
     </div>
-  )
+  </SkeletonWrapper>
+)
 }
 
 export default Page

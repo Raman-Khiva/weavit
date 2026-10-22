@@ -4,9 +4,12 @@ import { Progress } from "@workspace/ui/components/progress"
 import { Badge } from "@workspace/ui/components/badge"
 import { Project, calculateCategoryStats, calculateProjectProgress } from "@workspace/ui/lib/projects-store"
 import { CheckCircle2, CircleDashed, PieChart, Target, Calendar } from "lucide-react"
+import { components } from "@weavit/api-types"
+
+type PROJECT = components["schemas"]["Project"];
 
 interface CategoryProgressHeaderProps {
-  project: Project
+  project: PROJECT
 }
 
 export function CategoryProgressHeader({ project }: CategoryProgressHeaderProps) {
@@ -46,7 +49,7 @@ export function CategoryProgressHeader({ project }: CategoryProgressHeaderProps)
               <span className="text-xs text-muted-foreground font-semibold">completed</span>
             </div>
             <span className="text-[11px] text-muted-foreground mt-1">
-              {projectProgress.completedTasks} of {projectProgress.totalTasks} executable tasks
+              {projectProgress.CompletedTasks} of {projectProgress.totalTasks} executable tasks
             </span>
           </div>
           <div className="size-14 relative grid place-items-center">
@@ -57,7 +60,7 @@ export function CategoryProgressHeader({ project }: CategoryProgressHeaderProps)
               }}
             >
               <div className="size-9 rounded-full bg-background grid place-items-center text-xs font-extrabold text-foreground">
-                {projectProgress.completedTasks}
+                {projectProgress.CompletedTasks}
               </div>
             </div>
           </div>
@@ -83,18 +86,18 @@ export function CategoryProgressHeader({ project }: CategoryProgressHeaderProps)
                 <div className="flex items-center justify-between text-xs font-semibold">
                   <span className="text-foreground truncate max-w-[140px]">{stat.category}</span>
                   <span className="font-mono text-muted-foreground">
-                    {stat.completed}/{stat.total} ({stat.percentage}%)
+                    {stat.Completed}/{stat.total} ({stat.percentage}%)
                   </span>
                 </div>
                 <Progress value={stat.percentage} className="h-2" />
                 <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                   <span className="flex items-center gap-1 text-emerald-500 font-medium">
                     <CheckCircle2 className="size-3" />
-                    {stat.completed} done
+                    {stat.Completed} done
                   </span>
                   <span className="flex items-center gap-1 text-amber-500 font-medium">
                     <CircleDashed className="size-3" />
-                    {stat.total - stat.completed} remaining
+                    {stat.total - stat.Completed} remaining
                   </span>
                 </div>
               </div>

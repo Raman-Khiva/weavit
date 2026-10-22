@@ -19,8 +19,18 @@ import {
 import { Progress } from "@workspace/ui/components/progress"
 import { Badge } from "@workspace/ui/components/badge"
 import { Project, calculateProjectProgress } from "@workspace/ui/lib/projects-store"
+import { components } from "@weavit/api-types"
+{/* const title = project?.title || directtitle || "untitled plan"
+  const description = project?.description || directdescription || ""
+  const category = project?.category || directcategory || "roadmap"
+  const date = project?.startdate ? `${project.startdate}${project.enddate ? ` - ${project.enddate}` : ""}` : directdate || "active plan"
 
-interface ProjectCardProps {
+  const computedstats = project ? calculateprojectprogress(project) : null
+  const progressvalue = computedstats ? computedstats.percentage : (directprogress ?? 0)
+
+  const icon = iconprop || (project?.category?.includes("interview") ? code2 : project?.category?.includes("software") ? rocket : layers)
+ */}
+{/*interface ProjectCardProps {
   project?: Project
   title?: string
   description?: string
@@ -30,45 +40,56 @@ interface ProjectCardProps {
   icon?: LucideIcon
   showDescription?: boolean
 }
+  */}
 
-export const ProjectCard = ({
-  project,
-  title: directTitle,
-  description: directDescription,
+interface ProjectCardProps {
+  project: PROJECT
+}
+
+type PROJECT = components["schemas"]["Project"]
+
+{/*description: directDescription,
   date: directDate,
   category: directCategory,
   progress: directProgress,
   icon: IconProp,
   showDescription = true,
-}: ProjectCardProps) => {
-  const title = project?.title || directTitle || "Untitled Plan"
-  const description = project?.description || directDescription || ""
-  const category = project?.category || directCategory || "Roadmap"
-  const date = project?.startDate ? `${project.startDate}${project.endDate ? ` - ${project.endDate}` : ""}` : directDate || "Active Plan"
+  */}
+export const ProjectCard = (
+  { project }: ProjectCardProps
 
-  const computedStats = project ? calculateProjectProgress(project) : null
-  const progressValue = computedStats ? computedStats.percentage : (directProgress ?? 0)
+) => {
 
-  const Icon = IconProp || (project?.category?.includes("Interview") ? Code2 : project?.category?.includes("Software") ? Rocket : Layers)
+  const title = project?.title || "untitled plan";
+  const description = project?.description || "";
+  const category = project?.category || "roadmap";
+  const date = project?.startDate ? `${project.startDate}${project.endDate ? ` - ${project.endDate}` : ""}` : project.startDate || "active plan"
+
+  const computedstats = null;
+  const progressvalue = 40;
+
+  const icon = Code2;
+  const showdescription = true;
 
   return (
     <Card className="flex flex-col justify-between gap-2 h-full transition-all duration-200 hover:border-primary/50 hover:shadow-md group">
       <CardHeader className="pb-2">
         <div className="flex items-start gap-3">
-          <div className="rounded-xl border border-border bg-card p-2.5 text-primary group-hover:bg-primary/10 transition-colors">
-            <Icon
+          <div className="rounded-xl border border-border bg-Card p-2.5 text-primary group-hover:bg-primary/10 transition-colors">
+            <Code2 />
+            {/*<icon
               className="size-6 text-foreground group-hover:text-primary transition-colors"
-              strokeWidth={1.8}
-            />
+              strokewidth={1.8}
+            />*/}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-1">
               <Badge className="text-[10px] px-2 py-0 font-medium" variant="outline">
                 {category}
               </Badge>
-              {computedStats && (
+              {computedstats && (
                 <span className="text-[11px] font-mono font-bold text-muted-foreground">
-                  {computedStats.completedTasks}/{computedStats.totalTasks} Done
+                  {4}/{10} done
                 </span>
               )}
             </div>
@@ -80,13 +101,13 @@ export const ProjectCard = ({
       </CardHeader>
 
       <CardContent className="py-2">
-        {showDescription && description && (
+        {showdescription && description && (
           <CardDescription className="text-xs font-medium line-clamp-2 min-h-8">
             {description}
           </CardDescription>
         )}
-        <div className={showDescription && description ? "mt-3" : "mt-1"}>
-          <Progress value={progressValue} className="h-2" />
+        <div className={showdescription && description ? "mt-3" : "mt-1"}>
+          <Progress value={progressvalue} className="h-2" />
         </div>
       </CardContent>
 
@@ -96,7 +117,7 @@ export const ProjectCard = ({
           <span className="truncate text-[11px]">{date}</span>
         </div>
         <div className="flex items-center gap-0.5 text-xs font-semibold text-primary group-hover:translate-x-0.5 transition-transform">
-          <span>View Plan</span>
+          <span>view plan</span>
           <ChevronRight size={14} />
         </div>
       </CardFooter>

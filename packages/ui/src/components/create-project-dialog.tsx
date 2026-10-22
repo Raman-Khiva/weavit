@@ -14,15 +14,19 @@ import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { Badge } from "@workspace/ui/components/badge"
-import {
-  SDE_INTERVIEW_PREP_TEMPLATE,
-  SOFTWARE_MVP_TEMPLATE,
-  Project,
-} from "@workspace/ui/lib/projects-store"
+// import {
+//   SDE_INTERVIEW_PREP_TEMPLATE,
+//   SOFTWARE_MVP_TEMPLATE,
+//   Project,
+// } from "@workspace/ui/lib/projects-store"
 import { Code2, Rocket, Plus, Layers, Sparkles, Check } from "lucide-react"
+import { components } from "@weavit/api-types"
+
+type PROJECT = components["schemas"]["Project"];
+type CreateProjectInput = components["schemas"]["CreateProjectInput"];
 
 interface CreateProjectDialogProps {
-  onAddProject: (project: Omit<Project, "id" | "createdAt" | "updatedAt">) => void
+  onAddProject: (project: CreateProjectInput) => void
   trigger?: React.ReactNode
 }
 
@@ -34,40 +38,38 @@ export function CreateProjectDialog({ onAddProject, trigger }: CreateProjectDial
   const [category, setCategory] = useState("General Plan")
 
   const handleCreate = () => {
-    if (selectedTemplate === "sde") {
-      onAddProject(SDE_INTERVIEW_PREP_TEMPLATE)
-    } else if (selectedTemplate === "mvp") {
-      onAddProject(SOFTWARE_MVP_TEMPLATE)
-    } else {
-      if (!title.trim()) return
-      onAddProject({
-        title: title.trim(),
-        description: description.trim() || "Custom multi-phase plan and execution roadmap.",
-        category: category.trim() || "Custom Plan",
-        icon: "Layers",
-        startDate: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-        phases: [
-          {
-            id: `phase-${Date.now()}-1`,
-            title: "Phase 1: Getting Started",
-            description: "Initial foundational steps and executable tasks.",
-            category: category.trim() || "General",
-            status: "active",
-            tasks: [
-              {
-                id: `task-${Date.now()}-1`,
-                title: "Define core objectives and milestone tasks",
-                description: "List key deliverables and completion criteria",
-                status: "pending",
-                category: category.trim() || "General",
-                priority: "high",
-                notes: []
-              }
-            ]
-          }
-        ]
-      })
-    }
+    if (!title.trim()) return
+    onAddProject({
+      title: title.trim(),
+
+      description: description.trim() || "Custom multi-phase plan and execution roadmap.",
+      category: category.trim() || "Custom Plan",
+      icon: "Layers",
+      startDate: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+      // phases: [
+      //   {
+      //     id: `phase-${Date.now()}-1`,
+      //     projectId : "projectId",
+      //     title: "Phase 1: Getting Started",
+      //     description: "Initial foundational steps and executable tasks.",
+      //     category: category.trim() || "General",
+      //     status: "ACTIVE",
+      //     tasks: [
+      //       {
+      //         id: `task-${Date.now()}-1`,
+      //         phaseId: "phaseid",
+      //         title: "Define core objectives and milestone tasks",
+      //         description: "List key deliverables and completion criteria",
+      //         status: "PENDING",
+      //         category: category.trim() || "General",
+      //         priority: "HIGH",
+      //         notes: []
+      //       }
+      //     ]
+      //   }
+      // ]
+    })
+
 
     setOpen(false)
     setTitle("")
@@ -104,11 +106,10 @@ export function CreateProjectDialog({ onAddProject, trigger }: CreateProjectDial
             {/* SDE Template */}
             <div
               onClick={() => setSelectedTemplate("sde")}
-              className={`relative cursor-pointer rounded-xl border p-4 transition-all hover:border-primary/50 ${
-                selectedTemplate === "sde"
-                  ? "border-primary bg-primary/5 ring-1 ring-primary/30"
-                  : "border-border bg-card"
-              }`}
+              className={`relative cursor-pointer rounded-xl border p-4 transition-all hover:border-primary/50 ${selectedTemplate === "sde"
+                ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                : "border-border bg-card"
+                }`}
             >
               {selectedTemplate === "sde" && (
                 <span className="absolute right-2 top-2 grid size-5 place-items-center rounded-full bg-primary text-primary-foreground">
@@ -128,11 +129,10 @@ export function CreateProjectDialog({ onAddProject, trigger }: CreateProjectDial
             {/* MVP Template */}
             <div
               onClick={() => setSelectedTemplate("mvp")}
-              className={`relative cursor-pointer rounded-xl border p-4 transition-all hover:border-primary/50 ${
-                selectedTemplate === "mvp"
-                  ? "border-primary bg-primary/5 ring-1 ring-primary/30"
-                  : "border-border bg-card"
-              }`}
+              className={`relative cursor-pointer rounded-xl border p-4 transition-all hover:border-primary/50 ${selectedTemplate === "mvp"
+                ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                : "border-border bg-card"
+                }`}
             >
               {selectedTemplate === "mvp" && (
                 <span className="absolute right-2 top-2 grid size-5 place-items-center rounded-full bg-primary text-primary-foreground">
@@ -152,11 +152,10 @@ export function CreateProjectDialog({ onAddProject, trigger }: CreateProjectDial
             {/* Custom Template */}
             <div
               onClick={() => setSelectedTemplate("custom")}
-              className={`relative cursor-pointer rounded-xl border p-4 transition-all hover:border-primary/50 ${
-                selectedTemplate === "custom"
-                  ? "border-primary bg-primary/5 ring-1 ring-primary/30"
-                  : "border-border bg-card"
-              }`}
+              className={`relative cursor-pointer rounded-xl border p-4 transition-all hover:border-primary/50 ${selectedTemplate === "custom"
+                ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                : "border-border bg-card"
+                }`}
             >
               {selectedTemplate === "custom" && (
                 <span className="absolute right-2 top-2 grid size-5 place-items-center rounded-full bg-primary text-primary-foreground">
