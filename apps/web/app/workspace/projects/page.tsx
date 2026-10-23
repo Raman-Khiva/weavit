@@ -12,7 +12,7 @@ import { useAuth } from "@clerk/nextjs"
 import { useGetProjectsQuery } from "@/features/projects/projects.api"
 
 function Page(): JSX.Element {
-  const { projects, addProject, resetToDefault } = useProjectsStore()
+  // const { projects, addProject, resetToDefault } = useProjectsStore()
   const [search, setSearch] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
 
@@ -20,15 +20,15 @@ function Page(): JSX.Element {
 
   const { data, isLoading, isError } = useGetProjectsQuery(undefined, { skip: !isLoaded || !isSignedIn });
 
-  const categories = Array.from(new Set(projects.map((p) => p.category)))
+  const categories = Array.from(new Set(data?.map((p) => p.category)))
 
-  const filteredProjects = projects.filter((p) => {
-    const matchesSearch =
-      p.title.toLowerCase().includes(search.toLowerCase()) ||
-      p.description.toLowerCase().includes(search.toLowerCase())
-    const matchesCategory = selectedCategory === "all" || p.category === selectedCategory
-    return matchesSearch && matchesCategory
-  })
+  // const filteredProjects = projects.filter((p) => {
+  //   const matchesSearch =
+  //     p.title.toLowerCase().includes(search.toLowerCase()) ||
+  //     p.description.toLowerCase().includes(search.toLowerCase())
+  //   const matchesCategory = selectedCategory === "all" || p.category === selectedCategory
+  //   return matchesSearch && matchesCategory
+  // })
 
   return (
     <SkeletonWrapper skeleton={<ProjectsPageSkeleton />} delay={2000}>
@@ -52,7 +52,7 @@ function Page(): JSX.Element {
             <Button
               variant="outline"
               size="sm"
-              onClick={resetToDefault}
+              // onClick={resetToDefault}
               title="Reset to default templates"
               className="gap-1.5 text-xs text-muted-foreground hover:text-foreground"
             >
@@ -60,7 +60,7 @@ function Page(): JSX.Element {
               <span>Reset Templates</span>
             </Button>
 
-            <CreateProjectDialog onAddProject={addProject} />
+            {/* <CreateProjectDialog onAddProject={addProject} /> */}
           </div>
         </div>
 
@@ -85,7 +85,7 @@ function Page(): JSX.Element {
                 : "bg-muted/50 text-muted-foreground hover:text-foreground"
                 }`}
             >
-              All Categories ({projects.length})
+              All Categories ({data?.length})
             </button>
             {categories.map((cat) => (
               <button
@@ -127,7 +127,7 @@ function Page(): JSX.Element {
           ))}
         </div>
 
-        {filteredProjects.length === 0 && (
+        {data?.length === 0 && (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border p-12 text-center">
             <FolderPlus className="size-10 text-muted-foreground/60 mb-3" />
             <h3 className="text-base font-semibold text-foreground">No plans found</h3>
@@ -135,7 +135,7 @@ function Page(): JSX.Element {
               Try adjusting your search criteria or create a new roadmap plan using the templates above.
             </p>
             <div className="mt-4">
-              <CreateProjectDialog onAddProject={addProject} />
+              {/* <CreateProjectDialog onAddProject={addProject} /> */}
             </div>
           </div>
         )}

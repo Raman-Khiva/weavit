@@ -135,7 +135,7 @@ export function ProductivityGraphicCard() {
   return (
     <div className="flex h-full w-full flex-col justify-between overflow-y-auto space-y-4 rounded-xl p-1">
       {/* Productivity Score & Vector Bar Meter */}
-      <div className="rounded-xl border border-border/60 bg-card/60 p-4 backdrop-blur-md space-y-3">
+      <div className="flex flex-col gap-4 rounded-xl border border-border/60  bg-card/60 p-4 backdrop-blur-md space-y-3">
         <div className="flex items-center justify-between pb-2 border-b border-border/40">
           <div className="flex items-center gap-2">
             <h2 className="text-base font-bold text-foreground">
@@ -154,11 +154,10 @@ export function ProductivityGraphicCard() {
               <button
                 key={t}
                 onClick={() => setTimeframe(t)}
-                className={`rounded-md px-2 py-0.5 text-[10px] font-semibold transition-all ${
-                  timeframe === t
-                    ? "bg-background text-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={`rounded-md px-2 py-0.5 text-[10px] font-semibold transition-all ${timeframe === t
+                  ? "bg-background text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+                  }`}
               >
                 {t}
               </button>
@@ -168,10 +167,10 @@ export function ProductivityGraphicCard() {
 
         <div className="flex items-baseline justify-between pt-1">
           <div className="flex items-baseline gap-1.5">
-            <span className="text-3xl font-extrabold tracking-tight text-foreground font-mono">
+            <span className="text-5xl font-extrabold tracking-loose text-foreground font-mono">
               {currentScore.score}
             </span>
-            <span className="text-sm font-normal text-muted-foreground">/100</span>
+            <span className="text-md font-semibold text-muted-foreground">/100</span>
           </div>
           <div className="flex items-center gap-1 text-xs font-bold text-emerald-500">
             <ArrowUpRight className="h-3.5 w-3.5" />
@@ -183,7 +182,7 @@ export function ProductivityGraphicCard() {
         <div className="pt-1 w-full">
           <svg
             viewBox="0 0 500 24"
-            className="w-full h-6 overflow-visible"
+            className="w-full h-8 overflow-visible"
             preserveAspectRatio="none"
           >
             {Array.from({ length: totalBars }).map((_, i) => {
@@ -209,7 +208,8 @@ export function ProductivityGraphicCard() {
                       : undefined
                   }
                 />
-              )}
+              )
+            }
             )}
           </svg>
         </div>

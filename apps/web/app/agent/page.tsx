@@ -5,7 +5,7 @@ import { useState, useCallback, useMemo } from "react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@workspace/ui/components/resizable";
 import { PromptInput, PromptInputTextarea, PromptInputSubmit, PromptInputFooter, PromptInputHeader } from "@workspace/ui/components/ai-elements/prompt-input";
 import { Conversation, ConversationContent, ConversationEmptyState } from "@workspace/ui/components/ai-elements/conversation";
-import { Message, MessageContent } from "@workspace/ui/components/ai-elements/message";
+import { Message, MessageContent, MessageResponse } from "@workspace/ui/components/ai-elements/message";
 import {
   Collapsible,
   CollapsibleContent,
@@ -343,9 +343,7 @@ function AgentMessageBubble({ message }: { message: AgentMessage }) {
         {message.parts.map((part, index) => {
           if (part.type === "text" && part.text) {
             return (
-              <div key={index} className="prose prose-sm dark:prose-invert max-w-none">
-                <div className="[&>*:first-child]:mt-0 [&>*:last-child]:mb-0">{part.text}</div>
-              </div>
+              <MessageResponse key={index} className="prose prose-sm dark:prose-invert max-w-none" children={part.text} />
             );
           }
 
@@ -445,9 +443,7 @@ function UserMessageBubble({ message }: { message: AgentMessage }) {
         {message.parts.map((part, index) => {
           if (part.type === "text" && part.text) {
             return (
-              <div key={index} className="prose prose-sm dark:prose-invert max-w-none">
-                <div className="[&>*:first-child]:mt-0 [&>*:last-child]:mb-0">{part.text}</div>
-              </div>
+              <MessageResponse key={index} className="prose prose-sm dark:prose-invert max-w-none" children={part.text} />
             );
           }
           return null;

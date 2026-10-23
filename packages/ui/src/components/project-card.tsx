@@ -44,6 +44,7 @@ import { components } from "@weavit/api-types"
 
 interface ProjectCardProps {
   project: PROJECT
+  showDescription?: boolean
 }
 
 type PROJECT = components["schemas"]["Project"]
@@ -56,7 +57,7 @@ type PROJECT = components["schemas"]["Project"]
   showDescription = true,
   */}
 export const ProjectCard = (
-  { project }: ProjectCardProps
+  { project, showDescription }: ProjectCardProps
 
 ) => {
 
@@ -69,10 +70,10 @@ export const ProjectCard = (
   const progressvalue = 40;
 
   const icon = Code2;
-  const showdescription = true;
 
   return (
-    <Card className="flex flex-col justify-between gap-2 h-full transition-all duration-200 hover:border-primary/50 hover:shadow-md group">
+    <Card size=
+      {"default"} className="flex w-full  flex-col justify-between gap-2 h-full transition-all duration-200 hover:border-primary/50 hover:shadow-md group">
       <CardHeader className="pb-2">
         <div className="flex items-start gap-3">
           <div className="rounded-xl border border-border bg-Card p-2.5 text-primary group-hover:bg-primary/10 transition-colors">
@@ -101,12 +102,12 @@ export const ProjectCard = (
       </CardHeader>
 
       <CardContent className="py-2">
-        {showdescription && description && (
+        {showDescription && description && (
           <CardDescription className="text-xs font-medium line-clamp-2 min-h-8">
             {description}
           </CardDescription>
         )}
-        <div className={showdescription && description ? "mt-3" : "mt-1"}>
+        <div className={showDescription && description ? "mt-3" : "mt-1"}>
           <Progress value={progressvalue} className="h-2" />
         </div>
       </CardContent>

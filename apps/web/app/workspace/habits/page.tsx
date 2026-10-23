@@ -114,7 +114,7 @@ function HabitCard({ ritual }: { ritual: Ritual }) {
   return (
     <a
       href={`/workspace/habits/${ritual.id || slug(ritual.title)}`}
-      className="group rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/35"
+      className="group rounded-xl border border-border bg-card/50 p-4 transition-colors hover:border-primary/35"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-start gap-3">

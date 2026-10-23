@@ -11,7 +11,7 @@ import { Checkbox } from "@workspace/ui/components/checkbox"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { useState } from "react"
-import { CheckCircle, Flame, Plus, Info } from "lucide-react"
+import { CheckCircle, Flame, Plus, Info, Rocket } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -21,6 +21,10 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import TaskCard from "@workspace/ui/components/taskCard"
+import { components } from "@weavit/api-types"
+
+type HABIT = components["schemas"]["Habit"];
 
 export interface HabitProps {
   title: string
@@ -101,7 +105,7 @@ export const Habit = ({
 }
 
 export interface HabitsProps {
-  habits?: HabitProps[]
+  habits?: HABIT[]
 }
 
 const DEFAULT_HABITS: HabitProps[] = [
@@ -120,8 +124,9 @@ const DEFAULT_HABITS: HabitProps[] = [
   },
 ]
 
-export const Habits = ({ habits: initialHabits = DEFAULT_HABITS }: HabitsProps) => {
-  const [habitsList, setHabitsList] = useState<HabitProps[]>(initialHabits)
+
+
+export const Habits = ({ habits }: HabitsProps) => {
   const [newHabitTitle, setNewHabitTitle] = useState("")
   const [isOpen, setIsOpen] = useState(false)
 
@@ -135,13 +140,10 @@ export const Habits = ({ habits: initialHabits = DEFAULT_HABITS }: HabitsProps) 
       streak: 0,
     }
 
-    setHabitsList([...habitsList, newHabit])
-    setNewHabitTitle("")
-    setIsOpen(false)
   }
 
   return (
-    <main className="flex h-full w-full max-w-sm min-w-8 flex-col gap-2">
+    <main className="flex h-full w-full px-6 min-w-7 py-1  flex-col gap-2 ">
       <div className="flex items-center justify-between pb-2 border-b border-border/40">
         <div className="flex items-center gap-2">
           <h2 className="text-base font-bold text-foreground">Daily Tasks</h2>
@@ -187,11 +189,23 @@ export const Habits = ({ habits: initialHabits = DEFAULT_HABITS }: HabitsProps) 
           </a>
         </div>
       </div>
-      <div className="flex flex-col gap-2 overflow-y-auto pb-4">
-        {habitsList.map((habit, index) => (
-          <Habit key={index} {...habit} />
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pb-2 pt-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {habits?.slice(0, 5).map((habit, i) => (
+
+          <TaskCard
+            key={habit.id}
+            title={habit.title}
+            habit={habit.title}
+            icon={Rocket}
+            status={i % 2 ? "done" : "pending"}
+            streak={4}
+
+          />
         ))}
+        {/*{habitsList.map((habit, index) => (
+          <Habit key={index} {...habit} />
+        ))}*/}
       </div>
-    </main>
+    </main >
   )
 }

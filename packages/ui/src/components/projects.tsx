@@ -1,12 +1,20 @@
 "use client"
 
+import { components } from "@weavit/api-types"
 import { ProjectCard } from "@workspace/ui/components/project-card"
 import { useProjectsStore, Project } from "@workspace/ui/lib/projects-store"
 import { FolderOpen, ArrowRight, Info } from "lucide-react"
+import { ProjectOverviewCard } from "@workspace/ui/components/project-overview-card"
 
-export function Projects(): JSX.Element {
-  const { projects } = useProjectsStore()
-  const displayProjects = projects.slice(0, 3)
+type PROJECT = components["schemas"]["Project"];
+
+export function Projects({ projects }: { projects: PROJECT[] }): JSX.Element {
+  let displayProjects = projects.length < 3 ? [...projects, ...projects] : projects;
+
+  displayProjects = displayProjects.slice(0, 3)
+
+
+
 
   return (
     <main className="h-full w-full flex flex-col justify-between">
@@ -25,23 +33,25 @@ export function Projects(): JSX.Element {
           href="/workspace/projects"
           className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
         >
-          <span>View all ({projects.length})</span>
+          <span>View all ({projects?.length})</span>
           <ArrowRight size={12} />
         </a>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full flex-1">
-        {displayProjects.map((project: Project) => (
-          <a
-            key={project.id}
-            href={`/workspace/projects/${project.id}`}
-            className="block h-full min-w-0"
-          >
-            <ProjectCard project={project} showDescription={false} />
-          </a>
-        ))}
-        {displayProjects.length === 0 && (
-          <div className="col-span-3 flex items-center justify-center rounded-xl border border-dashed p-6 text-xs text-muted-foreground">
+      <div className="flex  gap-2 w-full mt-2 flex-1">
+        {displayProjects?.map((project) => (
+          (project && (
+            <a
+              key={project.id}
+              href={`/workspace/projects/${project.id}`}
+              className="w-full h-full "
+            >
+              {/* <ProjectCard project={project} showDescription={false} /> */}
+              <ProjectOverviewCard project={project} />
+            </a>
+          ))))}
+        {displayProjects?.length === 0 && (
+          <div className="h-full w-full col-span-3 flex items-center justify-center rounded-xl border border-dashed p-6 text-xs text-muted-foreground">
             No active roadmaps found. Navigate to Projects to create one.
           </div>
         )}

@@ -27,8 +27,17 @@ import {
   SheetTrigger,
 } from "@workspace/ui/components/sheet"
 import { Bell } from "lucide-react"
+import { useAuth } from "@clerk/nextjs"
+import { useGetProjectsQuery } from "@/features/projects/projects.api"
+import { useGetHabitsQuery } from "@/features/habits/habits.api"
 
 export default function Page(): React.ReactElement {
+
+  const { isLoaded, isSignedIn } = useAuth();
+
+  const { data, isLoading, isError } = useGetProjectsQuery(undefined, { skip: !isLoaded || !isSignedIn });
+  const { data: habits } = useGetHabitsQuery(undefined, { skip: !isLoaded || !isSignedIn })
+
   return (
     <main className="relative flex h-screen w-full flex-col justify-between bg-background pb-19">
       {/* Top Right Corner Notch Button (Touching Sides) */}
@@ -82,11 +91,11 @@ export default function Page(): React.ReactElement {
         </div>
       </div>
       <ResizablePanelGroup orientation="vertical" className="h-full w-full">
-        <ResizablePanel defaultSize={"60%"} className="">
+        <ResizablePanel defaultSize={"62%"} className="">
           <ResizablePanelGroup className="" orientation="horizontal">
-            <ResizablePanel defaultSize={"33.3%"} className="m-2 w-full">
-              <div className="flex h-full w-full flex-1 justify-center overflow-hidden rounded-lg border border-border p-4">
-                <Habits />
+            <ResizablePanel defaultSize={"22%"} minSize={"15%"} className="m-2 w-full">
+              <div className="flex h-full w-full flex-1 justify-center overflow-hidden rounded-lg border border-border px-2 py-4">
+                <Habits habits={habits ?? []} />
               </div>
             </ResizablePanel>
             <ResizableHandle />
@@ -106,13 +115,13 @@ export default function Page(): React.ReactElement {
         <ResizableHandle />
         <ResizablePanel>
           <ResizablePanelGroup orientation="horizontal">
-            <ResizablePanel className="m-2 w-fit" defaultSize={"60%"}>
+            <ResizablePanel className="m-2 w-fit" defaultSize={"65%"}>
               <div className="flex h-full w-full flex-1 justify-center overflow-hidden rounded-lg border border-border p-4">
-                <Projects />
+                <Projects projects={data ?? []} />
               </div>
             </ResizablePanel>
             <ResizableHandle />
-            <ResizablePanel className="m-2 w-full" defaultSize={"40%"}>
+            <ResizablePanel className="m-2 w-full" defaultSize={"35%"}>
               <div className="flex h-full w-full flex-1 justify-center overflow-hidden rounded-lg border border-border p-4">
                 <ProductivityGraphicCard />
               </div>

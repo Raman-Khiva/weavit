@@ -13,7 +13,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@workspace/ui/components/sidebar"
+} from "@workspace/ui/components/sidebar";
 import {
   Flame,
   CheckSquare2,
@@ -26,7 +26,7 @@ import {
   BookOpen,
   Target,
   ClipboardCheck,
-} from "lucide-react"
+} from "lucide-react";
 import { useProjectsStore } from "@workspace/ui/lib/projects-store"
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
@@ -164,11 +164,12 @@ export function AppSidebar({
   }, [projects])
 
   return (
-    <Sidebar variant="inset" {...props} className="max-w-68">
-      <SidebarHeader className="border-b border-sidebar-border/50 pb-2">
+
+    <Sidebar {...props} className="h-full max-w-68 top-0">   {/* variant defaults to "sidebar"; drop max-w-68 */}
+      <SidebarHeader className="h-14  flex  justify-center border-b border-border/50 p-0 px-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild className="hover:bg-sidebar-accent/60 rounded-xl transition-all duration-150">
+            <SidebarMenuButton size="lg" asChild className="rounded-xl transition-all duration-150 hover:bg-sidebar-accent/60">
               <a href="/" className="flex items-center gap-3">
                 <div className="flex aspect-square size-9 items-center justify-center rounded-xl bg-sidebar-primary/10 border border-sidebar-border/80 shadow-xs overflow-hidden">
                   <img src="/logo-weavit.png" alt="Weavit Logo" className="h-6 w-6 object-contain" />
@@ -188,7 +189,7 @@ export function AppSidebar({
         </SidebarMenu>
       </SidebarHeader>
 
-      <SidebarContent className="gap-2 px-2 py-2">
+      <SidebarContent className="gap-2 px-2 py-2 ">
         <NavMain items={navMain} currentPath={currentPath} />
         <NavProjects projects={projectItems} currentPath={currentPath} />
         <NavSecondary items={navSecondary} className="mt-auto pt-2 border-t border-sidebar-border/40" />
