@@ -16,6 +16,10 @@ import {
   PostHabitsBody, PostHabitsResponse,
   PostProjectsBody,
   PostProjectsProjectIdPhasesBody,
+  PostProjectsProjectIdPhasesPhaseIdTasksBody,
+  PostProjectsProjectIdPhasesPhaseIdTasksResponse,
+  PostProjectsProjectIdPhasesPhaseIdTasksTaskIdNotesBody,
+  PostProjectsProjectIdPhasesPhaseIdTasksTaskIdNotesResponse,
   PostProjectsProjectIdPhasesResponse,
   PostProjectsResponse,
   PostTodosBody, PostTodosResponse,
@@ -502,6 +506,133 @@ app.post('/projects/:projectId/phases', async (req: Request, res: Response) => {
 
   }
 })
+
+
+
+
+
+// Task routes
+
+
+// Post Task Route
+
+
+
+app.post("/projects/:projectId/phases/:phaseId/tasks", async (req: Request<{ phaseId: string }>, res: Response) => {
+
+  try {
+
+    const userId = await getUserId(req, res);
+    if (!userId) return;
+
+
+    const { phaseId } = req.params;
+
+    if (!phaseId) {
+      return res.status(500).json({
+        message: "Invalid phaseId",
+        error: "phaseId is required",
+      })
+    }
+
+    const result = PostProjectsProjectIdPhasesPhaseIdTasksBody.safeParse(req.body);
+
+    if (!result.success) {
+      return res.status(500).json({
+        message: "Invalid Request Payload",
+        error: result.error.flatten()
+
+      })
+    }
+
+    const postedTask = await prisma.projectTask.create({
+      data: { ...result.data, phaseId }
+    })
+
+    const validatePostTaskResponse = PostProjectsProjectIdPhasesPhaseIdTasksResponse.safeParse(postedTask);
+
+    if (!validatePostTaskResponse.success) {
+      return res.status(500).json({
+        message: "Invalid Response structure",
+        error: validatePostTaskResponse.error.flatten()
+      })
+    }
+
+    return res.status(201).json(validatePostTaskResponse.data);
+
+
+
+
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal Server Error while posting task",
+      error: error
+    })
+  }
+})
+
+
+
+
+// Notes Route
+
+// Post Note Route
+
+app.post("/projects/:projectId/phases/:phaseId/tasks/:taskId/notes", async (req: Request<{ taskId: string }>, res: Response) => {
+  try {
+
+    const userId = await getUserId(req, res);
+    if (!userId) return;
+
+
+    const { taskId } = req.params;
+
+    if (!taskId) {
+      return res.status(500).json({
+        message: "Invalid taskId",
+        error: "taskId is required",
+      })
+    }
+
+    const result = PostProjectsProjectIdPhasesPhaseIdTasksTaskIdNotesBody.safeParse(req.body);
+
+    if (!result.success) {
+      return res.status(500).json({
+        message: "Invalid Request Payload",
+        error: result.error.flatten()
+
+      })
+    }
+
+    const postedNote = await prisma.taskLogNote.create({
+      data: { ...result.data, taskId }
+    })
+
+    const validatePostNoteResponse = PostProjectsProjectIdPhasesPhaseIdTasksTaskIdNotesResponse.safeParse(JSON.parse(JSON.stringify(postedNote)));
+
+    if (!validatePostNoteResponse.success) {
+      return res.status(500).json({
+        message: "Invalid Response structure",
+        error: validatePostNoteResponse.error.flatten()
+      })
+    }
+
+    return res.status(201).json(validatePostNoteResponse.data);
+
+
+
+
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal Server Error while posting task",
+      error: error
+    })
+  }
+})
+
+
+
+
 
 
 // Deadline routes

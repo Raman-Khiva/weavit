@@ -130,7 +130,7 @@ export function ProjectTasks({
                     <div className="mt-1.5 flex items-center gap-2">
                       <button
                         type="button"
-                        //onClick={() => setActiveTaskForNote({ task, mode: "view_notes" })}
+                        onClick={() => setActiveTaskForNote({ task, mode: "view_notes" })}
                         className="inline-flex items-center gap-1 rounded-md border border-primary/30 bg-primary/5 px-2 py-0.5 text-[10px] font-medium text-primary hover:bg-primary/10 transition-colors"
                       >
                         <MessageSquare className="size-3" />

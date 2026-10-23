@@ -272,6 +272,7 @@ function Page(): JSX.Element {
                 <DialogHeader>
                   <DialogTitle>Add New Habit</DialogTitle>
                 </DialogHeader>
+
                 <form onSubmit={handleCreateHabit} className="space-y-4">
                   <div className="space-y-1.5">
                     <Label htmlFor="habit-title">Habit Name</Label>

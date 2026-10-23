@@ -52,6 +52,9 @@ interface ProjectPhasesProps {
   onAddPhase: (projectId: string, phase: { title: string; description?: string; category?: string }) => void
 }
 
+
+type AddPhaseInput = components["schemas"]["CreatePhaseInput"];
+
 export function ProjectPhases({
   project,
   onToggleTask,
@@ -66,8 +69,18 @@ export function ProjectPhases({
   const [newPhaseTitle, setNewPhaseTitle] = useState("")
   const [newPhaseCategory, setNewPhaseCategory] = useState("")
   const [newPhaseDescription, setNewPhaseDescription] = useState("")
+  const [addPhaseForm, updateAddPhaseForm] = useState<AddPhaseInput>({
+    title: "Test :  Phase",
+    category: "Test : Phase category",
+    description: "Test : Phase description",
+  });
+
+  //const {} = usePostPhaseMutation();
 
   const handleCreatePhase = () => {
+
+
+
     if (!newPhaseTitle.trim()) return
     onAddPhase(project.id, {
       title: newPhaseTitle.trim(),
@@ -83,7 +96,7 @@ export function ProjectPhases({
   return (
     <div className="w-full flex flex-col gap-6">
       {/* Search & Filter Bar */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-border/70 bg-card/60 p-3 shadow-sm">
+      {/* <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-border/70 bg-card/60 p-3 shadow-sm">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
           <Input
@@ -133,7 +146,8 @@ export function ProjectPhases({
         </div>
       </div>
 
-      {/* Inline Add Phase Form */}
+      // Inline Add Phase Form 
+
       {isAddingPhase && (
         <div className="flex flex-col gap-3 rounded-2xl border border-primary/40 bg-card p-4 shadow-sm">
           <div className="flex items-center gap-2 text-primary text-xs font-bold uppercase tracking-wider">
@@ -170,8 +184,7 @@ export function ProjectPhases({
             </Button>
           </div>
         </div>
-      )}
-
+      )}    */}
       {/* Phase Timeline List */}
       <Timeline defaultValue={1}>
         {project?.phases?.filter((phase) => {
