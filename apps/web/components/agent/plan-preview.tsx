@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { SequencedAchievementProgress } from "@workspace/ui/components/achievement-list";
+import { Skeleton } from "@workspace/ui/components/skeleton";
 import {
   Card,
   CardContent,
@@ -51,6 +53,11 @@ interface PlanPreviewProps {
   };
   isPreview: boolean;
   compact?: boolean;
+  /**
+   * Live assembly clock from the conversation cards.
+   * Index 0 is the project header. Each later index is a phase, in order.
+   */
+  assembly?: SequencedAchievementProgress;
 }
 
 const PHASE_ICONS: Record<string, LucideIcon> = {
@@ -102,7 +109,93 @@ const PRIORITY_CONFIG = {
   low: { bg: "bg-muted", text: "text-muted-foreground", label: "Low" },
 };
 
-function PhaseSection({ phase, phaseIndex, plan, isCompleted, phaseStatus, phaseCompleted, phaseTotal, phaseProgress, statusCfg, PhaseIcon }: {
+const HEADER_SKELETON_UNTIL = 18;
+const HEADER_COPY_UNTIL = 72;
+const PHASE_SKELETON_UNTIL = 16;
+const PHASE_HEADING_UNTIL = 46;
+const PHASE_DETAILS_UNTIL = 62;
+
+type HeaderReveal = { kind: "skeleton" } | { kind: "copy"; textProgress: number } | { kind: "complete" };
+
+type PhaseReveal =
+  | { kind: "skeleton" }
+  | { kind: "heading"; textProgress: number }
+  | { kind: "details" }
+  | { kind: "tasks"; visibleTasks: number }
+  | { kind: "complete" };
+
+function windowProgress(progress: number, start: number, end: number) {
+  if (progress <= start) return 0;
+  if (progress >= end) return 1;
+  return (progress - start) / (end - start);
+}
+
+function headerReveal(assembly: SequencedAchievementProgress | undefined): HeaderReveal {
+  if (!assembly) return { kind: "complete" };
+  if (assembly.settledCount > 0 || assembly.index > 0) return { kind: "complete" };
+  if (assembly.progress < HEADER_SKELETON_UNTIL) return { kind: "skeleton" };
+  if (assembly.progress < HEADER_COPY_UNTIL) {
+    return { kind: "copy", textProgress: windowProgress(assembly.progress, HEADER_SKELETON_UNTIL, HEADER_COPY_UNTIL) };
+  }
+  return { kind: "complete" };
+}
+
+function phaseReveal(
+  assembly: SequencedAchievementProgress | undefined,
+  phaseIndex: number,
+  taskCount: number
+): PhaseReveal | null {
+  if (!assembly) return { kind: "complete" };
+  const cardIndex = phaseIndex + 1;
+  if (assembly.settledCount > cardIndex || assembly.index > cardIndex) return { kind: "complete" };
+  if (assembly.index < cardIndex || assembly.settledCount < cardIndex) return null;
+  const progress = assembly.progress;
+  if (progress < PHASE_SKELETON_UNTIL) return { kind: "skeleton" };
+  if (progress < PHASE_HEADING_UNTIL) {
+    return { kind: "heading", textProgress: windowProgress(progress, PHASE_SKELETON_UNTIL, PHASE_HEADING_UNTIL) };
+  }
+  if (progress < PHASE_DETAILS_UNTIL) return { kind: "details" };
+  const revealed = Math.ceil(windowProgress(progress, PHASE_DETAILS_UNTIL, 100) * taskCount);
+  return { kind: "tasks", visibleTasks: Math.min(taskCount, revealed) };
+}
+
+function GeneratedText({ text, progress, className }: { text: string; progress: number; className?: string }) {
+  const parts = text.split(/(\s+)/);
+  const wordCount = parts.filter((part) => part.trim().length > 0).length;
+  const shown = progress >= 1 ? wordCount : progress <= 0 ? 0 : Math.min(wordCount, Math.max(1, Math.ceil(progress * wordCount)));
+  let remaining = shown;
+  let output = "";
+  for (const part of parts) {
+    if (remaining <= 0) break;
+    output += part;
+    if (part.trim().length > 0) remaining -= 1;
+  }
+  const done = shown >= wordCount;
+
+  return (
+    <span className={className}>
+      {output}
+      {done ? null : (
+        <span className="ml-0.5 inline-block h-[0.9em] w-px translate-y-px animate-pulse bg-foreground align-middle" />
+      )}
+    </span>
+  );
+}
+
+function TaskSkeletonRow() {
+  return (
+    <div className="flex items-center gap-3 px-2 py-3">
+      <Skeleton className="size-5 rounded-md" />
+      <div className="min-w-0 flex-1 space-y-2">
+        <Skeleton className="h-4 w-3/5" />
+        <Skeleton className="h-3 w-2/5" />
+      </div>
+      <Skeleton className="h-5 w-16 rounded-full" />
+    </div>
+  );
+}
+
+function PhaseSection({ phase, phaseIndex, plan, isCompleted, phaseStatus, phaseCompleted, phaseTotal, phaseProgress, statusCfg, PhaseIcon, reveal = { kind: "complete" }, sectionRef }: {
   phase: PlanPreviewProps["plan"]["phases"][0];
   phaseIndex: number;
   plan: PlanPreviewProps["plan"];
@@ -113,20 +206,28 @@ function PhaseSection({ phase, phaseIndex, plan, isCompleted, phaseStatus, phase
   phaseProgress: number;
   statusCfg: typeof STATUS_CONFIG.completed;
   PhaseIcon: LucideIcon;
+  reveal?: PhaseReveal;
+  sectionRef?: React.Ref<HTMLDivElement>;
 }) {
-  const [isOpen, setIsOpen] = useState(phaseStatus === "active" || phaseIndex === 0);
+  const [isOpen, setIsOpen] = useState(true);
+  const showCopy = reveal.kind !== "skeleton";
+  const showDetails = reveal.kind === "details" || reveal.kind === "tasks" || reveal.kind === "complete";
+  const textProgress = reveal.kind === "heading" ? reveal.textProgress : 1;
+  const visibleTasks = reveal.kind === "complete" ? phase.tasks.length : reveal.kind === "tasks" ? reveal.visibleTasks : 0;
+  const expanded = reveal.kind === "complete" ? isOpen : true;
 
   return (
-    <Card key={phase.id} className="group overflow-hidden transition-all duration-300 hover:border-primary/50 hover:shadow-lg">
+    <Card ref={sectionRef} key={phase.id} data-assembly={reveal.kind} className="group w-full overflow-hidden transition-all duration-300 hover:border-primary/50 hover:shadow-lg">
       <CardHeader className="px-5 py-4">
         <div className="w-full">
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="flex w-full items-start gap-4 cursor-pointer hover:bg-muted/30 rounded-xl p-2 -mx-2 -my-2 transition-colors"
-            aria-expanded={isOpen}
+            aria-expanded={expanded}
           >
             {/* Phase Indicator */}
             <div className="relative flex-shrink-0">
+              {showCopy ? (
               <div
                 className={cn(
                   "size-10 rounded-xl flex items-center justify-center border-2 transition-all duration-300",
@@ -145,6 +246,9 @@ function PhaseSection({ phase, phaseIndex, plan, isCompleted, phaseStatus, phase
                   </span>
                 )}
               </div>
+              ) : (
+                <Skeleton className="size-10 rounded-xl" />
+              )}
               {phaseIndex < plan.phases.length - 1 && (
                 <div
                   className={cn(
@@ -157,30 +261,42 @@ function PhaseSection({ phase, phaseIndex, plan, isCompleted, phaseStatus, phase
 
             {/* Phase Content */}
             <div className="flex-1 min-w-0">
-              <div className="flex flex-wrap items-center gap-2 mb-2">
-                <div className="flex items-center gap-1.5">
-                  <PhaseIcon className="size-3.5 text-primary" strokeWidth={1.8} />
-                  <span className="font-mono text-xs font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-primary/15 text-primary border border-primary/25">
-                    Phase {String(phaseIndex + 1).padStart(2, "0")}
-                  </span>
+              {showCopy ? (
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <PhaseIcon className="size-3.5 text-primary" strokeWidth={1.8} />
+                    <span className="font-mono text-xs font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-primary/15 text-primary border border-primary/25">
+                      Phase {String(phaseIndex + 1).padStart(2, "0")}
+                    </span>
+                  </div>
+                  {phase.category && (
+                    <Badge variant="outline" className="text-xs font-semibold px-2 py-0.5 border-border/80 bg-card text-foreground/80 shadow-2xs">
+                      {phase.category}
+                    </Badge>
+                  )}
                 </div>
-                {phase.category && (
-                  <Badge variant="outline" className="text-xs font-semibold px-2 py-0.5 border-border/80 bg-card text-foreground/80 shadow-2xs">
-                    {phase.category}
-                  </Badge>
-                )}
-              </div>
-
-              <h3 className="text-lg sm:text-xl font-black tracking-tight text-foreground mb-1">
-                {phase.title}
-              </h3>
-
-              {phase.description && (
-                <p className="text-sm text-muted-foreground italic mb-3">{phase.description}</p>
+              ) : (
+                <div className="mb-2 flex items-center gap-2">
+                  <Skeleton className="h-5 w-24 rounded-md" />
+                  <Skeleton className="h-5 w-16 rounded-md" />
+                </div>
               )}
 
-              {/* Phase Progress & Stats */}
-              <div className="flex flex-wrap items-center gap-4">
+              {showCopy ? (
+                <h3 className="mb-1 text-lg font-black tracking-tight text-foreground sm:text-xl">
+                  <GeneratedText text={phase.title} progress={textProgress} />
+                </h3>
+              ) : (
+                <Skeleton className="mb-2 h-6 w-4/5" />
+              )}
+
+              {showDetails && phase.description ? (
+                <p className="mb-3 animate-in fade-in text-sm italic text-muted-foreground duration-300">{phase.description}</p>
+              ) : null}
+              {!showDetails && phase.description ? <Skeleton className="mb-3 h-4 w-2/3" /> : null}
+
+              {showDetails ? (
+              <div className="flex flex-wrap items-center gap-4 animate-in fade-in duration-300">
                 <div className="flex-1 min-w-[150px]">
                   <Progress value={phaseProgress} className="h-2" />
                 </div>
@@ -207,13 +323,20 @@ function PhaseSection({ phase, phaseIndex, plan, isCompleted, phaseStatus, phase
                   </div>
                 )}
               </div>
+              ) : (
+                <div className="flex flex-wrap items-center gap-4">
+                  <Skeleton className="h-2 min-w-[150px] flex-1" />
+                  <Skeleton className="h-4 w-40" />
+                </div>
+              )}
             </div>
 
             {/* Phase Status Badge */}
             <div className="flex items-center gap-2 shrink-0">
+              {showDetails ? (
               <div
                 className={cn(
-                  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black border shadow-xs",
+                  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black border shadow-xs animate-in fade-in duration-300",
                   statusCfg.bg,
                   statusCfg.text,
                   statusCfg.border
@@ -223,10 +346,13 @@ function PhaseSection({ phase, phaseIndex, plan, isCompleted, phaseStatus, phase
                 {isCompleted && <CheckIcon className="size-3.5 stroke-[3]" />}
                 {statusCfg.label}
               </div>
+              ) : (
+                <Skeleton className="h-7 w-24 rounded-full" />
+              )}
               <ChevronRightIcon
                 className={cn(
                   "size-4 shrink-0 text-muted-foreground transition-transform duration-200",
-                  isOpen && "rotate-90"
+                  expanded && "rotate-90"
                 )}
                 aria-hidden="true"
               />
@@ -237,13 +363,16 @@ function PhaseSection({ phase, phaseIndex, plan, isCompleted, phaseStatus, phase
           <div
             className={cn(
               "overflow-hidden transition-all duration-300",
-              isOpen ? "max-h-[2000px] opacity-100 mt-4" : "max-h-0 opacity-0 mt-0"
+              expanded ? "max-h-[2000px] opacity-100 mt-4" : "max-h-0 opacity-0 mt-0"
             )}
             style={{ willChange: "max-height, opacity, margin-top" }}
           >
             <div className="rounded-2xl border border-border/70 bg-card/40 px-5 py-4">
               <div className="flex flex-col divide-y divide-border/40">
-                {phase.tasks.map((task) => {
+                {phase.tasks.map((task, taskIndex) => {
+                  if (taskIndex >= visibleTasks) {
+                    return <TaskSkeletonRow key={`skeleton-${task.id}`} />;
+                  }
                   const isDone = task.status === "completed";
                   const taskStatusCfg = STATUS_CONFIG[task.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending;
                   const priorityCfg = PRIORITY_CONFIG[task.priority || "medium"];
@@ -251,7 +380,7 @@ function PhaseSection({ phase, phaseIndex, plan, isCompleted, phaseStatus, phase
                   return (
                     <div
                       key={task.id}
-                      className={`group relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-3 transition-colors rounded-lg px-2 hover:bg-muted/30 ${
+                      className={`group relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-3 transition-colors rounded-lg px-2 hover:bg-muted/30 animate-in fade-in duration-300 ${
                         isDone ? "opacity-70" : ""
                       }`}
                     >
@@ -343,7 +472,13 @@ function PhaseSection({ phase, phaseIndex, plan, isCompleted, phaseStatus, phase
   );
 }
 
-export function PlanPreview({ plan, isPreview, compact = false }: PlanPreviewProps): JSX.Element {
+export function PlanPreview({ plan, isPreview, compact = false, assembly }: PlanPreviewProps): JSX.Element {
+  const staged = isPreview ? assembly : undefined;
+  const header = headerReveal(staged);
+  const showHeaderCopy = header.kind !== "skeleton";
+  const showHeaderDetails = header.kind === "complete";
+  const headerTextProgress = header.kind === "copy" ? header.textProgress : 1;
+  const activeSectionRef = useRef<HTMLDivElement | null>(null);
   const totalTasks = plan.phases.reduce((acc, phase) => acc + phase.tasks.length, 0);
   const completedTasks = plan.phases.reduce(
     (acc, phase) => acc + phase.tasks.filter((t) => t.status === "completed").length,
@@ -354,6 +489,11 @@ export function PlanPreview({ plan, isPreview, compact = false }: PlanPreviewPro
     0
   );
   const overallProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  const assemblyFinished = !staged || staged.settledCount >= plan.phases.length + 1;
+
+  useEffect(() => {
+    activeSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [staged?.index]);
 
   const getPhaseIcon = (title: string): LucideIcon => {
     const key = Object.keys(PHASE_ICONS).find((k) => title.includes(k));
@@ -447,53 +587,89 @@ export function PlanPreview({ plan, isPreview, compact = false }: PlanPreviewPro
   }
 
   return (
-    <div className="space-y-4 max-w-3xl mx-auto w-full">
-      {/* Plan Header Card */}
-      <Card className="border-border/50 bg-gradient-to-br from-card via-card to-muted/30 overflow-hidden">
+    <div className="w-full space-y-4">
+      <Card
+        ref={staged?.index === 0 ? activeSectionRef : undefined}
+        data-assembly={header.kind}
+        className="w-full overflow-hidden border-border/50 bg-gradient-to-br from-card via-card to-muted/30"
+      >
         <CardHeader className="pb-3">
           <div className="flex items-start gap-4">
-            <div className="size-12 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shrink-0">
-              <Sparkles className="size-6 text-primary-foreground" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex flex-wrap items-center gap-2 mb-2">
-                <Badge variant="outline" className="text-xs px-2.5 py-0.5 font-medium">
-                  {plan.phases.length} Phases
-                </Badge>
-                <Badge variant="outline" className="text-xs px-2.5 py-0.5 font-medium">
-                  {totalTasks} Tasks
-                </Badge>
-                <Badge variant="outline" className="text-xs px-2.5 py-0.5 font-medium">
-                  {Math.ceil(totalTasks / 8)} Weeks
-                </Badge>
+            {showHeaderDetails ? (
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/70 animate-in fade-in duration-300">
+                <Sparkles className="size-6 text-primary-foreground" />
               </div>
-              <CardTitle className="text-2xl font-black tracking-tight text-foreground">
-                {plan.title}
-              </CardTitle>
-              <CardDescription className="mt-2 text-base text-balance max-w-2xl">
-                {plan.description}
-              </CardDescription>
+            ) : (
+              <Skeleton className="size-12 shrink-0 rounded-2xl" />
+            )}
+            <div className="min-w-0 flex-1">
+              {showHeaderDetails ? (
+                <div className="mb-2 flex flex-wrap items-center gap-2 animate-in fade-in duration-300">
+                  <Badge variant="outline" className="px-2.5 py-0.5 text-xs font-medium">
+                    {plan.phases.length} Phases
+                  </Badge>
+                  <Badge variant="outline" className="px-2.5 py-0.5 text-xs font-medium">
+                    {totalTasks} Tasks
+                  </Badge>
+                  <Badge variant="outline" className="px-2.5 py-0.5 text-xs font-medium">
+                    {Math.ceil(totalTasks / 8)} Weeks
+                  </Badge>
+                </div>
+              ) : (
+                <div className="mb-2 flex items-center gap-2">
+                  <Skeleton className="h-5 w-20 rounded-full" />
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                </div>
+              )}
+              {showHeaderCopy ? (
+                <CardTitle className="text-2xl font-black tracking-tight text-foreground">
+                  <GeneratedText text={plan.title} progress={headerTextProgress} />
+                </CardTitle>
+              ) : (
+                <Skeleton className="h-8 w-3/4" />
+              )}
+              {showHeaderCopy ? (
+                <CardDescription className="mt-2 max-w-none text-base text-balance">
+                  <GeneratedText text={plan.description} progress={headerTextProgress} />
+                </CardDescription>
+              ) : (
+                <Skeleton className="mt-3 h-4 w-full" />
+              )}
             </div>
-            <div className="shrink-0 text-right">
-              <div className="text-3xl font-black text-foreground">{overallProgress}%</div>
-              <div className="text-xs text-muted-foreground">Overall Progress</div>
-            </div>
+            {showHeaderDetails ? (
+              <div className="shrink-0 animate-in fade-in text-right duration-300">
+                <div className="text-3xl font-black text-foreground">{overallProgress}%</div>
+                <div className="text-xs text-muted-foreground">Overall Progress</div>
+              </div>
+            ) : (
+              <Skeleton className="h-10 w-16 shrink-0" />
+            )}
           </div>
-          <Progress value={overallProgress} className="h-2 mt-2" />
-          <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1.5">
-              <CheckCircle2Icon className="size-3.5 text-emerald-500" />
-              <span>{completedTasks} Completed</span>
+          {showHeaderDetails ? (
+            <>
+              <Progress value={overallProgress} className="mt-2 h-2 animate-in fade-in duration-300" />
+              <div className="mt-3 flex animate-in items-center justify-between text-xs text-muted-foreground fade-in duration-300">
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2Icon className="size-3.5 text-emerald-500" />
+                  <span>{completedTasks} Completed</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <CircleDashedIcon className="size-3.5 text-amber-500" />
+                  <span>{inProgressTasks} In Progress</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <CircleIcon className="size-3.5 text-muted-foreground" />
+                  <span>{totalTasks - completedTasks - inProgressTasks} Remaining</span>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="mt-4 space-y-3">
+              <Skeleton className="h-2 w-full" />
+              <Skeleton className="h-4 w-2/3" />
             </div>
-            <div className="flex items-center gap-1.5">
-              <CircleDashedIcon className="size-3.5 text-amber-500" />
-              <span>{inProgressTasks} In Progress</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <CircleIcon className="size-3.5 text-muted-foreground" />
-              <span>{totalTasks - completedTasks - inProgressTasks} Remaining</span>
-            </div>
-          </div>
+          )}
         </CardHeader>
       </Card>
 
@@ -508,6 +684,9 @@ export function PlanPreview({ plan, isPreview, compact = false }: PlanPreviewPro
           const statusCfg = STATUS_CONFIG[phaseStatus as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending;
           const PhaseIcon = getPhaseIcon(phase.title);
 
+          const reveal = phaseReveal(staged, phaseIndex, phaseTotal);
+          if (!reveal) return null;
+
           return (
             <PhaseSection
               key={phase.id}
@@ -521,13 +700,15 @@ export function PlanPreview({ plan, isPreview, compact = false }: PlanPreviewPro
               phaseProgress={phaseProgress}
               statusCfg={statusCfg}
               PhaseIcon={PhaseIcon}
+              reveal={reveal}
+              sectionRef={staged?.index === phaseIndex + 1 ? activeSectionRef : undefined}
             />
           );
         })}
       </div>
 
-      {/* Legend */}
-      <Card className="border-border/50 bg-muted/30">
+      {assemblyFinished ? (
+      <Card className="w-full animate-in border-border/50 bg-muted/30 fade-in duration-300">
         <CardContent className="pt-4 pb-6">
           <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
             <div className="flex items-center gap-1.5">
@@ -556,6 +737,7 @@ export function PlanPreview({ plan, isPreview, compact = false }: PlanPreviewPro
           </div>
         </CardContent>
       </Card>
+      ) : null}
     </div>
   );
 }

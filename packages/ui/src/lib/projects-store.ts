@@ -6,17 +6,19 @@ import { useState, useEffect, useCallback } from "react"
 type PROJECT = components["schemas"]["Project"]
 type TASK = components["schemas"]["ProjectTask"];
 type TASKLOGNOTE = components["schemas"]["TaskLogNote"]
+export type TaskLogNote = TASKLOGNOTE
 
 export interface ExecutableTask {
   id: string
+  phaseId?: string
   title: string
-  description?: string
+  description?: string | null
   status: "PENDING" | "COMPLETED" | "IN_PROGRESS" | "SKIPPED"
-  category?: string
-  priority?: "LOW" | "MEDIUM" | "HIGH"
+  category?: string | null
+  priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT"
   dueDate?: string
   CompletedAt?: string
-  notes: TASKLOGNOTE[]
+  notes?: TASKLOGNOTE[]
 }
 
 export interface ProjectPhase {
@@ -466,18 +468,14 @@ export function useProjectsStore() {
           const nextTasks = phase.tasks.map((task) => {
             if (task.id !== taskId) return task
 
-            const nextStatus: TaskStatus = task.status === "COMPLETED" ? "PENDING" : "COMPLETED"
+            const nextStatus: ExecutableTask["status"] = task.status === "COMPLETED" ? "PENDING" : "COMPLETED"
             const updatedNotes = [...(task.notes || [])]
 
             if (noteText && noteText.trim().length > 0) {
               updatedNotes.unshift({
                 id: `note-${Date.now()}`,
-                timestamp: new Date().toLocaleString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit"
-                }),
+                taskId,
+                createdAt: new Date().toISOString(),
                 text: noteText.trim()
               })
             }
@@ -492,7 +490,7 @@ export function useProjectsStore() {
 
           // Calculate phase status
           const allDone = nextTasks.length > 0 && nextTasks.every((t) => t.status === "COMPLETED")
-          const anyStarted = nextTasks.some((t) => t.status === "Completed" || t.status === "IN_PROGRESS")
+          const anyStarted = nextTasks.some((t) => t.status === "COMPLETED" || t.status === "IN_PROGRESS")
           const phaseStatus: "Completed" | "active" | "pending" = allDone
             ? "Completed"
             : anyStarted
@@ -525,12 +523,8 @@ export function useProjectsStore() {
 
             const newNote: TaskLogNote = {
               id: `note-${Date.now()}`,
-              timestamp: new Date().toLocaleString("en-US", {
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit"
-              }),
+              taskId,
+              createdAt: new Date().toISOString(),
               text: text.trim()
             }
 
@@ -568,8 +562,8 @@ export function useProjectsStore() {
             title: taskData.title,
             description: taskData.description,
             category: taskData.category || phase.category || "General",
-            priority: taskData.priority || "medium",
-            status: "pending",
+            priority: taskData.priority === "high" ? "HIGH" : taskData.priority === "low" ? "LOW" : "MEDIUM",
+            status: "PENDING",
             notes: []
           }
 
@@ -610,7 +604,7 @@ export function useProjectsStore() {
   )
 
   const resetToDefault = useCallback(() => {
-    saveProjects(INITIAL_PROJECTS)
+    saveProjects([])
   }, [saveProjects])
 
   return {

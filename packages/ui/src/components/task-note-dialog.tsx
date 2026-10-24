@@ -73,9 +73,9 @@ export function TaskNoteDialog({
               {task.priority && (
                 <span
                   className={`px-1.5 py-0.2 rounded font-mono font-bold text-[9px] uppercase ${
-                    task.priority === "high"
+                    task.priority === "HIGH" || task.priority === "URGENT"
                       ? "bg-rose-500/15 text-rose-500"
-                      : task.priority === "medium"
+                      : task.priority === "MEDIUM"
                       ? "bg-amber-500/15 text-amber-500"
                       : "bg-muted text-muted-foreground"
                   }`}
@@ -108,7 +108,7 @@ export function TaskNoteDialog({
                 {task.notes.map((note: TaskLogNote) => (
                   <div key={note.id} className="rounded-lg border border-border/60 bg-card p-2.5 text-xs shadow-2xs">
                     <div className="flex items-center justify-between text-[10px] text-muted-foreground font-mono">
-                      <span>{note.timestamp}</span>
+                      <span>{note.createdAt}</span>
                       {note.author && <span className="font-semibold text-foreground/80">{note.author}</span>}
                     </div>
                     <p className="mt-1 text-foreground/90 font-medium whitespace-pre-wrap">{note.text}</p>

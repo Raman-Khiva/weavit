@@ -138,7 +138,8 @@ export default function MonochromeLandingPage() {
           <Link href="#questions" className="hover:text-black">FAQ</Link>
         </nav>
         <div className="flex items-center gap-2 sm:gap-4">
-          <Link href="/landingpage" className="hidden text-xs font-semibold text-black/55 hover:text-black sm:inline-flex">Blue edition</Link>
+          <Link href="/landingpage" className="hidden text-xs font-semibold text-black/55 hover:text-black sm:inline-flex">Asymm</Link>
+          <Link href="/landingpage/blue" className="hidden text-xs font-semibold text-black/55 hover:text-black sm:inline-flex">Blue edition</Link>
           <Link href="/workspace" className="inline-flex items-center gap-2 rounded-full bg-[#171717] px-4 py-2.5 text-xs font-semibold text-white transition-transform hover:scale-[1.03] sm:px-5">Open workspace <ArrowUpRight className="h-3.5 w-3.5" /></Link>
         </div>
       </header>

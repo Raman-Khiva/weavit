@@ -19,22 +19,28 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Input } from "@workspace/ui/components/input"
 import { ExecutableTask } from "@workspace/ui/lib/projects-store"
 import { TaskNoteDialog } from "@workspace/ui/components/task-note-dialog"
-import { components } from "@weavit/api-types"
+import { TASK, CreateTaskInput, CreateTaskNoteInput } from "@weavit/api-types"
 
 
-type TASK = components["schemas"]["ProjectTask"];
 
 interface ProjectTasksProps {
   projectId: string
+  handleCreateNote: (args: { projectId: string, phaseId: string, taskId: string, addNoteInput: CreateTaskNoteInput }) => Promise<void>
+  handleCreateTask: (args: { projectId: string, phaseId: string, addTaskInput: CreateTaskInput }) => Promise<void>
+
   phaseId: string
   tasks: TASK[]
   onToggleTask: (projectId: string, phaseId: string, taskId: string, noteText?: string) => void
   onAddNote: (projectId: string, phaseId: string, taskId: string, text: string) => void
   onAddTask: (projectId: string, phaseId: string, task: { title: string; description?: string; category?: string; priority?: "low" | "medium" | "high" }) => void
+
+
 }
 
 export function ProjectTasks({
   projectId,
+  handleCreateNote,
+  handleCreateTask,
   phaseId,
   tasks,
   onToggleTask,
@@ -50,16 +56,28 @@ export function ProjectTasks({
   const [newTaskCategory, setNewTaskCategory] = useState("")
   const [isAddingTask, setIsAddingTask] = useState(false)
 
-  const handleCreateTask = () => {
-    if (!newTaskTitle.trim()) return
-    onAddTask(projectId, phaseId, {
-      title: newTaskTitle.trim(),
-      category: newTaskCategory.trim() || undefined
-    })
-    setNewTaskTitle("")
-    setNewTaskCategory("")
-    setIsAddingTask(false)
-  }
+
+  const [addTaskForm, updateAddTaskForm] = useState<CreateTaskInput>({
+    title: "test : task x",
+    category: "test : task category x",
+    description: "test : task description x",
+    priority: "LOW"
+  });
+
+  const [addNoteForm, updateAddNoteForm] = useState<CreateTaskNoteInput>({
+    text: "test : text x"
+  })
+
+  // const handleCreateTask = () => {
+  //   if (!newTaskTitle.trim()) return
+  //   onAddTask(projectId, phaseId, {
+  //     title: newTaskTitle.trim(),
+  //     category: newTaskCategory.trim() || undefined
+  //   })
+  //   setNewTaskTitle("")
+  //   setNewTaskCategory("")
+  //   setIsAddingTask(false)
+  // }
 
   return (
     <div className="mt-4 rounded-2xl border border-border/70 bg-card/40 px-5 py-4">
@@ -149,7 +167,7 @@ export function ProjectTasks({
                 <Button
                   size="sm"
                   variant="ghost"
-                  //onClick={() => setActiveTaskForNote({ task, mode: "add_note" })}
+                  onClick={() => setActiveTaskForNote({ task, mode: "add_note" })}
                   className="h-7 px-2 text-[11px] text-muted-foreground hover:text-foreground gap-1"
                   title="Add Note Log"
                 >
@@ -201,22 +219,31 @@ export function ProjectTasks({
           <div className="flex flex-col sm:flex-row items-center gap-2 rounded-xl border border-primary/40 bg-background p-2.5 shadow-sm">
             <Input
               placeholder="Executable task title (e.g. Solve LeetCode 206 Reverse Linked List)"
-              value={newTaskTitle}
-              onChange={(e) => setNewTaskTitle(e.target.value)}
+              value={addTaskForm.title}
+              onChange={(e) => updateAddTaskForm(state => ({ ...state, title: e.target.value }))}
               className="h-8 text-xs flex-1"
               autoFocus
             />
             <Input
               placeholder="Category (e.g. DS & Algo)"
-              value={newTaskCategory}
-              onChange={(e) => setNewTaskCategory(e.target.value)}
+              value={addTaskForm.category}
+              onChange={(e) => updateAddTaskForm(state => ({ ...state, category: e.target.value }))}
               className="h-8 text-xs w-full sm:w-40"
             />
             <div className="flex items-center gap-1.5 w-full sm:w-auto justify-end">
               <Button size="sm" variant="ghost" onClick={() => setIsAddingTask(false)} className="h-8 text-xs">
                 Cancel
               </Button>
-              <Button size="sm" onClick={handleCreateTask} disabled={!newTaskTitle.trim()} className="h-8 text-xs">
+              <Button
+                size="sm"
+                onClick={() => {
+                  if (addTaskForm.title.trim() && addTaskForm.priority) {
+                    handleCreateTask({ projectId, phaseId, addTaskInput: addTaskForm });
+                  }
+                }}
+                disabled={!addTaskForm.title.trim()}
+                className="h-8 text-xs"
+              >
                 Add Task
               </Button>
             </div>

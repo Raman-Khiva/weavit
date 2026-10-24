@@ -1,5 +1,5 @@
 import { api } from "@/services/api";
-import { CreatePhaseInput, CreateProjectInput, CreateTaskInput, PHASE, PROJECT, TASK, TASK_LOG_NOTE } from "@weavit/api-types";
+import { CreatePhaseInput, CreateProjectInput, CreateTaskInput, CreateTaskNoteInput, PHASE, PROJECT, TASK, TASK_LOG_NOTE } from "@weavit/api-types";
 
 
 
@@ -13,7 +13,7 @@ interface CreateTaskProps {
     phaseId?: string
 }
 interface CreateNoteProps {
-    body?: CreateNoteProps
+    body?: CreateTaskNoteInput
     projectId?: string
     phaseId?: string
     taskId?: string
@@ -51,8 +51,8 @@ export const projectsApi = api.injectEndpoints({
                 url: `/projects/${payload.projectId}/phases/${payload.phaseId}/tasks`,
                 method: "POST",
                 body: payload.body,
-            }
-            )
+            }),
+            invalidatesTags: ["Projects"]
         }),
 
         postNote: builder.mutation<TASK_LOG_NOTE, CreateNoteProps>({
@@ -60,8 +60,8 @@ export const projectsApi = api.injectEndpoints({
                 url: `/projects/${payload.projectId}/phases/${payload.phaseId}/tasks/${payload.taskId}/notes`,
                 method: "POST",
                 body: payload.body,
-            }
-            )
+            }),
+            invalidatesTags: ["Projects"]
         })
     })
 })

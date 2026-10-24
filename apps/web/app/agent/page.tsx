@@ -1,24 +1,19 @@
 "use client";
 
 import React from "react";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@workspace/ui/components/resizable";
 import { PromptInput, PromptInputTextarea, PromptInputSubmit, PromptInputFooter, PromptInputHeader } from "@workspace/ui/components/ai-elements/prompt-input";
-import { Conversation, ConversationContent, ConversationEmptyState } from "@workspace/ui/components/ai-elements/conversation";
+import { Conversation, ConversationContent } from "@workspace/ui/components/ai-elements/conversation";
 import { Message, MessageContent, MessageResponse } from "@workspace/ui/components/ai-elements/message";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@workspace/ui/components/collapsible";
-
 import { ChainOfThought, ChainOfThoughtHeader, ChainOfThoughtContent, ChainOfThoughtStep } from "@workspace/ui/components/ai-elements/chain-of-thought";
-import { Shimmer } from "@workspace/ui/components/ai-elements/shimmer";
 import { PlanPreview } from "@/components/agent/plan-preview";
+import { GenerationStatus } from "@/components/agent/generation-status";
 import { PromptInputBody, PromptInputActionMenu, PromptInputActionMenuTrigger, PromptInputActionMenuContent, PromptInputActionMenuItem } from "@workspace/ui/components/ai-elements/prompt-input";
-import { CheckIcon, BotIcon, SparklesIcon, Loader2Icon, ChevronRightIcon, XIcon, DownloadIcon, PlusIcon, BrainIcon, WrenchIcon, ClockIcon, CheckCircleIcon, CircleIcon, ChevronDownIcon } from "lucide-react";
+import { SequencedAchievementList, type SequencedAchievementItem, type SequencedAchievementProgress } from "@workspace/ui/components/achievement-list";
+import { CheckIcon, BotIcon, SparklesIcon, Loader2Icon, ChevronRightIcon, DownloadIcon, PlusIcon, Lightbulb, Cpu, Layers, GitBranch, Zap, Users, Star, Clock, BarChart3, ArrowRight } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
+import { Textarea } from "@workspace/ui/components/textarea";
 import { cn } from "@workspace/ui/lib/utils";
 import { v4 as uuidv4 } from "uuid";
 
@@ -63,14 +58,7 @@ interface AgentMessage {
   }>;
 }
 
-interface ToolCall {
-  id: string;
-  toolName: string;
-  args: any;
-  state: "call" | "result" | "partial-call";
-  result?: any;
-  error?: string;
-}
+type PlaybackStage = "thoughts" | "collapse" | "message" | "cards" | "closing" | "done";
 
 // ============================================================================
 // Mock Data - Simulated Plan Generation
@@ -208,7 +196,7 @@ const generateDSAPlan = (): AgentMessage => ({
               { id: "t3", title: "Sliding Window: Max Subarray, Min Window Substring, Longest Substring", description: "Fixed vs variable window, expansion/contraction logic", category: "Sliding Window", priority: "high", status: "in_progress" },
               { id: "t4", title: "Prefix Sum: Subarray Sum Equals K, Range Sum Query", description: "Precomputation for O(1) range queries", category: "Prefix Sum", priority: "medium", status: "pending" },
               { id: "t5", title: "Linked Lists: Reverse, Detect Cycle, Merge Two Lists", description: "Pointer manipulation and fast/slow pointer technique", category: "Linked Lists", priority: "high", status: "pending" },
-              { id: "t5", title: "Stacks & Queues: Valid Parentheses, Min Stack, Daily Temperatures", description: "Monotonic stack pattern and queue simulations", category: "Stack/Queue", priority: "high", status: "pending" },
+              { id: "t6", title: "Stacks & Queues: Valid Parentheses, Min Stack, Daily Temperatures", description: "Monotonic stack pattern and queue simulations", category: "Stack/Queue", priority: "high", status: "pending" },
             ],
           },
           {
@@ -272,165 +260,167 @@ const generateDSAPlan = (): AgentMessage => ({
   ],
 });
 
-// Wrapper components to fix Radix Collapsible type issue with React 19
-type CollapsibleProps = {
-  defaultOpen?: boolean;
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
-  disabled?: boolean;
-  children?: React.ReactNode;
-  className?: string;
-};
+function RevealedText({
+  text,
+  active,
+  onComplete,
+}: {
+  text: string;
+  active: boolean;
+  onComplete: () => void;
+}) {
+  const words = useMemo(() => text.split(/(\s+)/), [text]);
+  const [count, setCount] = useState(0);
+  const onCompleteRef = useRef(onComplete);
+  const finishedRef = useRef(false);
+  onCompleteRef.current = onComplete;
 
-type CollapsibleTriggerProps = {
-  children?: React.ReactNode;
-  className?: string;
-  asChild?: boolean;
-  [key: string]: any;
-};
+  useEffect(() => {
+    if (!active || finishedRef.current) return;
+    if (count >= words.length) {
+      finishedRef.current = true;
+      onCompleteRef.current();
+      return;
+    }
+    const timeout = window.setTimeout(
+      () => setCount((current) => current + 1),
+      words[count]?.trim() ? 42 : 0
+    );
+    return () => window.clearTimeout(timeout);
+  }, [active, count, words]);
 
-type CollapsibleContentProps = {
-  children?: React.ReactNode;
-  className?: string;
-  forceMount?: boolean;
-  [key: string]: any;
-};
+  if (!active && count === 0) return null;
 
-const ReasoningCollapsible = ({ children, ...props }: CollapsibleProps) => (
-  // @ts-expect-error - Radix Collapsible type issue with React 19
-  <Collapsible {...props}>{children}</Collapsible>
-);
+  return (
+    <MessageResponse className="prose prose-sm dark:prose-invert max-w-none">
+      {words.slice(0, count).join("")}
+    </MessageResponse>
+  );
+}
 
-const ReasoningCollapsibleTrigger = ({ children, ...props }: CollapsibleTriggerProps) => (
-  // @ts-expect-error - Radix CollapsibleTrigger type issue with React 19
-  <CollapsibleTrigger {...props}>{children}</CollapsibleTrigger>
-);
+function nextStage(intro: string, cards: SequencedAchievementItem[], closing: string, from: PlaybackStage): PlaybackStage {
+  if (from === "thoughts" || from === "collapse") {
+    if (intro) return "message";
+    if (cards.length > 0) return "cards";
+    if (closing) return "closing";
+    return "done";
+  }
+  if (from === "message") {
+    if (cards.length > 0) return "cards";
+    if (closing) return "closing";
+    return "done";
+  }
+  if (from === "cards") return closing ? "closing" : "done";
+  return "done";
+}
 
-const ReasoningCollapsibleContent = ({ children, ...props }: CollapsibleContentProps) => (
-  // @ts-expect-error - Radix CollapsibleContent type issue with React 19
-  <CollapsibleContent {...props}>{children}</CollapsibleContent>
-);
-
-// ============================================================================
-// Message Components
-// ============================================================================
-
-function AgentMessageBubble({ message }: { message: AgentMessage }) {
-  const [toolCalls, setToolCalls] = useState<ToolCall[]>([]);
-  const [showReasoning, setShowReasoning] = useState(false);
-  const [isStreaming, setIsStreaming] = useState(false);
-
-  // Extract tool calls from message parts
-  useMemo(() => {
-    const calls: ToolCall[] = [];
-    message.parts.forEach((part) => {
-      if (part.type === "tool-invocation" && part.toolInvocation) {
-        calls.push({
-          id: part.toolInvocation.toolName + "-" + Math.random(),
-          toolName: part.toolInvocation.toolName,
-          args: part.toolInvocation.args,
-          state: part.toolInvocation.state,
-          result: part.toolInvocation.result,
-        });
-      }
-    });
-    setToolCalls(calls);
+function AgentMessageBubble({
+  message,
+  onAssembly,
+}: {
+  message: AgentMessage;
+  onAssembly?: (state: SequencedAchievementProgress) => void;
+}) {
+  const intro = message.parts.find((part) => part.type === "text" && part.text)?.text ?? "";
+  const closing = [...message.parts].reverse().find((part) => part.type === "text" && part.text)?.text ?? "";
+  const closingText = closing !== intro ? closing : "";
+  const reasoning = message.parts.find((part) => part.type === "reasoning")?.reasoning ?? "";
+  const thoughts = useMemo(
+    () => reasoning.split("\n").map((line) => line.trim()).filter(Boolean),
+    [reasoning]
+  );
+  const cards = useMemo<SequencedAchievementItem[]>(() => {
+    const plan = message.parts.find((part) => part.type === "plan")?.plan;
+    if (!plan) return [];
+    return [
+      {
+        id: "project-header",
+        title: plan.title,
+        description: "Assembling the project header",
+      },
+      ...plan.phases.map((phase) => ({
+        id: phase.id,
+        title: phase.title,
+        description: phase.description || phase.category || "Phase overview",
+        details: phase.tasks.map((task) => task.title),
+      })),
+    ];
   }, [message.parts]);
+
+  const [stage, setStage] = useState<PlaybackStage>(thoughts.length > 0 ? "thoughts" : nextStage(intro, cards, closingText, "thoughts"));
+  const [thoughtCount, setThoughtCount] = useState(0);
+  const [chainOpen, setChainOpen] = useState(true);
+
+  useEffect(() => {
+    if (stage !== "thoughts") return;
+    if (thoughts.length === 0) {
+      setStage(nextStage(intro, cards, closingText, "thoughts"));
+      return;
+    }
+    if (thoughtCount < thoughts.length) {
+      const timeout = window.setTimeout(
+        () => setThoughtCount((count) => count + 1),
+        thoughtCount === 0 ? 240 : 480
+      );
+      return () => window.clearTimeout(timeout);
+    }
+    const timeout = window.setTimeout(() => setStage("collapse"), 360);
+    return () => window.clearTimeout(timeout);
+  }, [cards, closingText, intro, stage, thoughtCount, thoughts.length]);
+
+  useEffect(() => {
+    if (stage !== "collapse") return;
+    setChainOpen(false);
+    const timeout = window.setTimeout(() => {
+      setStage(nextStage(intro, cards, closingText, "collapse"));
+    }, 420);
+    return () => window.clearTimeout(timeout);
+  }, [cards, closingText, intro, stage]);
+
+  const showMessage = stage === "message" || stage === "cards" || stage === "closing" || stage === "done";
+  const showCards = stage === "cards" || stage === "closing" || stage === "done";
+  const showClosing = stage === "closing" || stage === "done";
 
   return (
     <Message from="assistant">
-      <MessageContent>
-        {message.parts.map((part, index) => {
-          if (part.type === "text" && part.text) {
-            return (
-              <MessageResponse key={index} className="prose prose-sm dark:prose-invert max-w-none" children={part.text} />
-            );
-          }
+      <MessageContent className="w-full">
+        {thoughts.length > 0 && (
+          <ChainOfThought open={chainOpen} onOpenChange={setChainOpen} className="mb-4">
+            <ChainOfThoughtHeader>
+              {stage === "thoughts" ? "Thinking" : "Chain of Thought"}
+            </ChainOfThoughtHeader>
+            <ChainOfThoughtContent>
+              {thoughts.slice(0, thoughtCount).map((thought, index) => (
+                <ChainOfThoughtStep key={`${index}-${thought}`} label={thought} status="complete" />
+              ))}
+            </ChainOfThoughtContent>
+          </ChainOfThought>
+        )}
 
-          if (part.type === "reasoning" && part.reasoning) {
-            return (
-              <ReasoningCollapsible key={index} defaultOpen className="not-prose mb-4">
-                <ReasoningCollapsibleTrigger className="flex items-center gap-2 text-muted-foreground text-sm hover:text-foreground">
-                  <BrainIcon className="size-4" />
-                  <span>Chain of Thought</span>
-                  <ChevronDownIcon className="ml-auto size-4 transition-transform data-[state=open]:rotate-180" />
-                </ReasoningCollapsibleTrigger>
-                <ReasoningCollapsibleContent className="mt-4 text-sm text-muted-foreground data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
-                  <pre className="whitespace-pre-wrap font-mono text-xs bg-muted/50 p-3 rounded-md">{part.reasoning}</pre>
-                </ReasoningCollapsibleContent>
-              </ReasoningCollapsible>
-            );
-          }
+        {showMessage && intro && (
+          <RevealedText
+            text={intro}
+            active={stage === "message"}
+            onComplete={() => setStage(nextStage(intro, cards, closingText, "message"))}
+          />
+        )}
 
-          if (part.type === "tool-invocation" && part.toolInvocation) {
-            const tool = part.toolInvocation;
-            const isComplete = tool.state === "result";
-            const isError = tool.result?.error;
+        {showCards && cards.length > 0 && (
+          <SequencedAchievementList
+            items={cards}
+            durationMs={4200}
+            onProgress={onAssembly}
+            onComplete={() => setStage(nextStage(intro, cards, closingText, "cards"))}
+          />
+        )}
 
-            return (
-              <div key={index} className="group not-prose mb-4 w-full rounded-md border">
-                <div className="flex w-full items-center justify-between gap-4 p-3">
-                  <div className="flex items-center gap-2">
-                    <WrenchIcon className="size-4 text-muted-foreground" />
-                    <span className="font-medium text-sm">{tool.toolName.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}</span>
-                    <Badge className="gap-1.5 rounded-full text-xs" variant="secondary">
-                      {isComplete ? (
-                        <>
-                          <CheckCircleIcon className="size-4 text-green-600" />
-                          Completed
-                        </>
-                      ) : tool.state === "call" ? (
-                        <>
-                          <ClockIcon className="size-4 animate-pulse" />
-                          Running
-                        </>
-                      ) : (
-                        <>
-                          <CircleIcon className="size-4" />
-                          Pending
-                        </>
-                      )}
-                    </Badge>
-                  </div>
-                  <ChevronDownIcon className="size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
-                </div>
-                <div className="data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 space-y-4 p-4 text-popover-foreground outline-none data-[state=closed]:animate-out data-[state=open]:animate-in">
-                  <div className="space-y-2 overflow-hidden">
-                    <h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">Parameters</h4>
-                    <div className="rounded-md bg-muted/50">
-                      <pre className="p-3 text-xs overflow-x-auto">{JSON.stringify(tool.args, null, 2)}</pre>
-                    </div>
-                  </div>
-                  {isComplete && (tool.result || tool.result?.error) && (
-                    <div className="space-y-2">
-                      <h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
-                        {tool.result?.error ? "Error" : "Result"}
-                      </h4>
-                      <div className={cn(
-                        "overflow-x-auto rounded-md text-xs [&_table]:w-full",
-                        tool.result?.error
-                          ? "bg-destructive/10 text-destructive"
-                          : "bg-muted/50 text-foreground"
-                      )}>
-                        {tool.result?.error && <div>{tool.result.error}</div>}
-                        {!tool.result?.error && tool.result && (
-                          <pre className="p-3 text-xs overflow-x-auto">{JSON.stringify(tool.result, null, 2)}</pre>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          }
-
-          if (part.type === "plan" && part.plan) {
-            // Plan is shown in the right preview panel, not in conversation
-            return null;
-          }
-
-          return null;
-        })}
+        {showClosing && closingText && (
+          <RevealedText
+            text={closingText}
+            active={stage === "closing"}
+            onComplete={() => setStage("done")}
+          />
+        )}
       </MessageContent>
     </Message>
   );
@@ -541,11 +531,13 @@ function AgentSidebar({
   onSubmit,
   isLoading,
   planData,
+  onAssembly,
 }: {
   messages: AgentMessage[];
   onSubmit: (text: string) => void;
   isLoading: boolean;
   planData?: AgentMessage["parts"][number]["plan"] | null;
+  onAssembly?: (state: SequencedAchievementProgress) => void;
 }) {
   const [inputValue, setInputValue] = useState("");
 
@@ -578,23 +570,17 @@ function AgentSidebar({
       {/* Conversation */}
       <Conversation className="flex-1">
         <ConversationContent>
-          {messages.length === 0 ? (
-            <ConversationEmptyState
-              icon={
-                <div className="size-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                  <SparklesIcon className="size-6 text-primary" />
-                </div>
-              }
-              title="Start a conversation"
-              description="Ask me to create a learning plan, project roadmap, or study schedule"
-            />
-          ) : (
+          {messages.length === 0 ? null : (
             <>
               {messages.map((message) =>
                 message.role === "user" ? (
                   <UserMessageBubble key={message.id} message={message} />
                 ) : (
-                  <AgentMessageBubble key={message.id} message={message} />
+                  <AgentMessageBubble
+                    key={message.id}
+                    message={message}
+                    onAssembly={message.id === messages[messages.length - 1]?.id ? onAssembly : undefined}
+                  />
                 )
               )}
               {isLoading && <TypingIndicator />}
@@ -649,10 +635,167 @@ const INITIAL_STEPS: ExecutionStep[] = [
   { label: "Building the preview", status: "active", description: "Rendering the interactive plan preview" },
 ];
 
+const FEATURE_HIGHLIGHTS = [
+  {
+    icon: Cpu,
+    title: "AI-Powered Planning",
+    description: "Intelligent project structure generation from a single prompt",
+  },
+  {
+    icon: Layers,
+    title: "Full Stack Support",
+    description: "Supports any tech stack — frontend, backend, mobile, or cloud",
+  },
+  {
+    icon: GitBranch,
+    title: "Phase Breakdown",
+    description: "Automatically splits work into milestones and actionable tasks",
+  },
+  {
+    icon: Zap,
+    title: "Instant Scaffolding",
+    description: "Ready-to-run commands for every setup step",
+  },
+] as const;
+
+const EMPTY_STATS = [
+  { icon: Users, value: "12k+", label: "Projects generated" },
+  { icon: Star, value: "4.9", label: "Average rating" },
+  { icon: Clock, value: "<3s", label: "Generation time" },
+  { icon: BarChart3, value: "98%", label: "Task accuracy" },
+] as const;
+
+const EXAMPLE_PROMPTS = [
+  "A Python learning platform",
+  "E-commerce store with React",
+  "REST API with Node.js",
+  "Mobile fitness tracker app",
+];
+
+function AgentEmptyState({ onSubmit }: { onSubmit: (text: string) => void }) {
+  const [input, setInput] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const submit = () => {
+    const text = input.trim();
+    if (!text) return;
+    onSubmit(text);
+  };
+
+  return (
+    <div className="flex h-screen flex-col text-foreground">
+      <header className="flex items-center justify-between border-b px-5 py-3">
+        <div className="flex items-center gap-2">
+          <div className="flex size-7 items-center justify-center rounded-lg bg-primary">
+            <SparklesIcon className="size-3.5 text-primary-foreground" />
+          </div>
+          <span className="text-sm font-semibold">Agent</span>
+        </div>
+      </header>
+
+      <div className="flex flex-1 flex-col items-center justify-center overflow-y-auto px-6 py-8">
+        <div className="mb-8 flex flex-col items-center gap-3 text-center">
+          <div className="relative">
+            <div className="absolute -inset-4 rounded-full bg-gradient-to-b from-primary/10 to-transparent blur-xl" />
+            <div className="relative flex size-16 items-center justify-center rounded-2xl border bg-card shadow-lg">
+              <Lightbulb className="size-8 text-primary" />
+            </div>
+          </div>
+          <h1 className="mt-2 text-2xl font-bold tracking-tight">Hi! How can I help you today?</h1>
+          <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
+            Describe any project — a SaaS app, API service, mobile app, or data pipeline — and I&apos;ll generate a full structured plan instantly.
+          </p>
+        </div>
+
+        <div className="mb-8 w-full max-w-3xl">
+          <div className="relative rounded-2xl border bg-card shadow-sm focus-within:ring-2 focus-within:ring-ring/50">
+            <Textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(event) => setInput(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault();
+                  submit();
+                }
+              }}
+              placeholder="Describe your project idea…"
+              rows={4}
+              className="min-h-[140px] resize-none rounded-2xl border-0 bg-transparent px-5 py-4 pr-16 text-base shadow-none focus-visible:ring-0 dark:bg-transparent"
+            />
+            <Button
+              size="icon"
+              className="absolute right-3 bottom-3 size-10 rounded-xl"
+              onClick={submit}
+              disabled={!input.trim()}
+            >
+              <ArrowRight className="size-4" />
+            </Button>
+          </div>
+          <p className="mt-2 text-center text-xs text-muted-foreground">
+            Press <kbd className="rounded bg-muted px-1 py-0.5 font-mono text-[10px]">Enter</kbd> to generate · <kbd className="rounded bg-muted px-1 py-0.5 font-mono text-[10px]">Shift+Enter</kbd> for a new line
+          </p>
+        </div>
+
+        <div className="mb-8 grid w-full max-w-3xl grid-cols-2 gap-3 sm:grid-cols-4">
+          {FEATURE_HIGHLIGHTS.map(({ icon: Icon, title, description }) => (
+            <div
+              key={title}
+              className="flex flex-col gap-2.5 rounded-xl border bg-card p-4 shadow-xs"
+            >
+              <div className="flex size-8 items-center justify-center rounded-lg border bg-background shadow-xs">
+                <Icon className="size-4 text-foreground" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold">{title}</p>
+                <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mb-8 flex w-full max-w-lg items-center justify-around rounded-2xl border bg-muted/30 px-6 py-4">
+          {EMPTY_STATS.map(({ icon: Icon, value, label }, index) => (
+            <React.Fragment key={label}>
+              {index > 0 && <div className="h-10 w-px bg-border" />}
+              <div className="flex flex-col items-center gap-1">
+                <Icon className="size-4 text-muted-foreground" />
+                <span className="text-lg font-bold tabular-nums">{value}</span>
+                <span className="text-xs text-muted-foreground">{label}</span>
+              </div>
+            </React.Fragment>
+          ))}
+        </div>
+
+        <div className="w-full max-w-3xl">
+          <p className="mb-2 text-center text-xs font-medium text-muted-foreground">Try one of these examples</p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {EXAMPLE_PROMPTS.map((prompt) => (
+              <button
+                key={prompt}
+                type="button"
+                onClick={() => {
+                  setInput(prompt);
+                  textareaRef.current?.focus();
+                }}
+                className="flex items-center gap-1.5 rounded-full border bg-card px-3 py-1.5 text-xs text-foreground shadow-xs transition-colors hover:bg-accent"
+              >
+                <ChevronRightIcon className="size-3 text-muted-foreground" />
+                {prompt}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AgentPage(): JSX.Element {
   const [messages, setMessages] = useState<AgentMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [planData, setPlanData] = useState<AgentMessage["parts"][number]["plan"] | null>(null);
+  const [assembly, setAssembly] = useState<SequencedAchievementProgress | null>(null);
   const [executionSteps, setExecutionSteps] = useState<ExecutionStep[]>(INITIAL_STEPS);
   const [showExecutionSteps, setShowExecutionSteps] = useState(true);
 
@@ -665,36 +808,21 @@ export default function AgentPage(): JSX.Element {
     };
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
-    setShowExecutionSteps(true);
-    setExecutionSteps(INITIAL_STEPS.map((s) => ({ ...s, status: "pending" as const })));
-
-    // Simulate streaming response with steps
-    const stepLabels = [
-      "Understanding your goals",
-      "Structuring the curriculum",
-      "Generating executable tasks",
-      "Building the preview",
-    ];
-
-    for (let i = 0; i < stepLabels.length; i++) {
-      setExecutionSteps((prev) =>
-        prev.map((s, idx) =>
-          idx === i ? { ...s, status: "active" as const } : idx < i ? { ...s, status: "complete" as const } : s
-        )
-      );
-      await new Promise((r) => setTimeout(r, 800));
-    }
-
-    // Generate the plan
-    const assistantMessage = generateDSAPlan();
-    setMessages((prev) => [...prev, assistantMessage]);
-    setPlanData(assistantMessage.parts.find((p) => p.type === "plan")?.plan ?? null);
-    setIsLoading(false);
+    setAssembly(null);
     setShowExecutionSteps(false);
 
-    // Mark all steps complete
-    setExecutionSteps((prev) => prev.map((s) => ({ ...s, status: "complete" as const })));
+    await new Promise((resolve) => setTimeout(resolve, 280));
+
+    const assistantMessage = generateDSAPlan();
+    setMessages((prev) => [...prev, assistantMessage]);
+    setPlanData(assistantMessage.parts.find((part) => part.type === "plan")?.plan ?? null);
+    setIsLoading(false);
+    setExecutionSteps((prev) => prev.map((step) => ({ ...step, status: "complete" as const })));
   }, []);
+
+  if (messages.length === 0 && !isLoading) {
+    return <AgentEmptyState onSubmit={handleSubmit} />;
+  }
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
@@ -706,6 +834,7 @@ export default function AgentPage(): JSX.Element {
             onSubmit={handleSubmit}
             isLoading={isLoading}
             planData={planData}
+            onAssembly={setAssembly}
           />
         </ResizablePanel>
 
@@ -715,6 +844,7 @@ export default function AgentPage(): JSX.Element {
         <ResizablePanel minSize="60%" className="min-w-0 flex flex-col">
           <PlanPreviewPanel
             planData={planData}
+            assembly={assembly}
             executionSteps={executionSteps}
             showExecutionSteps={showExecutionSteps && isLoading}
             isGenerating={isLoading}
@@ -731,11 +861,13 @@ export default function AgentPage(): JSX.Element {
 
 function PlanPreviewPanel({
   planData,
+  assembly,
   executionSteps,
   showExecutionSteps,
   isGenerating,
 }: {
   planData: AgentMessage["parts"][number]["plan"] | null;
+  assembly: SequencedAchievementProgress | null;
   executionSteps: Array<{ label: string; status: "pending" | "active" | "complete"; description?: string }>;
   showExecutionSteps: boolean;
   isGenerating: boolean;
@@ -779,9 +911,13 @@ function PlanPreviewPanel({
       )}
 
       {/* Plan Preview Content */}
-      <div className="flex-1 overflow-auto p-4">
-        {planData ? (
-          <PlanPreview plan={planData} isPreview={true} />
+      <div className="flex-1 overflow-auto px-6 py-6 sm:px-10">
+        {planData && assembly ? (
+          <PlanPreview plan={planData} isPreview assembly={assembly} />
+        ) : planData ? (
+          <div className="flex h-full items-center justify-center">
+            <GenerationStatus />
+          </div>
         ) : isGenerating ? (
           <PlanPreviewSkeleton />
         ) : (
@@ -811,7 +947,7 @@ function PlanPreviewPanel({
 
 function PlanPreviewSkeleton() {
   return (
-    <div className="space-y-4 max-w-2xl mx-auto">
+    <div className="w-full space-y-4">
       <div className="rounded-2xl border border-border/80 bg-card/40 p-6 animate-pulse">
         <div className="h-4 w-3/4 bg-muted rounded mb-4" />
         <div className="h-4 w-1/2 bg-muted rounded mb-2" />

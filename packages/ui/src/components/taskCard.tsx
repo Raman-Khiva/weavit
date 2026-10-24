@@ -159,7 +159,23 @@
 
 
 import { AlertCircle, CheckCircle2, Circle, Flame, Layers } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils"; // shadcn helper (clsx + tailwind-merge)
+
+type TaskCardStatus = "pending" | "overdue" | "done"
+
+interface TaskCardProps {
+    title: string
+    habit: string
+    status?: TaskCardStatus
+    logo?: string
+    toolName?: string
+    icon?: LucideIcon
+    streak?: number
+    gapDays?: number
+    onToggle?: () => void
+    className?: string
+}
 
 /**
  * Three stages, each drives: edge bar, right-side icon.
@@ -211,7 +227,7 @@ export default function TaskCard({
     gapDays,
     onToggle,
     className,
-}) {
+}: TaskCardProps) {
     const s = STATUS[status];
     const StatusIcon = s.icon;
     const done = status === "done";
@@ -265,12 +281,12 @@ export default function TaskCard({
                 </p>
                 <div className="mt-1.5 flex items-center gap-2 text-sm text-neutral-400">
                     <span className="truncate">{habit}</span>
-                    {status === "overdue" && gapDays > 0 && (
+                    {status === "overdue" && (gapDays ?? 0) > 0 && (
                         <span className="shrink-0 text-amber-400">
                             {gapDays}d gap
                         </span>
                     )}
-                    {streak > 0 && status !== "overdue" && (
+                    {(streak ?? 0) > 0 && status !== "overdue" && (
                         <span className="inline-flex shrink-0 items-center gap-0.5 text-neutral-500">
                             <Flame className="size-3.5 text-orange-400" />
                             {streak}d

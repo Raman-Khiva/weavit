@@ -3,7 +3,7 @@
 @import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
-@source "../../../apps/**/*.{ts,tsx}";
+  @source "../../../apps/**/*.{ts,tsx}";
 @source "../../../components/**/*.{ts,tsx}";
 @source "../**/*.{ts,tsx}";
 
@@ -66,7 +66,8 @@
 }
 
 :root {
-    --background: oklch(0.985 0 0);
+    /* --background: oklch(0.985 0 0); */
+    --background: oklch(17.8% 0 0 / 0.6);
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.145 0 0);
@@ -110,7 +111,7 @@
 }
 
 .dark {
-    --background: oklch(0.13 0 0);
+  --background: oklch(17.8% 0 0 / 0.6);
     --foreground: oklch(0.985 0 0);
     --card: oklch(0.18 0 0);
     --card-foreground: oklch(0.985 0 0);

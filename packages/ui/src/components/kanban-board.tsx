@@ -124,7 +124,13 @@ export function Pattern({
   return (
     <Kanban
       value={columns}
-      onValueChange={setColumns}
+      onValueChange={(value) =>
+        setColumns({
+          planned: value.planned ?? [],
+          building: value.building ?? [],
+          shipped: value.shipped ?? [],
+        })
+      }
       getItemValue={(item) => item.id}
     >
       <KanbanBoard className="grid grid-cols-3 gap-3">

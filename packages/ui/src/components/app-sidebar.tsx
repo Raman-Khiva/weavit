@@ -153,7 +153,7 @@ export function AppSidebar({
 
     return projects.slice(0, 4).map((p) => {
       const allTasks = p.phases.flatMap((ph) => ph.tasks)
-      const completed = allTasks.filter((t) => t.status === "completed").length
+      const completed = allTasks.filter((t) => t.status === "COMPLETED").length
       return {
         name: p.title,
         url: `/workspace/projects/${p.id}`,

@@ -40,12 +40,13 @@ import {
 import { ProjectTasks } from "@workspace/ui/components/project-tasks";
 import { Progress } from "@workspace/ui/components/progress";
 import { Project, ProjectPhase } from "@workspace/ui/lib/projects-store";
-import { components } from "@weavit/api-types";
+import { CreatePhaseInput, CreateTaskInput, CreateTaskNoteInput, PROJECT } from "@weavit/api-types";
 
-type PROJECT = components["schemas"]["Project"];
 
 interface ProjectPhasesProps {
   project: PROJECT
+  handleCreateTask: (args: { projectId: string, phaseId: string, addTaskInput: CreateTaskInput }) => Promise<void>
+  handleCreateNote: (args: { projectId: string, phaseId: string, taskId: string, addNoteInput: CreateTaskNoteInput }) => Promise<void>
   onToggleTask: (projectId: string, phaseId: string, taskId: string, noteText?: string) => void
   onAddNote: (projectId: string, phaseId: string, taskId: string, text: string) => void
   onAddTask: (projectId: string, phaseId: string, task: { title: string; description?: string; category?: string; priority?: "low" | "medium" | "high" }) => void
@@ -53,10 +54,11 @@ interface ProjectPhasesProps {
 }
 
 
-type AddPhaseInput = components["schemas"]["CreatePhaseInput"];
 
 export function ProjectPhases({
   project,
+  handleCreateTask,
+  handleCreateNote,
   onToggleTask,
   onAddNote,
   onAddTask,
@@ -69,7 +71,7 @@ export function ProjectPhases({
   const [newPhaseTitle, setNewPhaseTitle] = useState("")
   const [newPhaseCategory, setNewPhaseCategory] = useState("")
   const [newPhaseDescription, setNewPhaseDescription] = useState("")
-  const [addPhaseForm, updateAddPhaseForm] = useState<AddPhaseInput>({
+  const [addPhaseForm, updateAddPhaseForm] = useState<CreatePhaseInput>({
     title: "Test :  Phase",
     category: "Test : Phase category",
     description: "Test : Phase description",
@@ -311,6 +313,8 @@ export function ProjectPhases({
                           projectId={project.id}
                           phaseId={phase.id}
                           tasks={filteredTasks ?? []}
+                          handleCreateTask={handleCreateTask}
+                          handleCreateNote={handleCreateNote}
                           onToggleTask={onToggleTask}
                           onAddNote={onAddNote}
                           onAddTask={onAddTask}

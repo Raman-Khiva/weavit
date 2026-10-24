@@ -18,7 +18,8 @@
     "**/*.tsx",
     "**/*.mts",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    ".next/dev/types/**/*.ts",
+    "../../packages/ui/src/jsx-namespace.d.ts"
   ],
   "exclude": ["node_modules"]
 }

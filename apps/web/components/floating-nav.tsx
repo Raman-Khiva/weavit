@@ -26,6 +26,18 @@ export const FloatingNav = (): JSX.Element => {
             Overview
           </Link>
           <Link
+            href="/dashboard"
+            className="transition-colors hover:text-foreground"
+          >
+            Dashboard
+          </Link>
+          <Link
+            href="/workspace"
+            className="transition-colors hover:text-foreground"
+          >
+            Workspace
+          </Link>
+          <Link
             href="#features"
             className="transition-colors hover:text-foreground"
           >

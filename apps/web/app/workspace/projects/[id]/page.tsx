@@ -7,17 +7,20 @@ import { ProjectPhases } from "@workspace/ui/components/project-phases"
 import { Button } from "@workspace/ui/components/button"
 import { ArrowLeft, Layers, AlertCircle, Search, Plus } from "lucide-react"
 import { SkeletonWrapper, ProjectDetailPageSkeleton } from "@workspace/ui/components/skeleton-wrapper"
-import { useGetProjectsQuery, usePostPhaseMutation } from "@/features/projects/projects.api"
+import { useGetProjectsQuery, usePostNoteMutation, usePostPhaseMutation, usePostTaskMutation } from "@/features/projects/projects.api"
 import { useAuth } from "@clerk/nextjs"
 import { Input } from "@workspace/ui/components/input"
 import { useState } from "react"
-import { CreatePhaseInput } from "@weavit/api-types"
+import { CreatePhaseInput, CreateTaskInput, CreateTaskNoteInput } from "@weavit/api-types"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@workspace/ui/components/dialog"
 import { Label } from "@workspace/ui/components/label"
 import { RadioGroup } from "@workspace/ui/components/radio-group"
 
 
 type AddPhaseInput = CreatePhaseInput;
+
+
+
 
 function Page(): JSX.Element {
   const params = useParams()
@@ -40,6 +43,15 @@ function Page(): JSX.Element {
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
 
+
+
+  const [postTask, { isLoading: isPostingTask, isError: isErrorPostingTask }] = usePostTaskMutation();
+  const [postNote, { isLoading: isPostingNote, isError: isErrorPostingNote }] = usePostNoteMutation();
+
+
+
+
+
   const {
     projects,
     isLoaded,
@@ -49,6 +61,11 @@ function Page(): JSX.Element {
     addTaskToPhase,
     addPhaseToProject
   } = useProjectsStore()
+
+
+
+
+
 
 
   const handleCreatePhase = async () => {
@@ -65,6 +82,49 @@ function Page(): JSX.Element {
     }
 
   }
+
+
+
+
+
+  const handleCreateTask = async ({ projectId, phaseId, addTaskInput }: { projectId: string, phaseId: string, addTaskInput: CreateTaskInput }) => {
+
+
+    if (!addTaskInput.title.trim()) {
+      alert("Title is reqiured");
+      return;
+    }
+    const postedTask = await postTask({ body: addTaskInput, projectId, phaseId }).unwrap();
+    if (!isPostingTask && !isErrorPostingTask) {
+      alert(`Task posted succesfully : ${JSON.stringify(postedTask)}`);
+    }
+
+  }
+
+
+
+
+
+  const handleCreateNote = async ({ projectId, phaseId, taskId, addNoteInput }: { projectId: string, phaseId: string, taskId: string, addNoteInput: CreateTaskNoteInput }) => {
+
+
+    if (!addNoteInput.text.trim()) {
+      alert("Title is reqiured");
+      return;
+    }
+
+    const postedNote = await postNote({ body: addNoteInput, projectId, phaseId, taskId }).unwrap();
+    if (!isPostingNote && !isErrorPostingNote) {
+      alert(`Phase posted succesfully : ${JSON.stringify(postedNote)}`);
+    }
+
+    return;
+
+  }
+
+
+
+
 
   if (isLoading) {
     return (<h1>Please wait loading projects...</h1>)
@@ -84,6 +144,10 @@ function Page(): JSX.Element {
     )
   }
 
+
+
+
+
   if ((!project) && (!realProject)) {
     return (
       <main className="flex h-full w-full flex-col items-center justify-center gap-4 p-12 text-center">
@@ -101,6 +165,10 @@ function Page(): JSX.Element {
       </main>
     )
   }
+
+
+
+
 
   return (
     <SkeletonWrapper skeleton={<ProjectDetailPageSkeleton />} delay={2000}>
@@ -268,6 +336,8 @@ function Page(): JSX.Element {
           {realProject &&
             <ProjectPhases
               project={realProject}
+              handleCreateTask={handleCreateTask}
+              handleCreateNote={handleCreateNote}
               onToggleTask={toggleTaskStatus}
               onAddNote={addTaskNote}
               onAddTask={addTaskToPhase}

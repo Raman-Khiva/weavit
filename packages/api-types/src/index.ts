@@ -1,6 +1,8 @@
 
 import type { components } from "./generated";
 
+export type { components };
+
 type Schemas = components["schemas"];
 
 // Base types
