@@ -1,4 +1,4 @@
-import express, { application, Request, response, Response } from "express"
+import express, { application, NextFunction, Request, response, Response } from "express"
 import { clerkMiddleware, getAuth } from "@clerk/express"
 import { prisma } from '../src/config/db'
 import swaggerUi from "swagger-ui-express"
@@ -11,6 +11,8 @@ import {
   GetHabitsResponse,
   GetProjectsResponse,
   GetTodosResponse,
+  PatchProjectsProjectIdPhasesPhaseIdTasksTaskIdBody,
+  PatchProjectsProjectIdPhasesPhaseIdTasksTaskIdResponse,
   PostDeadlinesBody,
   PostDeadlinesResponse,
   PostHabitsBody, PostHabitsResponse,
@@ -26,6 +28,7 @@ import {
 } from "./zod/api"
 import { logger } from "./lib/logger.dev"
 import { boolean, int, number, string } from "zod"
+import { fromCaught, invalidBody, invalidParamas, invalidRes } from "./lib/responseErrors"
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000
@@ -117,6 +120,12 @@ const getUserId = async (req: Request, res: Response): Promise<string | null> =>
 
   }
 }
+
+
+
+
+
+
 
 
 
@@ -661,6 +670,55 @@ app.post('/projects/:projectId/phases', async (req: Request, res: Response) => {
 // Task routes
 
 
+
+// Patch Task Routes 
+
+
+app.patch("/projects/:projectId/phases/:phaseId/tasks/:taskId", async (req : Request<{projectId : string, phaseId: string, taskId:string}>, res: Response)=>{
+      
+  try {
+    const userId = getUserId(req,res);
+    if(!userId) return;
+    
+    const {projectId, phaseId,taskId} = req.params;
+  
+    if(!projectId || !phaseId || !taskId){
+      return invalidParamas(res);
+    }
+
+    const validateBody = PatchProjectsProjectIdPhasesPhaseIdTasksTaskIdBody.safeParse(req.body);
+
+    
+
+    if(!validateBody.success){
+      return invalidBody(res,validateBody.error);
+    }
+
+    const {note, notes, ...taskFields} = validateBody.data;
+    const updatedTask = await prisma.projectTask.update({
+      where:{
+        id : taskId,
+        phaseId,
+      },
+      data : taskFields,
+      include : {notes : true},
+    }) 
+
+    const validateRes = PatchProjectsProjectIdPhasesPhaseIdTasksTaskIdResponse.safeParse(updatedTask);
+    
+    if(!validateRes.success){
+      return invalidRes(res,validateRes.error);
+    }
+
+    return res.status(201).json(validateRes.data);
+
+  } catch (error) {
+    throw error;
+  }
+})
+
+
+
 // Post Task Route
 
 
@@ -941,6 +999,23 @@ app.get("/userId",(req : Request, res : Response)=>{
     })
     
 })
+
+app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+  const status =
+    typeof err === "object" && err !== null && "status" in err
+      ? Number((err as { status: number }).status)
+      : typeof err === "object" && err !== null && "statusCode" in err
+        ? Number((err as { statusCode: number }).statusCode)
+        : 500
+  const message =
+    err instanceof Error ? err.message : "Internal Server Error"
+  res.status(status).json({
+    message: status < 500 ? message : "Internal Server Error",
+    ...(status < 500 ? { error: message } : {}),
+  })
+})
+
+
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is running on port ${PORT}`)

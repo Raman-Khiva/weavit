@@ -4,10 +4,21 @@ import { useState } from "react"
 import {
   CheckIcon,
   MessageSquare,
+  MoreVertical,
   Plus,
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu"
 import { ExecutableTask } from "@workspace/ui/lib/projects-store"
 import { TaskNoteDialog } from "@workspace/ui/components/task-note-dialog"
 import { TASK, CreateTaskInput, CreateTaskNoteInput } from "@weavit/api-types"
@@ -58,6 +69,13 @@ export function ProjectTasks({
           const isDone = task?.status === "COMPLETED"
           const noteCount = task.notes?.length || 0
 
+          const statusValue =
+            task.status === "COMPLETED"
+              ? "COMPLETED"
+              : task.status === "IN_PROGRESS"
+                ? "IN_PROGRESS"
+                : "PENDING"
+
           return (
             <div
               key={task.id}
@@ -65,18 +83,22 @@ export function ProjectTasks({
                 isDone ? "opacity-60" : ""
               }`}
             >
-              <button
-                type="button"
-                onClick={() => onToggleTask(projectId, phaseId, task.id)}
-                title={isDone ? "Mark pending" : "Mark completed"}
-                className={`grid size-6 shrink-0 place-items-center rounded-md border transition-all ${
+              <div
+                aria-hidden
+                title={isDone ? "Completed" : statusValue === "IN_PROGRESS" ? "In progress" : "Pending"}
+                className={`grid size-6 shrink-0 place-items-center rounded-md border ${
                   isDone
                     ? "border-emerald-500 bg-emerald-500 text-white"
-                    : "border-muted-foreground/45 bg-transparent hover:border-primary"
+                    : statusValue === "IN_PROGRESS"
+                      ? "border-amber-500/70 bg-amber-500/15"
+                      : "border-muted-foreground/45 bg-transparent"
                 }`}
               >
                 {isDone && <CheckIcon className="size-4 stroke-[3]" />}
-              </button>
+                {statusValue === "IN_PROGRESS" && (
+                  <span className="size-2 rounded-full bg-amber-400" />
+                )}
+              </div>
 
               <div className="flex min-w-0 flex-1 flex-col gap-1">
                 <div className="flex min-w-0 items-baseline gap-2.5">
@@ -125,16 +147,62 @@ export function ProjectTasks({
                   </button>
                 )}
 
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setActiveTaskForNote({ task, mode: "add_note" })}
-                  className="size-9 p-0 text-muted-foreground opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100 focus-visible:opacity-100"
-                  title="Add note"
-                >
-                  <Plus className="size-5" />
-                  <span className="sr-only">Add note</span>
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="size-9 p-0 text-muted-foreground hover:text-foreground"
+                      title="Task actions"
+                    >
+                      <MoreVertical className="size-5" />
+                      <span className="sr-only">Task actions</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="min-w-44">
+                    <DropdownMenuLabel className="text-xs text-muted-foreground">
+                      Status
+                    </DropdownMenuLabel>
+                    <DropdownMenuRadioGroup
+                      value={statusValue}
+                      onValueChange={(value) => {
+                        if (value === "COMPLETED" && !isDone) {
+                          onToggleTask(projectId, phaseId, task.id)
+                        } else if (
+                          (value === "PENDING" || value === "IN_PROGRESS") &&
+                          isDone
+                        ) {
+                          onToggleTask(projectId, phaseId, task.id)
+                        }
+                      }}
+                    >
+                      <DropdownMenuRadioItem value="PENDING">
+                        Pending
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="IN_PROGRESS">
+                        In progress
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="COMPLETED">
+                        Completed
+                      </DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => setActiveTaskForNote({ task, mode: "add_note" })}
+                    >
+                      <Plus className="size-4" />
+                      Add note
+                    </DropdownMenuItem>
+                    {noteCount > 0 && (
+                      <DropdownMenuItem
+                        onClick={() => setActiveTaskForNote({ task, mode: "view_notes" })}
+                      >
+                        <MessageSquare className="size-4" />
+                        View notes
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           )
