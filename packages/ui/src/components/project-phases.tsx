@@ -27,10 +27,6 @@ import {
   CheckIcon,
   ChevronRightIcon,
   CircleIcon,
-  CalendarIcon,
-  ListTodoIcon,
-  CheckCircle2Icon,
-  CircleDashedIcon,
   Search,
   Filter,
   Plus,
@@ -275,37 +271,25 @@ export function ProjectPhases({
                             <ChevronRightIcon className="size-4 shrink-0 cursor-pointer text-muted-foreground transition-transform duration-200 group-data-open/collapsible:rotate-90 hover:text-foreground" />
                           </div>
 
-                          <div className="flex w-full flex-wrap items-center justify-between gap-3">
-                            <div className="flex flex-wrap items-center gap-3 text-xs font-medium">
-                              <div className="flex items-center gap-1.5 text-muted-foreground">
-                                <ListTodoIcon className="size-3.5" />
-                                <span>{totalTasks} Executable Tasks</span>
-                              </div>
-                              <div className="flex items-center gap-1.5 text-amber-500">
-                                <CircleDashedIcon className="size-3.5" />
-                                <span>{ongoingTasks} Remaining</span>
-                              </div>
-                              <div className="flex items-center gap-1.5 text-emerald-500">
-                                <CheckCircle2Icon className="size-3.5" />
-                                <span>{finishedTasks} Finished</span>
-                              </div>
-                            </div>
-
-                            {(
-                              <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono">
-                                <CalendarIcon className="size-3.5" />
-                                <span>
-                                  Oct 1, 2026 - phase.endDate
-                                </span>
-                              </div>
-                            )}
+                          <div className="flex w-full flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                            <span>
+                              <span className="font-semibold text-foreground">{totalTasks}</span> tasks
+                            </span>
+                            <span className="text-border">·</span>
+                            <span className="text-amber-500/90">
+                              {ongoingTasks} left
+                            </span>
+                            <span className="text-border">·</span>
+                            <span className="text-emerald-500/90">
+                              {finishedTasks} done
+                            </span>
                           </div>
                         </FrameHeader>
                       </CollapsibleTrigger>
 
-                      <CollapsibleContent className="overflow-hidden px-4 pb-4 data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
+                      <CollapsibleContent className="overflow-hidden px-5 pb-5 data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
                         {phase.description && (
-                          <p className="mt-2 px-1 text-xs text-muted-foreground italic">
+                          <p className="mt-2 px-1 text-base text-muted-foreground">
                             {phase.description}
                           </p>
                         )}
@@ -327,12 +311,77 @@ export function ProjectPhases({
             )
           })}
 
-        {project?.phases?.length === 0 && (
+        {project?.phases?.length === 0 && !isAddingPhase && (
           <div className="rounded-2xl border border-dashed border-border p-12 text-center text-sm text-muted-foreground">
-            No phases found in this project. Click "Add Phase" above to create your first module.
+            No phases yet. Add one below to get started.
           </div>
         )}
       </Timeline>
+
+      <div className="ms-8 mt-2">
+        {isAddingPhase ? (
+          <div className="flex flex-col gap-3 rounded-2xl border border-primary/40 bg-card p-4 shadow-sm">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary">
+              <Layers className="size-4" />
+              <span>New phase</span>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Input
+                placeholder="Phase title"
+                value={newPhaseTitle}
+                onChange={(e) => setNewPhaseTitle(e.target.value)}
+                className="h-10 text-sm"
+                autoFocus
+              />
+              <Input
+                placeholder="Category (optional)"
+                value={newPhaseCategory}
+                onChange={(e) => setNewPhaseCategory(e.target.value)}
+                className="h-10 text-sm"
+              />
+            </div>
+            <Input
+              placeholder="Description (optional)"
+              value={newPhaseDescription}
+              onChange={(e) => setNewPhaseDescription(e.target.value)}
+              className="h-10 text-sm"
+            />
+            <div className="flex justify-end gap-2">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  setIsAddingPhase(false)
+                  setNewPhaseTitle("")
+                  setNewPhaseCategory("")
+                  setNewPhaseDescription("")
+                }}
+                className="h-9 text-sm"
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleCreatePhase}
+                disabled={!newPhaseTitle.trim()}
+                className="h-9 text-sm"
+              >
+                Add phase
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsAddingPhase(true)}
+            className="h-14 w-full justify-center gap-2 border-dashed text-sm text-muted-foreground hover:border-primary/50 hover:text-foreground"
+          >
+            <Plus className="size-4" />
+            <span>Add phase</span>
+          </Button>
+        )}
+      </div>
     </div>
   )
 }

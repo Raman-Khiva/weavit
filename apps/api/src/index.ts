@@ -564,7 +564,7 @@ app.post('/projects', async (req: Request, res: Response) => {
   } catch (error) {
     return res.status(400).json({
       message: "Server error while posting project",
-      error: error
+      error: error instanceof Error ? error?.message : error
     })
   }
 })
@@ -931,6 +931,16 @@ app.get("/doppler-test", (req: Request, res: Response) => {
   res.status(200).json({ status: 'ok', message: `App is ${(process.env.DOPPLER === "OK") ? "" : "not"} getting secrets from doppler` })
 })
 
+//other routes
+
+app.get("/userId",(req : Request, res : Response)=>{
+    const userId = getUserId(req,res);
+    if(!userId) return ;
+    res.status(200).json({
+      userId 
+    })
+    
+})
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is running on port ${PORT}`)
