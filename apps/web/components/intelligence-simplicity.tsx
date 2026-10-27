@@ -43,7 +43,7 @@ export function IntelligenceSimplicitySection() {
           <span>Core Capabilities</span>
         </div>
 
-        <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-center text-foreground max-w-4xl mx-auto leading-tight">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-center text-foreground max-w-4xl mx-auto leading-tight">
           Engineered for <span className="font-serif italic font-normal text-foreground/90">developer</span> <br />
           productivity & execution
         </h2>

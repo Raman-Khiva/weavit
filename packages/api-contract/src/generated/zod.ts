@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Weavit Platform API
  * Comprehensive REST API specification for Weavit productivity, roadmap management, habits, todos, deadlines, and activity analytics platform.
- * OpenAPI spec version: 1.0.0
+ * OpenAPI spec version: 1.2.0
  */
 import * as zod from 'zod';
 
@@ -25,6 +25,19 @@ export const GetHealthResponse = zod.object({
 export const GetAuthStatusResponse = zod.object({
   "message": zod.string().optional(),
   "userId": zod.string().optional()
+})
+
+
+/**
+ * Reads the latest LeetCode submission for a username and reports whether it falls on the current day. A habit can use this as its check-in source.
+ * @summary LeetCode check-in for today
+ */
+export const GetLeetcodeUsernameParams = zod.object({
+  "username": zod.string().describe('LeetCode username')
+})
+
+export const GetLeetcodeUsernameResponse = zod.object({
+  "doneToday": zod.boolean()
 })
 
 
@@ -70,6 +83,10 @@ export const GetProjectsResponseItem = zod.object({
   "category": zod.string().nullish(),
   "status": zod.enum(['PENDING', 'ACTIVE', 'COMPLETED']),
   "order": zod.int().optional(),
+  "startDate": zod.iso.datetime({"offset":true}).nullish(),
+  "endDate": zod.iso.datetime({"offset":true}).nullish(),
+  "createdAt": zod.iso.datetime({"offset":true}).optional(),
+  "updatedAt": zod.iso.datetime({"offset":true}).optional(),
   "tasks": zod.array(zod.object({
   "id": zod.string(),
   "phaseId": zod.string(),
@@ -78,6 +95,11 @@ export const GetProjectsResponseItem = zod.object({
   "status": zod.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'SKIPPED']),
   "category": zod.string().nullish(),
   "priority": zod.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
+  "dueDate": zod.iso.datetime({"offset":true}).nullish(),
+  "completedAt": zod.iso.datetime({"offset":true}).nullish(),
+  "order": zod.int().optional(),
+  "createdAt": zod.iso.datetime({"offset":true}).optional(),
+  "updatedAt": zod.iso.datetime({"offset":true}).optional(),
   "notes": zod.array(zod.object({
   "id": zod.string(),
   "taskId": zod.string(),
@@ -102,7 +124,27 @@ export const PostProjectsBody = zod.object({
   "category": zod.string().optional(),
   "icon": zod.string().optional(),
   "startDate": zod.string().optional(),
-  "endDate": zod.string().optional()
+  "endDate": zod.string().optional(),
+  "phases": zod.array(zod.object({
+  "title": zod.string(),
+  "description": zod.string().optional(),
+  "category": zod.string().optional(),
+  "order": zod.int().optional(),
+  "startDate": zod.iso.datetime({"offset":true}).optional(),
+  "endDate": zod.iso.datetime({"offset":true}).optional(),
+  "tasks": zod.array(zod.object({
+  "title": zod.string(),
+  "description": zod.string().optional(),
+  "category": zod.string().optional(),
+  "priority": zod.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
+  "dueDate": zod.string().optional().describe('Calendar date (YYYY-MM-DD) or ISO date-time'),
+  "order": zod.int().optional(),
+  "notes": zod.array(zod.object({
+  "text": zod.string(),
+  "author": zod.string().optional()
+})).optional().describe('Optional nested log notes for this task')
+})).optional().describe('Optional nested tasks for this phase')
+})).optional().describe('Optional nested phases (each may include tasks and notes)')
 })
 
 export const PostProjectsResponse = zod.object({
@@ -123,6 +165,10 @@ export const PostProjectsResponse = zod.object({
   "category": zod.string().nullish(),
   "status": zod.enum(['PENDING', 'ACTIVE', 'COMPLETED']),
   "order": zod.int().optional(),
+  "startDate": zod.iso.datetime({"offset":true}).nullish(),
+  "endDate": zod.iso.datetime({"offset":true}).nullish(),
+  "createdAt": zod.iso.datetime({"offset":true}).optional(),
+  "updatedAt": zod.iso.datetime({"offset":true}).optional(),
   "tasks": zod.array(zod.object({
   "id": zod.string(),
   "phaseId": zod.string(),
@@ -131,6 +177,11 @@ export const PostProjectsResponse = zod.object({
   "status": zod.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'SKIPPED']),
   "category": zod.string().nullish(),
   "priority": zod.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
+  "dueDate": zod.iso.datetime({"offset":true}).nullish(),
+  "completedAt": zod.iso.datetime({"offset":true}).nullish(),
+  "order": zod.int().optional(),
+  "createdAt": zod.iso.datetime({"offset":true}).optional(),
+  "updatedAt": zod.iso.datetime({"offset":true}).optional(),
   "notes": zod.array(zod.object({
   "id": zod.string(),
   "taskId": zod.string(),
@@ -170,6 +221,10 @@ export const GetProjectsIdResponse = zod.object({
   "category": zod.string().nullish(),
   "status": zod.enum(['PENDING', 'ACTIVE', 'COMPLETED']),
   "order": zod.int().optional(),
+  "startDate": zod.iso.datetime({"offset":true}).nullish(),
+  "endDate": zod.iso.datetime({"offset":true}).nullish(),
+  "createdAt": zod.iso.datetime({"offset":true}).optional(),
+  "updatedAt": zod.iso.datetime({"offset":true}).optional(),
   "tasks": zod.array(zod.object({
   "id": zod.string(),
   "phaseId": zod.string(),
@@ -178,6 +233,11 @@ export const GetProjectsIdResponse = zod.object({
   "status": zod.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'SKIPPED']),
   "category": zod.string().nullish(),
   "priority": zod.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
+  "dueDate": zod.iso.datetime({"offset":true}).nullish(),
+  "completedAt": zod.iso.datetime({"offset":true}).nullish(),
+  "order": zod.int().optional(),
+  "createdAt": zod.iso.datetime({"offset":true}).optional(),
+  "updatedAt": zod.iso.datetime({"offset":true}).optional(),
   "notes": zod.array(zod.object({
   "id": zod.string(),
   "taskId": zod.string(),
@@ -203,7 +263,27 @@ export const PatchProjectsIdBody = zod.object({
   "title": zod.string().optional(),
   "description": zod.string().optional(),
   "category": zod.string().optional(),
-  "status": zod.enum(['DRAFT', 'ACTIVE', 'COMPLETED', 'ARCHIVED']).optional()
+  "status": zod.enum(['DRAFT', 'ACTIVE', 'COMPLETED', 'ARCHIVED']).optional(),
+  "phases": zod.array(zod.object({
+  "title": zod.string(),
+  "description": zod.string().optional(),
+  "category": zod.string().optional(),
+  "order": zod.int().optional(),
+  "startDate": zod.iso.datetime({"offset":true}).optional(),
+  "endDate": zod.iso.datetime({"offset":true}).optional(),
+  "tasks": zod.array(zod.object({
+  "title": zod.string(),
+  "description": zod.string().optional(),
+  "category": zod.string().optional(),
+  "priority": zod.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
+  "dueDate": zod.string().optional().describe('Calendar date (YYYY-MM-DD) or ISO date-time'),
+  "order": zod.int().optional(),
+  "notes": zod.array(zod.object({
+  "text": zod.string(),
+  "author": zod.string().optional()
+})).optional().describe('Optional nested log notes for this task')
+})).optional().describe('Optional nested tasks for this phase')
+})).optional().describe('Optional nested phases when replacing or seeding plan structure')
 })
 
 export const PatchProjectsIdResponse = zod.object({
@@ -224,6 +304,10 @@ export const PatchProjectsIdResponse = zod.object({
   "category": zod.string().nullish(),
   "status": zod.enum(['PENDING', 'ACTIVE', 'COMPLETED']),
   "order": zod.int().optional(),
+  "startDate": zod.iso.datetime({"offset":true}).nullish(),
+  "endDate": zod.iso.datetime({"offset":true}).nullish(),
+  "createdAt": zod.iso.datetime({"offset":true}).optional(),
+  "updatedAt": zod.iso.datetime({"offset":true}).optional(),
   "tasks": zod.array(zod.object({
   "id": zod.string(),
   "phaseId": zod.string(),
@@ -232,6 +316,11 @@ export const PatchProjectsIdResponse = zod.object({
   "status": zod.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'SKIPPED']),
   "category": zod.string().nullish(),
   "priority": zod.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
+  "dueDate": zod.iso.datetime({"offset":true}).nullish(),
+  "completedAt": zod.iso.datetime({"offset":true}).nullish(),
+  "order": zod.int().optional(),
+  "createdAt": zod.iso.datetime({"offset":true}).optional(),
+  "updatedAt": zod.iso.datetime({"offset":true}).optional(),
   "notes": zod.array(zod.object({
   "id": zod.string(),
   "taskId": zod.string(),
@@ -266,7 +355,22 @@ export const PostProjectsProjectIdPhasesParams = zod.object({
 export const PostProjectsProjectIdPhasesBody = zod.object({
   "title": zod.string(),
   "description": zod.string().optional(),
-  "category": zod.string().optional()
+  "category": zod.string().optional(),
+  "order": zod.int().optional(),
+  "startDate": zod.iso.datetime({"offset":true}).optional(),
+  "endDate": zod.iso.datetime({"offset":true}).optional(),
+  "tasks": zod.array(zod.object({
+  "title": zod.string(),
+  "description": zod.string().optional(),
+  "category": zod.string().optional(),
+  "priority": zod.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
+  "dueDate": zod.string().optional().describe('Calendar date (YYYY-MM-DD) or ISO date-time'),
+  "order": zod.int().optional(),
+  "notes": zod.array(zod.object({
+  "text": zod.string(),
+  "author": zod.string().optional()
+})).optional().describe('Optional nested log notes for this task')
+})).optional().describe('Optional nested tasks for this phase')
 })
 
 export const PostProjectsProjectIdPhasesResponse = zod.object({
@@ -277,6 +381,10 @@ export const PostProjectsProjectIdPhasesResponse = zod.object({
   "category": zod.string().nullish(),
   "status": zod.enum(['PENDING', 'ACTIVE', 'COMPLETED']),
   "order": zod.int().optional(),
+  "startDate": zod.iso.datetime({"offset":true}).nullish(),
+  "endDate": zod.iso.datetime({"offset":true}).nullish(),
+  "createdAt": zod.iso.datetime({"offset":true}).optional(),
+  "updatedAt": zod.iso.datetime({"offset":true}).optional(),
   "tasks": zod.array(zod.object({
   "id": zod.string(),
   "phaseId": zod.string(),
@@ -285,6 +393,11 @@ export const PostProjectsProjectIdPhasesResponse = zod.object({
   "status": zod.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'SKIPPED']),
   "category": zod.string().nullish(),
   "priority": zod.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
+  "dueDate": zod.iso.datetime({"offset":true}).nullish(),
+  "completedAt": zod.iso.datetime({"offset":true}).nullish(),
+  "order": zod.int().optional(),
+  "createdAt": zod.iso.datetime({"offset":true}).optional(),
+  "updatedAt": zod.iso.datetime({"offset":true}).optional(),
   "notes": zod.array(zod.object({
   "id": zod.string(),
   "taskId": zod.string(),
@@ -308,7 +421,13 @@ export const PostProjectsProjectIdPhasesPhaseIdTasksBody = zod.object({
   "title": zod.string(),
   "description": zod.string().optional(),
   "category": zod.string().optional(),
-  "priority": zod.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional()
+  "priority": zod.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
+  "dueDate": zod.string().optional().describe('Calendar date (YYYY-MM-DD) or ISO date-time'),
+  "order": zod.int().optional(),
+  "notes": zod.array(zod.object({
+  "text": zod.string(),
+  "author": zod.string().optional()
+})).optional().describe('Optional nested log notes for this task')
 })
 
 export const PostProjectsProjectIdPhasesPhaseIdTasksResponse = zod.object({
@@ -319,6 +438,11 @@ export const PostProjectsProjectIdPhasesPhaseIdTasksResponse = zod.object({
   "status": zod.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'SKIPPED']),
   "category": zod.string().nullish(),
   "priority": zod.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
+  "dueDate": zod.iso.datetime({"offset":true}).nullish(),
+  "completedAt": zod.iso.datetime({"offset":true}).nullish(),
+  "order": zod.int().optional(),
+  "createdAt": zod.iso.datetime({"offset":true}).optional(),
+  "updatedAt": zod.iso.datetime({"offset":true}).optional(),
   "notes": zod.array(zod.object({
   "id": zod.string(),
   "taskId": zod.string(),
@@ -341,7 +465,11 @@ export const PatchProjectsProjectIdPhasesPhaseIdTasksTaskIdParams = zod.object({
 export const PatchProjectsProjectIdPhasesPhaseIdTasksTaskIdBody = zod.object({
   "title": zod.string().optional(),
   "status": zod.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'SKIPPED']).optional(),
-  "note": zod.string().optional()
+  "note": zod.string().optional(),
+  "notes": zod.array(zod.object({
+  "text": zod.string(),
+  "author": zod.string().optional()
+})).optional().describe('Optional notes to append when updating a task')
 })
 
 export const PatchProjectsProjectIdPhasesPhaseIdTasksTaskIdResponse = zod.object({
@@ -352,6 +480,11 @@ export const PatchProjectsProjectIdPhasesPhaseIdTasksTaskIdResponse = zod.object
   "status": zod.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'SKIPPED']),
   "category": zod.string().nullish(),
   "priority": zod.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
+  "dueDate": zod.iso.datetime({"offset":true}).nullish(),
+  "completedAt": zod.iso.datetime({"offset":true}).nullish(),
+  "order": zod.int().optional(),
+  "createdAt": zod.iso.datetime({"offset":true}).optional(),
+  "updatedAt": zod.iso.datetime({"offset":true}).optional(),
   "notes": zod.array(zod.object({
   "id": zod.string(),
   "taskId": zod.string(),
@@ -372,7 +505,8 @@ export const PostProjectsProjectIdPhasesPhaseIdTasksTaskIdNotesParams = zod.obje
 })
 
 export const PostProjectsProjectIdPhasesPhaseIdTasksTaskIdNotesBody = zod.object({
-  "text": zod.string()
+  "text": zod.string(),
+  "author": zod.string().optional()
 })
 
 export const PostProjectsProjectIdPhasesPhaseIdTasksTaskIdNotesResponse = zod.object({
@@ -392,9 +526,18 @@ export const GetHabitsResponseItem = zod.object({
   "userId": zod.string(),
   "title": zod.string(),
   "frequency": zod.enum(['DAILY', 'WEEKLY', 'MONTHLY']).optional(),
+  "description": zod.string().nullish(),
   "category": zod.string().optional(),
   "streakCount": zod.int().optional(),
-  "bestStreak": zod.int().optional()
+  "bestStreak": zod.int().optional(),
+  "logs": zod.array(zod.object({
+  "id": zod.string(),
+  "habitId": zod.string(),
+  "completedAt": zod.iso.datetime({"offset":true}),
+  "notes": zod.string().nullish()
+})).optional(),
+  "createdAt": zod.iso.datetime({"offset":true}).optional(),
+  "updatedAt": zod.iso.datetime({"offset":true}).optional()
 })
 export const GetHabitsResponse = zod.array(GetHabitsResponseItem)
 
@@ -404,8 +547,13 @@ export const GetHabitsResponse = zod.array(GetHabitsResponseItem)
  */
 export const PostHabitsBody = zod.object({
   "title": zod.string(),
+  "description": zod.string().optional(),
   "frequency": zod.enum(['DAILY', 'WEEKLY', 'MONTHLY']).optional(),
-  "category": zod.string().optional()
+  "category": zod.string().optional(),
+  "logs": zod.array(zod.object({
+  "completedAt": zod.iso.datetime({"offset":true}).optional(),
+  "notes": zod.string().optional()
+})).optional().describe('Optional nested check-in logs to seed with the habit')
 })
 
 export const PostHabitsResponse = zod.object({
@@ -413,9 +561,18 @@ export const PostHabitsResponse = zod.object({
   "userId": zod.string(),
   "title": zod.string(),
   "frequency": zod.enum(['DAILY', 'WEEKLY', 'MONTHLY']).optional(),
+  "description": zod.string().nullish(),
   "category": zod.string().optional(),
   "streakCount": zod.int().optional(),
-  "bestStreak": zod.int().optional()
+  "bestStreak": zod.int().optional(),
+  "logs": zod.array(zod.object({
+  "id": zod.string(),
+  "habitId": zod.string(),
+  "completedAt": zod.iso.datetime({"offset":true}),
+  "notes": zod.string().nullish()
+})).optional(),
+  "createdAt": zod.iso.datetime({"offset":true}).optional(),
+  "updatedAt": zod.iso.datetime({"offset":true}).optional()
 })
 
 
@@ -431,9 +588,18 @@ export const PostHabitsIdToggleResponse = zod.object({
   "userId": zod.string(),
   "title": zod.string(),
   "frequency": zod.enum(['DAILY', 'WEEKLY', 'MONTHLY']).optional(),
+  "description": zod.string().nullish(),
   "category": zod.string().optional(),
   "streakCount": zod.int().optional(),
-  "bestStreak": zod.int().optional()
+  "bestStreak": zod.int().optional(),
+  "logs": zod.array(zod.object({
+  "id": zod.string(),
+  "habitId": zod.string(),
+  "completedAt": zod.iso.datetime({"offset":true}),
+  "notes": zod.string().nullish()
+})).optional(),
+  "createdAt": zod.iso.datetime({"offset":true}).optional(),
+  "updatedAt": zod.iso.datetime({"offset":true}).optional()
 })
 
 
@@ -444,9 +610,13 @@ export const GetTodosResponseItem = zod.object({
   "id": zod.string(),
   "userId": zod.string(),
   "title": zod.string(),
+  "description": zod.string().nullish(),
   "status": zod.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'SKIPPED']).optional(),
   "priority": zod.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
-  "tags": zod.array(zod.string()).optional()
+  "dueDate": zod.iso.datetime({"offset":true}).nullish(),
+  "tags": zod.array(zod.string()).optional(),
+  "createdAt": zod.iso.datetime({"offset":true}).optional(),
+  "updatedAt": zod.iso.datetime({"offset":true}).optional()
 })
 export const GetTodosResponse = zod.array(GetTodosResponseItem)
 
@@ -456,7 +626,9 @@ export const GetTodosResponse = zod.array(GetTodosResponseItem)
  */
 export const PostTodosBody = zod.object({
   "title": zod.string(),
+  "description": zod.string().optional(),
   "priority": zod.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
+  "dueDate": zod.string().optional().describe('Calendar date (YYYY-MM-DD) or ISO date-time'),
   "tags": zod.array(zod.string()).optional()
 })
 
@@ -464,9 +636,13 @@ export const PostTodosResponse = zod.object({
   "id": zod.string(),
   "userId": zod.string(),
   "title": zod.string(),
+  "description": zod.string().nullish(),
   "status": zod.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'SKIPPED']).optional(),
   "priority": zod.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
-  "tags": zod.array(zod.string()).optional()
+  "dueDate": zod.iso.datetime({"offset":true}).nullish(),
+  "tags": zod.array(zod.string()).optional(),
+  "createdAt": zod.iso.datetime({"offset":true}).optional(),
+  "updatedAt": zod.iso.datetime({"offset":true}).optional()
 })
 
 
@@ -486,9 +662,13 @@ export const PatchTodosIdResponse = zod.object({
   "id": zod.string(),
   "userId": zod.string(),
   "title": zod.string(),
+  "description": zod.string().nullish(),
   "status": zod.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'SKIPPED']).optional(),
   "priority": zod.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
-  "tags": zod.array(zod.string()).optional()
+  "dueDate": zod.iso.datetime({"offset":true}).nullish(),
+  "tags": zod.array(zod.string()).optional(),
+  "createdAt": zod.iso.datetime({"offset":true}).optional(),
+  "updatedAt": zod.iso.datetime({"offset":true}).optional()
 })
 
 
@@ -513,7 +693,9 @@ export const GetDeadlinesResponseItem = zod.object({
   "time": zod.string().nullish(),
   "dueDate": zod.iso.datetime({"offset":true}),
   "priority": zod.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
-  "isCompleted": zod.boolean().optional()
+  "isCompleted": zod.boolean().optional(),
+  "createdAt": zod.iso.datetime({"offset":true}).optional(),
+  "updatedAt": zod.iso.datetime({"offset":true}).optional()
 })
 export const GetDeadlinesResponse = zod.array(GetDeadlinesResponseItem)
 
@@ -537,7 +719,9 @@ export const PostDeadlinesResponse = zod.object({
   "time": zod.string().nullish(),
   "dueDate": zod.iso.datetime({"offset":true}),
   "priority": zod.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
-  "isCompleted": zod.boolean().optional()
+  "isCompleted": zod.boolean().optional(),
+  "createdAt": zod.iso.datetime({"offset":true}).optional(),
+  "updatedAt": zod.iso.datetime({"offset":true}).optional()
 })
 
 

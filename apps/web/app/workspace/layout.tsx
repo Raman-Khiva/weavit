@@ -17,7 +17,6 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@workspace/ui/components/sidebar"
-import { Sparkles, Command } from "lucide-react"
 
 const ROUTE_LABELS: Record<string, string> = {
   "/workspace": "Dashboard",
@@ -44,44 +43,37 @@ export default function WorkspaceLayout({
   }, [pathname])
 
   return (
-    <SidebarProvider>
-      <AppSidebar currentPath={pathname} collapsible="icon" />
+    <SidebarProvider className="h-svh overflow-hidden">
+      <AppSidebar currentPath={pathname} variant="sidebar" collapsible="icon" />
 
-      <SidebarInset className="min-w-0 bg-background">
-        <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border/50 bg-background/95 px-4 backdrop-blur">
-          <div className="flex items-center gap-2">
-            <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />
-            <Separator
-              orientation="vertical"
-              className="mr-2 bg-border/60 data-[orientation=vertical]:h-4"
-            />
-            <Breadcrumb>
-              <BreadcrumbList className="text-xs">
-                <BreadcrumbItem className="hidden sm:block">
-                  <BreadcrumbLink
-                    href="/workspace"
-                    className="font-medium text-muted-foreground hover:text-foreground"
-                  >
-                    Workspace
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden text-muted-foreground/40 sm:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage className="font-semibold text-foreground">
-                    {currentLabel}
-                  </BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          </div>
-
-          <div className="hidden items-center gap-2 rounded-lg border border-border/60 bg-muted/30 px-2.5 py-1 text-xs text-muted-foreground md:flex">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
-            <span className="text-[11px] font-medium">Sync Active</span>
-          </div>
+      <SidebarInset className="min-h-0 min-w-0 overflow-hidden bg-background">
+        <header className="z-30 flex h-14 shrink-0 items-center gap-2 border-b border-border bg-background px-4">
+          <SidebarTrigger className="-ml-1 text-foreground/45 hover:text-foreground" />
+          <Separator
+            orientation="vertical"
+            className="mr-2 bg-border data-[orientation=vertical]:h-4"
+          />
+          <Breadcrumb>
+            <BreadcrumbList className="text-sm">
+              <BreadcrumbItem className="hidden sm:block">
+                <BreadcrumbLink
+                  href="/workspace"
+                  className="font-medium text-muted-foreground hover:text-foreground"
+                >
+                  Workspace
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator className="hidden text-muted-foreground/40 sm:block" />
+              <BreadcrumbItem>
+                <BreadcrumbPage className="font-semibold text-foreground">
+                  {currentLabel}
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
         </header>
 
-        <div className="flex-1">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   )

@@ -40,12 +40,6 @@ export function RecentActivity(): JSX.Element {
             </div>
           </div>
         </div>
-        <a
-          href="/workspace/activity"
-          className="text-xs font-semibold text-primary hover:underline"
-        >
-          View all
-        </a>
       </div>
       <div className="flex-1 overflow-y-auto pr-2 mt-2">
         <ul className="flex flex-col gap-4">

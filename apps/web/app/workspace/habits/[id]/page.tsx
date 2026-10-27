@@ -1,8 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
-import { ActivityGraph } from "@workspace/ui/components/activity-chart"
+import { HabitHeader, type HabitStatus } from "@workspace/ui/components/habit-header"
+import { HabitHeatmap } from "@workspace/ui/components/habit-heatmap"
+import { LogStream, type JournalEntry, type JournalNote } from "@workspace/ui/components/log-stream"
 import { StreakCard } from "@workspace/ui/components/streak-card"
 import {
   Card,
@@ -13,14 +15,8 @@ import {
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { SkeletonWrapper, HabitDetailPageSkeleton } from "@workspace/ui/components/skeleton-wrapper"
-import {
-  CalendarDaysIcon,
-  CheckCircle2Icon,
-  FlameIcon,
-  Link2Icon,
-  TargetIcon,
-  UnlinkIcon,
-} from "lucide-react"
+import { Link2Icon, UnlinkIcon } from "lucide-react"
+import { JsonToSseTransformStream } from "ai"
 
 type HabitProfile = {
   title: string
@@ -64,6 +60,9 @@ const HABIT_PROFILES: Record<string, HabitProfile> = {
   },
 }
 
+const PERIOD_START = new Date(2026, 0, 1)
+const PERIOD_END = new Date(2026, 11, 31)
+
 const habitData = {
   startDate: "Jan 1, 2026",
   expectedEndDate: "Dec 31, 2026",
@@ -79,6 +78,58 @@ const streak = [
   { periodStart: "2024-01-01", periodEnd: "2024-01-01" },
   { periodStart: "2024-01-02", periodEnd: "2024-01-02" },
   { periodStart: "2024-01-03", periodEnd: "2024-01-03" },
+]
+
+const JOURNAL_ENTRIES: JournalEntry[] = [
+  {
+    id: "oct-25-done",
+    ts: new Date(2026, 9, 25, 21, 40).getTime(),
+    status: "done",
+    quantity: "12 pages",
+    entry: "Read 12 pages and finished the chapter before bed.",
+    remark: "Easier once the phone was in the other room.",
+  },
+  {
+    id: "oct-24-missed",
+    ts: new Date(2026, 9, 24, 23, 10).getTime(),
+    status: "missed",
+    entry: "Missed the evening reading after a late night.",
+  },
+  {
+    id: "oct-22-done",
+    ts: new Date(2026, 9, 22, 8, 15).getTime(),
+    status: "done",
+    quantity: "20 pages",
+    entry: "Read 20 pages on the train, starting from a planned 10.",
+  },
+  {
+    id: "oct-21-done",
+    ts: new Date(2026, 9, 21, 7, 30).getTime(),
+    status: "done",
+    quantity: "15 min",
+    entry: "Read 8 pages over breakfast before leaving for work.",
+    remark: "Short session, still counted.",
+  },
+  {
+    id: "oct-19-done",
+    ts: new Date(2026, 9, 19, 22, 5).getTime(),
+    status: "done",
+    quantity: "45 min",
+    entry: "Read two chapters of the novel at the desk.",
+  },
+]
+
+const JOURNAL_NOTES: JournalNote[] = [
+  {
+    id: "note-phone",
+    ts: new Date(2026, 9, 23, 18, 5).getTime(),
+    content: "Leave the phone in the other room before opening the book.",
+  },
+  {
+    id: "note-floor",
+    ts: new Date(2026, 9, 20, 21, 0).getTime(),
+    content: "Ten pages is the floor. Stopping there still counts.",
+  },
 ]
 
 function habitIdFromParams(id: string | string[] | undefined) {
@@ -122,13 +173,16 @@ function LeetCodeMark({ className }: { className?: string }) {
 function Page(): JSX.Element {
   const params = useParams()
   const habit = profileFor(habitIdFromParams(params.id))
-  const consistency = Math.round(
-    (habitData.stats.totalActiveDays / habitData.stats.totalDays) * 100
-  )
+  const status: HabitStatus = habit.gap ? "behind" : "on_track"
 
   const [leetcodeHandle, setLeetcodeHandle] = useState<string | null>(null)
   const [draftHandle, setDraftHandle] = useState("")
-  const [isConnecting, setIsConnecting] = useState(false)
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [doneToday,setDoneToday] = useState<boolean>(false);
+  const [reminder, setReminder] = useState<string | null>(
+    habit.reminder === "Not set" ? null : habit.reminder
+  )
+
 
   const connectLeetCode = () => {
     const handle = draftHandle.trim()
@@ -144,79 +198,45 @@ function Page(): JSX.Element {
     setIsConnecting(false)
   }
 
+  useEffect(()=>{
+
+    const getTodayStatus = async ()=>{
+        const res = await fetch("http://localhost:4000/leetcode/Raman_Khiva");
+        
+        if(res.ok){
+          const result = await res.json();
+          alert(`Data fetched from from backend, doneToday :  ${JSON.stringify(result.doneToday)} `);
+          if(!result.errors){
+             setDoneToday(result.doneToday);
+          } 
+        }
+    }
+
+    getTodayStatus();
+  },[]);
+
   return (
     <SkeletonWrapper skeleton={<HabitDetailPageSkeleton />} delay={2000}>
       <main className="flex min-h-full w-full flex-col gap-10 px-10 py-16 xl:flex-row xl:justify-between">
         <div className="flex w-full flex-col gap-12 xl:max-w-[70%]">
-          <header className="flex flex-col gap-5">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-                {habit.category}
-              </span>
-              <span className="rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-                {habit.cadence}
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-full border border-warning/25 bg-warning/10 px-2.5 py-1 text-[11px] font-semibold text-warning">
-                <FlameIcon className="size-3.5" />
-                {habitData.stats.currentStreak} day streak
-              </span>
-              {habit.gap ? (
-                <span className="rounded-full border border-destructive/30 bg-destructive/10 px-2.5 py-1 text-[11px] font-medium text-destructive">
-                  {habit.gap}
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 rounded-full border border-success/30 bg-success/10 px-2.5 py-1 text-[11px] font-medium text-success">
-                  <CheckCircle2Icon className="size-3.5" />
-                  {habit.checkedInToday ? "Done today" : "On track"}
-                </span>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-2 border-b border-border pb-5">
-              <h1 className="text-5xl font-bold tracking-tight">{habit.title}</h1>
-              <p className="max-w-2xl text-lg text-muted-foreground">{habit.description}</p>
-            </div>
-
-            <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
-              <div className="flex flex-col gap-1">
-                <dt className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                  <TargetIcon className="size-3.5" />
-                  Goal
-                </dt>
-                <dd className="text-sm font-medium">{habit.goal}</dd>
-              </div>
-              <div className="flex flex-col gap-1">
-                <dt className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                  <CalendarDaysIcon className="size-3.5" />
-                  Started
-                </dt>
-                <dd className="text-sm font-medium">{habitData.startDate}</dd>
-              </div>
-              <div className="flex flex-col gap-1">
-                <dt className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                  <CalendarDaysIcon className="size-3.5" />
-                  Target end
-                </dt>
-                <dd className="text-sm font-medium">{habitData.expectedEndDate}</dd>
-              </div>
-              <div className="flex flex-col gap-1">
-                <dt className="text-xs font-medium text-muted-foreground">Reminder</dt>
-                <dd className="text-sm font-medium">{habit.reminder}</dd>
-              </div>
-              <div className="flex flex-col gap-1">
-                <dt className="text-xs font-medium text-muted-foreground">Consistency</dt>
-                <dd className="text-sm font-medium">
-                  {consistency}% · {habitData.stats.totalActiveDays} active days
-                </dd>
-              </div>
-              <div className="flex flex-col gap-1">
-                <dt className="text-xs font-medium text-muted-foreground">Source</dt>
-                <dd className="text-sm font-medium">
-                  {leetcodeHandle ? `LeetCode · ${leetcodeHandle}` : "Manual check-in"}
-                </dd>
-              </div>
-            </dl>
-          </header>
+          <HabitHeader
+            title={habit.title}
+            description={habit.description}
+            category={habit.category}
+            frequency={habit.cadence}
+            currentStreak={habitData.stats.currentStreak}
+            status={status}
+            goalLabel={habit.goal}
+            startDate={PERIOD_START}
+            targetEndDate={PERIOD_END}
+            reminder={reminder}
+            source={leetcodeHandle ? `LeetCode · ${leetcodeHandle}` : "Manual check-in"}
+            activeDays={habitData.stats.totalActiveDays}
+            totalDays={habitData.stats.totalDays}
+            doneToday={doneToday}
+            onToggleDone={() => setDoneToday((current) => !current)}
+            onSetReminder={() => setReminder("08:00 PM")}
+          />
 
           <section className="flex flex-col gap-3" aria-labelledby="habit-integrations">
             <div className="flex items-end justify-between gap-3">
@@ -351,7 +371,15 @@ function Page(): JSX.Element {
               </Card>
             </div>
 
-            <ActivityGraph />
+            <HabitHeatmap
+              activeDays={habitData.stats.totalActiveDays}
+              totalDays={habitData.stats.totalDays}
+              currentStreak={habitData.stats.currentStreak}
+              longestStreak={habitData.stats.maxStreak}
+              doneToday={doneToday}
+            />
+
+            <LogStream entries={JOURNAL_ENTRIES} notes={JOURNAL_NOTES} />
           </div>
         </div>
 

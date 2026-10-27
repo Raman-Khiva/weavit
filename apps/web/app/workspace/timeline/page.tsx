@@ -1,14 +1,24 @@
-import { AgendaTimeline } from "@workspace/ui/components/agenda-timeline"
-import { SkeletonWrapper, TimelinePageSkeleton } from "@workspace/ui/components/skeleton-wrapper"
+"use client"
 
-function Page(): JSX.Element {
-  return (
-    <SkeletonWrapper skeleton={<TimelinePageSkeleton />} delay={2000}>
-      <div className="flex h-full w-full flex-col px-10 py-12">
-        <AgendaTimeline />
-      </div>
-    </SkeletonWrapper>
-  )
+import { useEffect, useState } from "react"
+import { CalendarWeek } from "@workspace/ui/components/calendar-week"
+
+function localNow() {
+  const now = new Date()
+  const pad = (value: number) => String(value).padStart(2, "0")
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`
 }
 
-export default Page
+export default function Page() {
+  const [now, setNow] = useState(localNow)
+
+  useEffect(() => {
+    setNow(localNow())
+  }, [])
+
+  return (
+    <div className="h-full min-h-[720px] w-full">
+      <CalendarWeek className="h-full min-h-[720px]" now={now} />
+    </div>
+  )
+}

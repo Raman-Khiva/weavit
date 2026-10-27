@@ -94,6 +94,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/leetcode/{username}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * LeetCode check-in for today
+         * @description Reads the latest LeetCode submission for a username and reports whether it falls on the current day. A habit can use this as its check-in source.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description LeetCode username */
+                    username: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Whether the latest submission counts for today */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LeetCodeCheckIn"];
+                    };
+                };
+                /** @description LeetCode rejected the username */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description The LeetCode request failed */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/syncUser": {
         parameters: {
             query?: never;
@@ -912,6 +972,8 @@ export interface components {
             icon?: string;
             startDate?: string;
             endDate?: string;
+            /** @description Optional nested phases (each may include tasks and notes) */
+            phases?: components["schemas"]["CreatePhaseInput"][];
         };
         UpdateProjectInput: {
             title?: string;
@@ -919,6 +981,8 @@ export interface components {
             category?: string;
             /** @enum {string} */
             status?: "DRAFT" | "ACTIVE" | "COMPLETED" | "ARCHIVED";
+            /** @description Optional nested phases when replacing or seeding plan structure */
+            phases?: components["schemas"]["CreatePhaseInput"][];
         };
         ProjectPhase: {
             id: string;
@@ -929,12 +993,27 @@ export interface components {
             /** @enum {string} */
             status: "PENDING" | "ACTIVE" | "COMPLETED";
             order?: number;
+            /** Format: date-time */
+            startDate?: string | null;
+            /** Format: date-time */
+            endDate?: string | null;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
             tasks?: components["schemas"]["ProjectTask"][];
         };
         CreatePhaseInput: {
             title: string;
             description?: string;
             category?: string;
+            order?: number;
+            /** Format: date-time */
+            startDate?: string;
+            /** Format: date-time */
+            endDate?: string;
+            /** @description Optional nested tasks for this phase */
+            tasks?: components["schemas"]["CreateTaskInput"][];
         };
         ProjectTask: {
             id: string;
@@ -946,6 +1025,15 @@ export interface components {
             category?: string | null;
             /** @enum {string} */
             priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+            /** Format: date-time */
+            dueDate?: string | null;
+            /** Format: date-time */
+            completedAt?: string | null;
+            order?: number;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
             notes?: components["schemas"]["TaskLogNote"][];
         };
         CreateTaskInput: {
@@ -954,12 +1042,19 @@ export interface components {
             category?: string;
             /** @enum {string} */
             priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+            /** @description Calendar date (YYYY-MM-DD) or ISO date-time */
+            dueDate?: string;
+            order?: number;
+            /** @description Optional nested log notes for this task */
+            notes?: components["schemas"]["CreateTaskNoteInput"][];
         };
         UpdateTaskInput: {
             title?: string;
             /** @enum {string} */
             status?: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "SKIPPED";
             note?: string;
+            /** @description Optional notes to append when updating a task */
+            notes?: components["schemas"]["CreateTaskNoteInput"][];
         };
         TaskLogNote: {
             id: string;
@@ -971,6 +1066,7 @@ export interface components {
         };
         CreateTaskNoteInput: {
             text: string;
+            author?: string;
         };
         Habit: {
             id: string;
@@ -978,30 +1074,61 @@ export interface components {
             title: string;
             /** @enum {string} */
             frequency?: "DAILY" | "WEEKLY" | "MONTHLY";
+            description?: string | null;
             category?: string;
             streakCount?: number;
             bestStreak?: number;
+            logs?: components["schemas"]["HabitLog"][];
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        HabitLog: {
+            id: string;
+            habitId: string;
+            /** Format: date-time */
+            completedAt: string;
+            notes?: string | null;
+        };
+        CreateHabitLogInput: {
+            /** Format: date-time */
+            completedAt?: string;
+            notes?: string;
         };
         CreateHabitInput: {
             title: string;
+            description?: string;
             /** @enum {string} */
             frequency?: "DAILY" | "WEEKLY" | "MONTHLY";
             category?: string;
+            /** @description Optional nested check-in logs to seed with the habit */
+            logs?: components["schemas"]["CreateHabitLogInput"][];
         };
         Todo: {
             id: string;
             userId: string;
             title: string;
+            description?: string | null;
             /** @enum {string} */
             status?: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "SKIPPED";
             /** @enum {string} */
             priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+            /** Format: date-time */
+            dueDate?: string | null;
             tags?: string[];
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
         };
         CreateTodoInput: {
             title: string;
+            description?: string;
             /** @enum {string} */
             priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+            /** @description Calendar date (YYYY-MM-DD) or ISO date-time */
+            dueDate?: string;
             tags?: string[];
         };
         UpdateTodoInput: {
@@ -1020,6 +1147,17 @@ export interface components {
             /** @enum {string} */
             priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
             isCompleted?: boolean;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        LeetCodeCheckIn: {
+            doneToday: boolean;
+        };
+        ErrorResponse: {
+            message?: string;
+            error?: string;
         };
         CreateDeadlineInput: {
             title: string;

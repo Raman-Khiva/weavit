@@ -178,26 +178,23 @@ interface TaskCardProps {
 }
 
 /**
- * Three stages, each drives: edge bar, right-side icon.
+ * Three stages, each drives the right-side icon.
  *  - "pending" → due today, not started
  *  - "overdue" → missed days, needs attention (shows gap)
  *  - "done"    → completed today
  */
 const STATUS = {
     pending: {
-        bar: "bg-sky-400",
         icon: Circle,
         iconClass: "text-neutral-500 group-hover:text-sky-300",
         label: "Mark as done",
     },
     overdue: {
-        bar: "bg-amber-400",
         icon: AlertCircle,
         iconClass: "text-amber-400",
         label: "Overdue, mark as done",
     },
     done: {
-        bar: "bg-emerald-400",
         icon: CheckCircle2,
         iconClass: "text-emerald-400",
         label: "Completed, undo",
@@ -235,23 +232,16 @@ export default function TaskCard({
     return (
         <div
             className={cn(
-                "group relative flex items-center gap-3.5  rounded-xl",
-                "border border-neutral-800 bg-neutral-950 p-3.5 pl-4",
-                "transition-colors hover:border-neutral-700",
+                "group relative flex items-center gap-2 rounded-sm",
+                "border border-white/10 bg-white/[0.035] px-2 py-1.5",
+                "transition-colors hover:border-white/20",
                 className
             )}
         >
-            {/* status edge bar, like a toast */}
-            <span
-                aria-hidden
-                className={cn("absolute inset-y-3 left-0 w-[3px] rounded-r-full", s.bar)}
-            />
-
             {/* logo tile */}
             <div
                 className={cn(
-                    "relative grid size-11 shrink-0 place-items-center rounded-xl",
-                    "bg-gradient-to-b from-white/[0.09] to-white/[0.02]",
+                    "relative grid size-8 shrink-0 place-items-center rounded-sm",
                     "ring-1 ring-inset ring-white/10",
                     "shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_6px_16px_-6px_rgba(0,0,0,0.8)]",
                     done && "opacity-60"
@@ -300,9 +290,9 @@ export default function TaskCard({
                 type="button"
                 onClick={onToggle}
                 aria-label={s.label}
-                className="relative grid size-11 shrink-0 place-items-center rounded-full outline-none transition-colors hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-white/30"
+                className="relative grid size-7 shrink-0 place-items-center rounded-full outline-none transition-colors hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-white/30"
             >
-                <StatusIcon className={cn("size-8 transition-colors", s.iconClass)} strokeWidth={1.75} />
+                <StatusIcon className={cn("size-5 transition-colors", s.iconClass)} strokeWidth={1.75} />
             </button>
         </div>
     );

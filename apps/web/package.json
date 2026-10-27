@@ -17,6 +17,7 @@
     "@hookform/resolvers": "^5.9.1",
     "@reduxjs/toolkit": "^2.12.0",
     "@types/uuid": "^11.0.0",
+    "@weavit/api-contract": "workspace:*",
     "@weavit/api-types": "workspace:*",
     "@workspace/ui": "workspace:*",
     "ai": "^7.0.148",

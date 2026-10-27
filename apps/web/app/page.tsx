@@ -4,6 +4,8 @@ import React from "react"
 import Link from "next/link"
 import { ArrowRight, ArrowUpRight, Star, FolderOpen, Layers, FileText, BarChart2, Flame, Activity, Tags, Clock, Zap, Target, Shield, Keyboard, Database, Globe, Code2 } from "lucide-react"
 import { FloatingNav } from "../components/floating-nav"
+import { LandingInteractiveShowcase } from "../components/landing-interactive-showcase"
+import { IntelligenceSimplicitySection } from "../components/intelligence-simplicity"
 import { useAuth } from "@clerk/nextjs"
 import { ReactLenis } from "lenis/react"
 import "lenis/dist/lenis.css"
@@ -29,7 +31,7 @@ function Page(): JSX.Element {
         <FloatingNav />
 
         {/* ─── HERO ───────────────────────────────────────────────────────── */}
-        <section className="relative min-h-screen flex flex-col justify-end pb-20 px-6 sm:px-12 lg:px-20 pt-32 overflow-hidden">
+        <section className="relative flex flex-col justify-end overflow-hidden px-6 pb-16 pt-36 sm:px-12 lg:px-20">
           {/* Live badge */}
           <div className="mb-8 flex items-center gap-3">
             <span className="flex h-2 w-2 relative">
@@ -44,7 +46,7 @@ function Page(): JSX.Element {
           {/* Oversized headline */}
           <div className="relative">
             <h1
-              className="text-[clamp(4rem,15vw,14rem)] font-black leading-[0.88] tracking-[-0.04em] text-foreground select-none"
+              className="text-[clamp(2.4rem,5.5vw,4.25rem)] font-black leading-[0.95] tracking-[-0.04em] text-foreground select-none"
               style={{ fontFeatureSettings: '"ss01" 1' }}
             >
               <span className="block">Build</span>
@@ -100,7 +102,7 @@ function Page(): JSX.Element {
 
           {/* Decorative number */}
           <span
-            className="pointer-events-none absolute right-[-0.05em] top-1/2 -translate-y-1/2 text-[clamp(12rem,28vw,26rem)] font-black text-muted/10 leading-none select-none hidden lg:block"
+            className="pointer-events-none absolute right-[-0.05em] top-1/2 -translate-y-1/2 text-[clamp(5rem,10vw,8rem)] font-black text-muted/10 leading-none select-none hidden lg:block"
             aria-hidden
           >
             01
@@ -124,8 +126,11 @@ function Page(): JSX.Element {
           </div>
         </div>
 
+        <LandingInteractiveShowcase />
+        <IntelligenceSimplicitySection />
+
         {/* ─── SECTION 02: STRUCTURED EXECUTION (left-heavy 60/40) ─────── */}
-        <section className="relative w-full py-32 px-6 sm:px-12 lg:px-20 overflow-hidden">
+        <section className="relative w-full py-20 px-6 sm:px-12 lg:px-20 overflow-hidden">
           <div className="flex flex-col lg:flex-row lg:items-start gap-16 lg:gap-0">
             {/* Left: content 60% */}
             <div className="lg:w-[60%] space-y-8">
@@ -133,7 +138,7 @@ function Page(): JSX.Element {
                 — 02 / Roadmaps & Plans
               </p>
 
-              <h2 className="text-[clamp(3rem,9vw,8rem)] font-black leading-[0.9] tracking-[-0.03em] text-foreground">
+              <h2 className="text-[clamp(1.85rem,3.6vw,3rem)] font-black leading-[0.9] tracking-[-0.03em] text-foreground">
                 Structure any<br />
                 <span className="italic font-serif font-normal text-muted-foreground/50">goal into</span><br />
                 phases.
@@ -162,7 +167,7 @@ function Page(): JSX.Element {
                     <span className={item.active ? "text-foreground" : "text-muted-foreground/40"}>
                       {item.icon}
                     </span>
-                    <span className={`text-2xl sm:text-3xl font-bold tracking-tight transition-colors ${item.active ? "text-foreground" : "text-muted-foreground/30"}`}>
+                    <span className={`text-lg sm:text-xl font-bold tracking-tight transition-colors ${item.active ? "text-foreground" : "text-muted-foreground/30"}`}>
                       {item.label}
                     </span>
                   </div>
@@ -175,7 +180,7 @@ function Page(): JSX.Element {
             </div>
           </div>
 
-          <span className="pointer-events-none absolute right-[-0.05em] bottom-0 text-[clamp(8rem,20vw,18rem)] font-black text-muted/8 leading-none select-none hidden lg:block" aria-hidden>
+          <span className="pointer-events-none absolute right-[-0.05em] bottom-0 text-[clamp(4rem,8vw,7rem)] font-black text-muted/8 leading-none select-none hidden lg:block" aria-hidden>
             02
           </span>
         </section>
@@ -184,7 +189,7 @@ function Page(): JSX.Element {
         <div className="w-full h-px bg-border/40 mx-auto" />
 
         {/* ─── SECTION 03: DAILY MOMENTUM (right-heavy 40/60, flipped) ──── */}
-        <section className="relative w-full py-32 px-6 sm:px-12 lg:px-20 overflow-hidden">
+        <section className="relative w-full py-20 px-6 sm:px-12 lg:px-20 overflow-hidden">
           <div className="flex flex-col lg:flex-row-reverse lg:items-start gap-16 lg:gap-0">
             {/* Right (visually): content 60% */}
             <div className="lg:w-[60%] lg:pl-16 space-y-8">
@@ -192,7 +197,7 @@ function Page(): JSX.Element {
                 — 03 / Habit Engine
               </p>
 
-              <h2 className="text-[clamp(3rem,9vw,8rem)] font-black leading-[0.9] tracking-[-0.03em] text-foreground">
+              <h2 className="text-[clamp(1.85rem,3.6vw,3rem)] font-black leading-[0.9] tracking-[-0.03em] text-foreground">
                 Streaks that<br />
                 <span className="italic font-serif font-normal text-amber-500/80">compound</span><br />
                 daily.
@@ -210,7 +215,7 @@ function Page(): JSX.Element {
 
             {/* Left: feature nav + oversized number 40% */}
             <div className="lg:w-[40%] lg:pt-16 space-y-10">
-              <p className="text-[11rem] font-black leading-none tracking-tighter font-mono text-amber-500/15 select-none">
+              <p className="text-6xl font-black leading-none tracking-tighter font-mono text-amber-500/15 select-none">
                 75
               </p>
 
@@ -225,7 +230,7 @@ function Page(): JSX.Element {
                     <span className={item.active ? "text-amber-500" : "text-muted-foreground/40"}>
                       {item.icon}
                     </span>
-                    <span className={`text-2xl sm:text-3xl font-bold tracking-tight ${item.active ? "text-foreground" : "text-muted-foreground/30"}`}>
+                    <span className={`text-lg sm:text-xl font-bold tracking-tight ${item.active ? "text-foreground" : "text-muted-foreground/30"}`}>
                       {item.label}
                     </span>
                   </div>
@@ -234,7 +239,7 @@ function Page(): JSX.Element {
             </div>
           </div>
 
-          <span className="pointer-events-none absolute left-[-0.05em] bottom-0 text-[clamp(8rem,20vw,18rem)] font-black text-muted/8 leading-none select-none hidden lg:block" aria-hidden>
+          <span className="pointer-events-none absolute left-[-0.05em] bottom-0 text-[clamp(4rem,8vw,7rem)] font-black text-muted/8 leading-none select-none hidden lg:block" aria-hidden>
             03
           </span>
         </section>
@@ -243,12 +248,12 @@ function Page(): JSX.Element {
         <div className="w-full h-px bg-border/40" />
 
         {/* ─── SECTION 04: BENTO CAPABILITY GRID ─────────────────────────── */}
-        <section className="relative w-full py-32 px-6 sm:px-12 lg:px-20 overflow-hidden">
+        <section className="relative w-full py-20 px-6 sm:px-12 lg:px-20 overflow-hidden">
           <p className="text-[11px] font-mono font-bold uppercase tracking-[0.25em] text-muted-foreground/60 mb-6">
             — 04 / Capabilities
           </p>
 
-          <h2 className="text-[clamp(2.5rem,7vw,6rem)] font-black leading-[0.9] tracking-[-0.03em] text-foreground mb-16">
+          <h2 className="text-[clamp(1.85rem,3.5vw,2.75rem)] font-black leading-[0.9] tracking-[-0.03em] text-foreground mb-16">
             Everything you need.<br />
             <span className="italic font-serif font-normal text-muted-foreground/40">Nothing you don&apos;t.</span>
           </h2>
@@ -276,7 +281,7 @@ function Page(): JSX.Element {
                     </div>
                   </div>
                 </div>
-                <span className="pointer-events-none absolute right-4 bottom-4 text-[6rem] font-black text-rose-500/5 leading-none select-none" aria-hidden>
+                <span className="pointer-events-none absolute right-4 bottom-4 text-5xl font-black text-rose-500/5 leading-none select-none" aria-hidden>
                   TIME
                 </span>
               </div>
@@ -301,7 +306,7 @@ function Page(): JSX.Element {
                     </div>
                   </div>
                 </div>
-                <span className="pointer-events-none absolute right-4 bottom-4 text-[6rem] font-black text-violet-500/5 leading-none select-none" aria-hidden>
+                <span className="pointer-events-none absolute right-4 bottom-4 text-5xl font-black text-violet-500/5 leading-none select-none" aria-hidden>
                   FLOW
                 </span>
               </div>
@@ -353,7 +358,7 @@ function Page(): JSX.Element {
                 className="flex flex-col gap-2 border-t border-border/50 pt-6"
                 style={{ paddingLeft: `${i % 2 === 1 ? "10%" : "0"}` }}
               >
-                <p className="text-[clamp(3.5rem,8vw,6rem)] font-black leading-none tracking-tighter font-mono text-foreground">
+                <p className="text-[clamp(2rem,4vw,2.75rem)] font-black leading-none tracking-tighter font-mono text-foreground">
                   {stat.value}
                 </p>
                 <p className="text-base font-bold text-foreground/80">{stat.label}</p>
@@ -367,12 +372,12 @@ function Page(): JSX.Element {
         <div className="w-full h-px bg-border/40" />
 
         {/* ─── SECTION 06: BUILT FOR DEVELOPERS ──────────────────────────── */}
-        <section className="relative w-full py-32 px-6 sm:px-12 lg:px-20 overflow-hidden">
+        <section className="relative w-full py-20 px-6 sm:px-12 lg:px-20 overflow-hidden">
           <p className="text-[11px] font-mono font-bold uppercase tracking-[0.25em] text-muted-foreground/60 mb-6">
             — 06 / Philosophy
           </p>
 
-          <h2 className="text-[clamp(3rem,10vw,9rem)] font-black leading-[0.88] tracking-[-0.04em] text-foreground mb-20">
+          <h2 className="text-[clamp(1.85rem,4vw,3.25rem)] font-black leading-[0.88] tracking-[-0.04em] text-foreground mb-20">
             Built for devs<br />
             <span className="text-muted-foreground/25">who</span>{" "}
             <span className="italic font-serif font-normal">ship.</span>
@@ -434,17 +439,17 @@ function Page(): JSX.Element {
             </div>
           </div>
 
-          <span className="pointer-events-none absolute right-[-0.05em] top-1/2 -translate-y-1/2 text-[clamp(8rem,18vw,16rem)] font-black text-muted/5 leading-none select-none hidden lg:block" aria-hidden>
+          <span className="pointer-events-none absolute right-[-0.05em] top-1/2 -translate-y-1/2 text-[clamp(4rem,8vw,7rem)] font-black text-muted/5 leading-none select-none hidden lg:block" aria-hidden>
             DEV
           </span>
         </section>
 
         {/* ─── CTA ───────────────────────────────────────────────────────── */}
-        <section className="relative w-full py-32 px-6 sm:px-12 lg:px-20 border-t border-border/40 overflow-hidden">
+        <section className="relative w-full py-20 px-6 sm:px-12 lg:px-20 border-t border-border/40 overflow-hidden">
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-12">
             {/* Left: oversized stacked text */}
             <div className="lg:w-[60%]">
-              <h2 className="text-[clamp(3rem,10vw,9rem)] font-black leading-[0.88] tracking-[-0.04em] text-foreground">
+              <h2 className="text-[clamp(1.85rem,4vw,3.25rem)] font-black leading-[0.88] tracking-[-0.04em] text-foreground">
                 Ready to<br />
                 <span className="text-muted-foreground/30">stop</span><br />
                 <span className="italic font-serif font-normal">planning.</span><br />

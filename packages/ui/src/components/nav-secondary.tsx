@@ -29,7 +29,7 @@ export function NavSecondary({
               <SidebarMenuButton
                 asChild
                 size="sm"
-                className="text-muted-foreground hover:text-sidebar-foreground transition-colors"
+                className="text-foreground hover:text-foreground transition-colors [&_svg]:text-foreground/45"
               >
                 <a href={item.url} className="flex items-center gap-2.5">
                   <span className="shrink-0 [&_svg]:size-4">{item.icon}</span>

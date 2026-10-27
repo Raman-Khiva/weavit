@@ -3,7 +3,7 @@
   "info": {
     "title": "Weavit Platform API",
     "description": "Comprehensive REST API specification for Weavit productivity, roadmap management, habits, todos, deadlines, and activity analytics platform.",
-    "version": "1.0.0",
+    "version": "1.2.0",
     "contact": {
       "name": "Weavit Engineering Team",
       "url": "https://weavit.dev"
@@ -29,6 +29,7 @@
       "get": {
         "summary": "Health Check Endpoint",
         "description": "Check operational health and database status",
+        "security": [],
         "responses": {
           "200": {
             "description": "System operational",
@@ -64,6 +65,48 @@
                     "userId": { "type": "string", "example": "user_2x9A..." }
                   }
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/leetcode/{username}": {
+      "get": {
+        "summary": "LeetCode check-in for today",
+        "description": "Reads the latest LeetCode submission for a username and reports whether it falls on the current day. A habit can use this as its check-in source.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "LeetCode username"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Whether the latest submission counts for today",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LeetCodeCheckIn" }
+              }
+            }
+          },
+          "400": {
+            "description": "LeetCode rejected the username",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "The LeetCode request failed",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
               }
             }
           }
@@ -597,7 +640,12 @@
           "category": { "type": "string" },
           "icon": { "type": "string" },
           "startDate": { "type": "string" },
-          "endDate": { "type": "string" }
+          "endDate": { "type": "string" },
+          "phases": {
+            "type": "array",
+            "description": "Optional nested phases (each may include tasks and notes)",
+            "items": { "$ref": "#/components/schemas/CreatePhaseInput" }
+          }
         },
         "required": ["title"]
       },
@@ -607,7 +655,12 @@
           "title": { "type": "string" },
           "description": { "type": "string" },
           "category": { "type": "string" },
-          "status": { "type": "string", "enum": ["DRAFT", "ACTIVE", "COMPLETED", "ARCHIVED"] }
+          "status": { "type": "string", "enum": ["DRAFT", "ACTIVE", "COMPLETED", "ARCHIVED"] },
+          "phases": {
+            "type": "array",
+            "description": "Optional nested phases when replacing or seeding plan structure",
+            "items": { "$ref": "#/components/schemas/CreatePhaseInput" }
+          }
         }
       },
       "ProjectPhase": {
@@ -620,6 +673,10 @@
           "category": { "type": "string", "nullable": true },
           "status": { "type": "string", "enum": ["PENDING", "ACTIVE", "COMPLETED"] },
           "order": { "type": "integer" },
+          "startDate": { "type": "string", "format": "date-time", "nullable": true },
+          "endDate": { "type": "string", "format": "date-time", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" },
           "tasks": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/ProjectTask" }
@@ -632,7 +689,15 @@
         "properties": {
           "title": { "type": "string" },
           "description": { "type": "string" },
-          "category": { "type": "string" }
+          "category": { "type": "string" },
+          "order": { "type": "integer" },
+          "startDate": { "type": "string", "format": "date-time" },
+          "endDate": { "type": "string", "format": "date-time" },
+          "tasks": {
+            "type": "array",
+            "description": "Optional nested tasks for this phase",
+            "items": { "$ref": "#/components/schemas/CreateTaskInput" }
+          }
         },
         "required": ["title"]
       },
@@ -646,6 +711,11 @@
           "status": { "type": "string", "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "SKIPPED"] },
           "category": { "type": "string", "nullable": true },
           "priority": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"] },
+          "dueDate": { "type": "string", "format": "date-time", "nullable": true },
+          "completedAt": { "type": "string", "format": "date-time", "nullable": true },
+          "order": { "type": "integer" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" },
           "notes": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/TaskLogNote" }
@@ -659,7 +729,14 @@
           "title": { "type": "string" },
           "description": { "type": "string" },
           "category": { "type": "string" },
-          "priority": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"] }
+          "priority": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"] },
+          "dueDate": { "type": "string", "description": "Calendar date (YYYY-MM-DD) or ISO date-time" },
+          "order": { "type": "integer" },
+          "notes": {
+            "type": "array",
+            "description": "Optional nested log notes for this task",
+            "items": { "$ref": "#/components/schemas/CreateTaskNoteInput" }
+          }
         },
         "required": ["title"]
       },
@@ -668,7 +745,12 @@
         "properties": {
           "title": { "type": "string" },
           "status": { "type": "string", "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "SKIPPED"] },
-          "note": { "type": "string" }
+          "note": { "type": "string" },
+          "notes": {
+            "type": "array",
+            "description": "Optional notes to append when updating a task",
+            "items": { "$ref": "#/components/schemas/CreateTaskNoteInput" }
+          }
         }
       },
       "TaskLogNote": {
@@ -685,7 +767,8 @@
       "CreateTaskNoteInput": {
         "type": "object",
         "properties": {
-          "text": { "type": "string" }
+          "text": { "type": "string" },
+          "author": { "type": "string" }
         },
         "required": ["text"]
       },
@@ -696,18 +779,48 @@
           "userId": { "type": "string" },
           "title": { "type": "string" },
           "frequency": { "type": "string", "enum": ["DAILY", "WEEKLY", "MONTHLY"] },
+          "description": { "type": "string", "nullable": true },
           "category": { "type": "string" },
           "streakCount": { "type": "integer" },
-          "bestStreak": { "type": "integer" }
+          "bestStreak": { "type": "integer" },
+          "logs": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/HabitLog" }
+          },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
         },
         "required": ["id", "userId", "title"]
+      },
+      "HabitLog": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "habitId": { "type": "string" },
+          "completedAt": { "type": "string", "format": "date-time" },
+          "notes": { "type": "string", "nullable": true }
+        },
+        "required": ["id", "habitId", "completedAt"]
+      },
+      "CreateHabitLogInput": {
+        "type": "object",
+        "properties": {
+          "completedAt": { "type": "string", "format": "date-time" },
+          "notes": { "type": "string" }
+        }
       },
       "CreateHabitInput": {
         "type": "object",
         "properties": {
           "title": { "type": "string" },
+          "description": { "type": "string" },
           "frequency": { "type": "string", "enum": ["DAILY", "WEEKLY", "MONTHLY"] },
-          "category": { "type": "string" }
+          "category": { "type": "string" },
+          "logs": {
+            "type": "array",
+            "description": "Optional nested check-in logs to seed with the habit",
+            "items": { "$ref": "#/components/schemas/CreateHabitLogInput" }
+          }
         },
         "required": ["title"]
       },
@@ -717,9 +830,13 @@
           "id": { "type": "string" },
           "userId": { "type": "string" },
           "title": { "type": "string" },
+          "description": { "type": "string", "nullable": true },
           "status": { "type": "string", "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "SKIPPED"] },
           "priority": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"] },
-          "tags": { "type": "array", "items": { "type": "string" } }
+          "dueDate": { "type": "string", "format": "date-time", "nullable": true },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
         },
         "required": ["id", "userId", "title"]
       },
@@ -727,7 +844,9 @@
         "type": "object",
         "properties": {
           "title": { "type": "string" },
+          "description": { "type": "string" },
           "priority": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"] },
+          "dueDate": { "type": "string", "description": "Calendar date (YYYY-MM-DD) or ISO date-time" },
           "tags": { "type": "array", "items": { "type": "string" } }
         },
         "required": ["title"]
@@ -749,9 +868,25 @@
           "time": { "type": "string", "nullable": true },
           "dueDate": { "type": "string", "format": "date-time" },
           "priority": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"] },
-          "isCompleted": { "type": "boolean" }
+          "isCompleted": { "type": "boolean" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
         },
         "required": ["id", "userId", "title", "dueDate"]
+      },
+      "LeetCodeCheckIn": {
+        "type": "object",
+        "properties": {
+          "doneToday": { "type": "boolean" }
+        },
+        "required": ["doneToday"]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string" },
+          "error": { "type": "string" }
+        }
       },
       "CreateDeadlineInput": {
         "type": "object",

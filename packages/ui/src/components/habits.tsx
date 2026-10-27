@@ -10,18 +10,9 @@ import {
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { useState } from "react"
-import { CheckCircle, Flame, Plus, Info, Rocket } from "lucide-react"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@workspace/ui/components/dialog"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
-import TaskCard from "@workspace/ui/components/taskCard"
+import { useEffect, useState } from "react"
+import { CheckCircle, Flame } from "lucide-react"
+import { HabitCard } from "@workspace/ui/components/habit-card"
 import { components } from "@weavit/api-types"
 
 type HABIT = components["schemas"]["Habit"];
@@ -126,86 +117,71 @@ const DEFAULT_HABITS: HabitProps[] = [
 
 
 
+type HabitRow = {
+  id: string
+  title: string
+  description?: string
+  streak: number
+  history: boolean[]
+  completed: boolean
+}
+
+const PREVIEW_HABITS: HabitRow[] = [
+  {
+    id: "preview-leetcode",
+    title: "Solve a LeetCode problem",
+    streak: 14,
+    history: [true, true, false, true, true, true],
+    completed: false,
+  },
+  {
+    id: "preview-reading",
+    title: "Read 10 pages",
+    streak: 9,
+    history: [true, true, true, true, false, true],
+    completed: true,
+  },
+]
+
+function rowsFromHabits(habits: HABIT[]): HabitRow[] {
+  return habits.map((habit) => ({
+    id: habit.id,
+    title: habit.title,
+    streak: habit.streakCount ?? 0,
+    history: [false, false, false, false, false, false],
+    completed: false,
+  }))
+}
+
 export const Habits = ({ habits }: HabitsProps) => {
-  const [newHabitTitle, setNewHabitTitle] = useState("")
-  const [isOpen, setIsOpen] = useState(false)
+  const [rows, setRows] = useState<HabitRow[]>(
+    habits && habits.length > 0 ? rowsFromHabits(habits) : PREVIEW_HABITS
+  )
 
-  const handleAddHabit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newHabitTitle.trim()) return
-
-    const newHabit: HabitProps = {
-      title: newHabitTitle,
-      category: "custom",
-      streak: 0,
-    }
-
-  }
+  useEffect(() => {
+    if (habits && habits.length > 0) setRows(rowsFromHabits(habits))
+  }, [habits])
 
   return (
-    <main className="flex h-full w-full px-6 min-w-7 py-1  flex-col gap-2 ">
-      <div className="flex items-center justify-between pb-2 border-b border-border/40">
-        <div className="flex items-center gap-2">
-          <h2 className="text-base font-bold text-foreground">Daily Tasks</h2>
-          <div className="group relative flex items-center justify-center">
-            <Info className="h-3.5 w-3.5 text-muted-foreground hover:text-primary cursor-pointer transition-colors" />
-            <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-6 opacity-0 group-hover:opacity-100 transition-opacity z-50 rounded-md bg-popover border border-border px-2.5 py-1 text-[10px] text-popover-foreground shadow-xl whitespace-nowrap">
-              Track and complete your recurring daily habits & streaks
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full">
-                <Plus size={14} />
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Habit</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleAddHabit} className="flex flex-col gap-4 py-4">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="habit-title">Habit Name</Label>
-                  <Input
-                    id="habit-title"
-                    placeholder="e.g. Drink Water"
-                    value={newHabitTitle}
-                    onChange={(e) => setNewHabitTitle(e.target.value)}
-                  />
-                </div>
-                <Button type="submit" className="w-full">
-                  Add Habit
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
-          <a
-            href="/workspace/habits"
-            className="text-xs font-semibold text-primary hover:underline"
-          >
-            View all
-          </a>
-        </div>
-      </div>
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pb-2 pt-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {habits?.slice(0, 5).map((habit, i) => (
-
-          <TaskCard
+    <main className="flex w-full min-w-7 flex-col gap-1 px-1 py-1">
+      <div className="flex flex-col gap-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {rows.slice(0, 4).map((habit, index) => (
+          <HabitCard
             key={habit.id}
             title={habit.title}
-            habit={habit.title}
-            icon={Rocket}
-            status={i % 2 ? "done" : "pending"}
-            streak={4}
-
+            streak={habit.completed ? habit.streak : Math.max(habit.streak - 1, 0)}
+            history={habit.history}
+            completed={habit.completed}
+            onToggle={() =>
+              setRows((current) =>
+                current.map((item, i) =>
+                  i === index ? { ...item, completed: !item.completed } : item
+                )
+              )
+            }
           />
         ))}
-        {/*{habitsList.map((habit, index) => (
-          <Habit key={index} {...habit} />
-        ))}*/}
       </div>
-    </main >
+    </main>
   )
 }

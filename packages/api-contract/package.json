@@ -1,8 +1,14 @@
 {
     "name": "@weavit/api-contract",
-    "version": "0.0.0.0",
-    "types": "",
-    "main": "",
+    "version": "1.0.0",
+    "types": "", 
+    "scripts": {
+        "generate:zod": "orval --config ./orval.config.ts",
+        "generate:types": "openapi-typescript ./openapi.json -o ./src/generated/types.ts",
+        "generate": "pnpm run generate:zod && pnpm run generate:types"
+    },   
+
+    "main": "./src/index.ts",
     "exports": {
         ".": "./src/index.ts",
         "./zod": "./src/generated/zod.ts",
@@ -14,3 +20,5 @@
         "zod": "^4.4.3"
     }
 }
+
+

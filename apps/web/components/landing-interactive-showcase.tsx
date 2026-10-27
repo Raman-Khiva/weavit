@@ -149,7 +149,7 @@ export function LandingInteractiveShowcase() {
             <span>Interactive Workspace</span>
           </div>
 
-          <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-center text-foreground max-w-4xl mx-auto leading-tight">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-center text-foreground max-w-4xl mx-auto leading-tight">
             Explore the <span className="font-serif italic font-normal text-foreground/90">modules</span> <br />
             powering your execution
           </h2>
@@ -337,7 +337,7 @@ export function LandingInteractiveShowcase() {
             <span>Workflow Architecture</span>
           </div>
 
-          <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-center text-foreground max-w-4xl mx-auto leading-tight">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-center text-foreground max-w-4xl mx-auto leading-tight">
             From chaos to <span className="font-serif italic font-normal text-foreground/90">peak flow</span> <br />
             in 3 simple steps
           </h2>
@@ -396,7 +396,7 @@ export function LandingInteractiveShowcase() {
             <span>Comparison</span>
           </div>
 
-          <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-center text-foreground max-w-4xl mx-auto leading-tight">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-center text-foreground max-w-4xl mx-auto leading-tight">
             See how Weavit <span className="font-serif italic font-normal text-foreground/90">stacks up</span> <br />
             against manual workflows
           </h2>
@@ -522,7 +522,7 @@ export function LandingInteractiveShowcase() {
             <span>Got Questions?</span>
           </div>
 
-          <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-center text-foreground max-w-4xl mx-auto leading-tight">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-center text-foreground max-w-4xl mx-auto leading-tight">
             Frequently asked <span className="font-serif italic font-normal text-foreground/90">questions</span> <br />
             & system answers
           </h2>

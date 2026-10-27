@@ -61,9 +61,8 @@ export function AppSidebar({
 
   const user = propUser || defaultUser
 
-  // Silverwite icon style with subtle glow
-  const silverwiteIcon = (Icon: React.ComponentType<React.SVGProps<SVGSVGElement>>) => (
-    <Icon className="size-[18px] stroke-[2.2] text-slate-100/90 drop-shadow-[0_0_4px_rgba(226,232,240,0.6)] dark:text-slate-50/95 dark:drop-shadow-[0_0_6px_rgba(203,213,225,0.5)]" />
+  const navIcon = (Icon: React.ComponentType<React.SVGProps<SVGSVGElement>>) => (
+    <Icon className="size-[18px] stroke-[2]" />
   )
 
   const navMain = React.useMemo(
@@ -71,7 +70,7 @@ export function AppSidebar({
       {
         title: "Daily Habits",
         url: "/workspace/habits",
-        icon: silverwiteIcon(Target),
+        icon: navIcon(Target),
         items: [
           {
             title: "Reading",
@@ -90,28 +89,28 @@ export function AppSidebar({
       {
         title: "Tasks & Todos",
         url: "/workspace/todos",
-        icon: silverwiteIcon(ClipboardCheck),
+        icon: navIcon(ClipboardCheck),
       },
       {
         title: "Roadmaps & Plans",
         url: "/workspace/projects",
-        icon: silverwiteIcon(Layers),
+        icon: navIcon(Layers),
         badge: projects?.length ? String(projects.length) : undefined,
       },
       {
         title: "Deadlines",
         url: "/workspace/deadlines",
-        icon: silverwiteIcon(CalendarClock),
+        icon: navIcon(CalendarClock),
       },
       {
         title: "Timeline & Activity",
         url: "/workspace/timeline",
-        icon: silverwiteIcon(Activity),
+        icon: navIcon(Activity),
       },
       {
         title: "Drafts & Notes",
         url: "/workspace/drafts",
-        icon: silverwiteIcon(FileText),
+        icon: navIcon(FileText),
       },
     ],
     [projects]
@@ -122,12 +121,12 @@ export function AppSidebar({
       {
         title: "Documentation",
         url: "/overview",
-        icon: silverwiteIcon(BookOpen),
+        icon: navIcon(BookOpen),
       },
       {
         title: "Settings",
         url: "/workspace/settings",
-        icon: silverwiteIcon(Settings),
+        icon: navIcon(Settings),
       },
     ],
     []
@@ -139,13 +138,13 @@ export function AppSidebar({
         {
           name: "SDE 2 Interview Prep",
           url: "/workspace/projects/sde-interview-prep",
-          icon: silverwiteIcon(FolderKanban),
+          icon: navIcon(FolderKanban),
           badge: "1/4",
         },
         {
           name: "Distributed DB Engine",
           url: "/workspace/projects/distributed-key-value-store",
-          icon: silverwiteIcon(FolderKanban),
+          icon: navIcon(FolderKanban),
           badge: "0/3",
         },
       ]
@@ -157,7 +156,7 @@ export function AppSidebar({
       return {
         name: p.title,
         url: `/workspace/projects/${p.id}`,
-        icon: silverwiteIcon(FolderKanban),
+        icon: navIcon(FolderKanban),
         badge: `${completed}/${allTasks.length}`,
       }
     })
@@ -165,8 +164,8 @@ export function AppSidebar({
 
   return (
 
-    <Sidebar {...props} className="h-full max-w-68 top-0">   {/* variant defaults to "sidebar"; drop max-w-68 */}
-      <SidebarHeader className="h-14  flex  justify-center border-b border-border/50 p-0 px-2">
+    <Sidebar variant="sidebar" {...props}>
+      <SidebarHeader className="flex h-14 justify-center p-0 px-2">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild className="rounded-xl transition-all duration-150 hover:bg-sidebar-accent/60">

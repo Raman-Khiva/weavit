@@ -1,4 +1,4 @@
-import express, { Request, response, Response } from "express"
+import express, { application, Request, response, Response } from "express"
 import { clerkMiddleware, getAuth } from "@clerk/express"
 import { prisma } from '../src/config/db'
 import swaggerUi from "swagger-ui-express"
@@ -25,6 +25,7 @@ import {
   PostTodosBody, PostTodosResponse,
 } from "./zod/api"
 import { logger } from "./lib/logger.dev"
+import { boolean, int, number, string } from "zod"
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000
@@ -119,6 +120,80 @@ const getUserId = async (req: Request, res: Response): Promise<string | null> =>
 
 
 
+// LEETCODE Routes 
+
+app.get("/leetcode/:username", async(req : Request, res : Response)=>{
+       
+  try{
+    
+    const {username} = req.params;
+    if(!username || (typeof username != "string")){
+      return res.status(500).json({
+        message : "User name is required",
+        error : "Invalid username"
+      })
+    }
+    
+    const recentSubmissionListQuery = `
+     query recentSubmissions($username : String!){
+        recentSubmissionList(username : $username, limit : 1){
+           timestamp
+        }
+    }`; 
+
+    const variables = {
+      username : username
+    };
+
+    const response = await fetch("https://leetcode.com/graphql",{
+      method : 'POST',
+      headers : {
+        'Content-Type' : 'application/json',
+        'Accept' : 'application/json'
+      }
+      , body : JSON.stringify({
+        query : recentSubmissionListQuery,
+        variables : variables
+      })
+    });
+
+    if(!response.ok){
+      return res.status(response.status).json({
+          message : "Failed to fetch data from leetcode",
+      })
+    }
+
+    const result = await response.json();
+
+    if(result.errors){
+      return res.status(400).json({
+        errors : result.errors
+      })
+    }
+
+    const todayStart = new Date(); 
+    todayStart.setHours(0,0,0,0);
+
+    const recentTimestamp = Number(result.data.recentSubmissionList?.[0].timestamp) *1000;
+
+    let doneToday : boolean= false;
+
+    if(recentTimestamp) doneToday = recentTimestamp >= todayStart.getTime();
+
+    return res.status(200).json({doneToday : doneToday});
+
+
+
+  }catch(error){
+    return res.status(500).json({
+      message : "Internal Server Error while fetching leetcode data",
+      error : error,
+    })
+  }
+})
+
+
+
 
 
 
@@ -184,21 +259,28 @@ app.post("/habits", async (req: Request, res: Response) => {
       })
     }
 
-    const validData = result.data;
-
+    const { logs, ...habitFields } = result.data;
 
     const postedHabit = await prisma.habit.create({
       data: {
         userId,
-        ...validData
-      }
-
+        ...habitFields,
+        ...(logs?.length
+          ? {
+              logs: {
+                create: logs.map((log) => ({
+                  ...(log.completedAt ? { completedAt: new Date(log.completedAt) } : {}),
+                  notes: log.notes,
+                })),
+              },
+            }
+          : {}),
+      },
+      include: { logs: true },
     })
 
     // Parse through the OpenAPI response schema to enforce the contract.
-    // This strips internal DB fields (e.g. description, createdAt) not
-    // declared in the spec, and throws if the shape is invalid.
-    const response = PostHabitsResponse.parse(postedHabit)
+    const response = PostHabitsResponse.parse(JSON.parse(JSON.stringify(postedHabit)))
     res.status(201).json(response);
 
 
@@ -218,6 +300,14 @@ app.post('/syncUser', async (req: Request, res: Response) => {
   try {
     console.log("Entering /syncUser")
     const { userId } = await getAuth(req);
+
+    if (!userId) {
+      return res.status(400).json({
+        message: "User is not authorized",
+        error: "authentication required"
+      })
+    }
+
 
     let existingUser = true;
     let user = await prisma.user.findUnique({
@@ -271,7 +361,7 @@ app.get('/todos', async (req: Request, res: Response) => {
       }
     });
 
-    const result = GetTodosResponse.safeParse(todos);
+    const result = GetTodosResponse.safeParse(JSON.parse(JSON.stringify(todos)));
 
     if (!result.success) {
       return res.status(400).json({
@@ -332,7 +422,7 @@ app.post('/todos', async (req: Request, res: Response) => {
 
 
     // Enforce OpenAPI contract: only declared fields are sent to the client.
-    const response = PostTodosResponse.parse(postedTodo)
+    const response = PostTodosResponse.parse(JSON.parse(JSON.stringify(postedTodo)))
     res.status(201).json(response)
 
 
@@ -408,20 +498,59 @@ app.post('/projects', async (req: Request, res: Response) => {
       })
     }
 
-    const validData = result.data;
+    const { phases, ...projectFields } = result.data;
 
     const postedProject = await prisma.project.create({
       data: {
         userId,
-        ...validData
-      }
+        ...projectFields,
+        ...(phases?.length
+          ? {
+              phases: {
+                create: phases.map((phase) => {
+                  const { tasks, ...phaseFields } = phase
+                  return {
+                    ...phaseFields,
+                    ...(tasks?.length
+                      ? {
+                          tasks: {
+                            create: tasks.map((task) => {
+                              const { notes, ...taskFields } = task
+                              return {
+                                ...taskFields,
+                                ...(notes?.length
+                                  ? {
+                                      notes: {
+                                        create: notes.map((note) => ({
+                                          text: note.text,
+                                          author: note.author,
+                                        })),
+                                      },
+                                    }
+                                  : {}),
+                              }
+                            }),
+                          },
+                        }
+                      : {}),
+                  }
+                }),
+              },
+            }
+          : {}),
+      },
+      include: {
+        phases: {
+          include: {
+            tasks: {
+              include: { notes: true },
+            },
+          },
+        },
+      },
     });
 
-    const resResult = PostProjectsResponse.safeParse({
-      ...postedProject,
-      createdAt: postedProject.createdAt.toISOString(),
-      updatedAt: postedProject.updatedAt.toISOString(),
-    });
+    const resResult = PostProjectsResponse.safeParse(JSON.parse(JSON.stringify(postedProject)));
 
     if (!resResult.success) {
       return res.status(500).json({
@@ -469,24 +598,42 @@ app.post('/projects/:projectId/phases', async (req: Request, res: Response) => {
     }
 
 
-    const validData = result.data;
+    const { tasks, ...phaseFields } = result.data;
     const postedData = await prisma.projectPhase.create({
       data: {
         projectId,
-        ...validData
-      }
-      , include: {
-        tasks:
-        {
-          include: { notes: true }
-        }
-      }
-
-
-
+        ...phaseFields,
+        ...(tasks?.length
+          ? {
+              tasks: {
+                create: tasks.map((task) => {
+                  const { notes, ...taskFields } = task
+                  return {
+                    ...taskFields,
+                    ...(notes?.length
+                      ? {
+                          notes: {
+                            create: notes.map((note) => ({
+                              text: note.text,
+                              author: note.author,
+                            })),
+                          },
+                        }
+                      : {}),
+                  }
+                }),
+              },
+            }
+          : {}),
+      },
+      include: {
+        tasks: {
+          include: { notes: true },
+        },
+      },
     })
 
-    const validatePostedData = PostProjectsProjectIdPhasesResponse.safeParse(postedData);
+    const validatePostedData = PostProjectsProjectIdPhasesResponse.safeParse(JSON.parse(JSON.stringify(postedData)));
 
     if (!validatePostedData.success) {
       return res.status(400).json({
@@ -545,11 +692,26 @@ app.post("/projects/:projectId/phases/:phaseId/tasks", async (req: Request<{ pha
       })
     }
 
+    const { notes, ...taskFields } = result.data;
     const postedTask = await prisma.projectTask.create({
-      data: { ...result.data, phaseId }
+      data: {
+        ...taskFields,
+        phaseId,
+        ...(notes?.length
+          ? {
+              notes: {
+                create: notes.map((note) => ({
+                  text: note.text,
+                  author: note.author,
+                })),
+              },
+            }
+          : {}),
+      },
+      include: { notes: true },
     })
 
-    const validatePostTaskResponse = PostProjectsProjectIdPhasesPhaseIdTasksResponse.safeParse(postedTask);
+    const validatePostTaskResponse = PostProjectsProjectIdPhasesPhaseIdTasksResponse.safeParse(JSON.parse(JSON.stringify(postedTask)));
 
     if (!validatePostTaskResponse.success) {
       return res.status(500).json({

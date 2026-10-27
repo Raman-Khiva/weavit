@@ -17,7 +17,7 @@ export function CategoryProgressHeader({ project }: CategoryProgressHeaderProps)
   const projectProgress = calculateProjectProgress(project)
 
   return (
-    <div className="w-full rounded-2xl border border-border/80 bg-card/60 p-6 shadow-sm backdrop-blur-sm">
+    <div className="w-full rounded-2xl border border-border/80 bg-background p-6 shadow-sm">
       {/* Top Header Row */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
@@ -41,7 +41,7 @@ export function CategoryProgressHeader({ project }: CategoryProgressHeaderProps)
         </div>
 
         {/* Overall Completion Metric Ring/Bar */}
-        <div className="flex items-center gap-4 rounded-xl border border-border/80 bg-background/80 p-4 min-w-[240px] justify-between">
+        <div className="flex items-center gap-4 rounded-xl border border-border/80 bg-card p-4 min-w-[240px] justify-between">
           <div className="flex flex-col">
             <span className="text-xs font-medium text-muted-foreground">Overall Mastery</span>
             <div className="flex items-baseline gap-1 mt-0.5">
@@ -81,7 +81,7 @@ export function CategoryProgressHeader({ project }: CategoryProgressHeaderProps)
             {categoryStats.map((stat) => (
               <div
                 key={stat.category}
-                className="flex flex-col gap-2 rounded-xl border border-border/60 bg-background/60 p-3.5 transition-all hover:border-border"
+                className="flex flex-col gap-2 rounded-xl border border-border/60 bg-card p-3.5 transition-all hover:border-border"
               >
                 <div className="flex items-center justify-between text-xs font-semibold">
                   <span className="text-foreground truncate max-w-[140px]">{stat.category}</span>

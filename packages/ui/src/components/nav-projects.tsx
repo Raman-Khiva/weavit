@@ -41,7 +41,7 @@ export function NavProjects({
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <div className="flex items-center justify-between px-2 py-1">
-        <SidebarGroupLabel className="p-0 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/60">
+        <SidebarGroupLabel className="p-0 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
           Roadmaps & Plans
         </SidebarGroupLabel>
         <SidebarGroupAction asChild title="All Roadmaps">
@@ -68,8 +68,8 @@ export function NavProjects({
                   className={cn(
                     "relative group/proj-item rounded-lg px-2.5 py-2 transition-all duration-150",
                     isItemActive
-                      ? "bg-sidebar-accent font-semibold text-sidebar-accent-foreground shadow-2xs"
-                      : "text-sidebar-foreground/75 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+                      ? "bg-sidebar-accent font-semibold text-foreground shadow-2xs"
+                      : "text-foreground hover:bg-sidebar-accent/60 hover:text-foreground"
                   )}
                 >
                   <a href={item.url} className="flex items-center gap-2.5 w-full">
@@ -80,8 +80,8 @@ export function NavProjects({
                       className={cn(
                         "flex items-center justify-center shrink-0 transition-colors",
                         isItemActive
-                          ? "text-primary"
-                          : "text-muted-foreground group-hover/proj-item:text-sidebar-foreground"
+                          ? "text-foreground/70"
+                          : "text-foreground/45 group-hover/proj-item:text-foreground/60"
                       )}
                     >
                       {item.icon}
