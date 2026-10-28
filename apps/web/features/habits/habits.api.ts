@@ -1,8 +1,15 @@
 import { api } from "@/services/api";
+import { HABIT_LOG,CreateHabitLogInput } from "@weavit/api-contract";
 import type { components } from "@weavit/api-types";
 
 type Habit = components['schemas']['Habit'];
 type CreateHabitInput = components['schemas']['CreateHabitInput']
+
+
+interface CreateHabitLogProps{
+    habitId : string,
+    body : CreateHabitLogInput
+}
 
 export const habitsApi = api.injectEndpoints({
     overrideExisting: true,
@@ -22,8 +29,15 @@ export const habitsApi = api.injectEndpoints({
             invalidatesTags: ["Habit"],
 
         })
+        , postHabitLog : builder.mutation<HABIT_LOG, CreateHabitLogProps>({
+            query : (payload)=>({
+                url : `/habits/${payload.habitId}/logs`,
+                method : "POST",
+                body : payload.body
+            })
+        })
     })
 })
 
 
-export const { useGetHabitsQuery, usePostHabitMutation } = habitsApi;
+export const { useGetHabitsQuery, usePostHabitMutation, usePostHabitLogMutation } = habitsApi;

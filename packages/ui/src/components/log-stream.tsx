@@ -1,6 +1,6 @@
 "use client"
 
-import { MessageSquareText, NotebookPen, SearchIcon, XIcon } from "lucide-react"
+import { MessageSquareText, NotebookPen, Plus, SearchIcon, XIcon } from "lucide-react"
 import { type ReactNode, useMemo, useState } from "react"
 import { cn } from "@workspace/ui/lib/utils"
 
@@ -23,11 +23,19 @@ export interface JournalNote {
   content: string
 }
 
+export type NewJournalEntryInput = {
+  status: JournalStatus
+  entry: string
+  quantity?: string
+  remark?: string
+}
+
 export interface LogStreamProps {
   entries?: JournalEntry[]
   notes?: JournalNote[]
   title?: string
   className?: string
+  onAddEntry?: (input: NewJournalEntryInput) => void
 }
 
 const STATUSES: { id: JournalStatus; label: string; chip: string; dot: string }[] = [
@@ -88,11 +96,37 @@ export function LogStream({
   notes = [],
   title = "Journal",
   className,
+  onAddEntry,
 }: LogStreamProps) {
   const [tab, setTab] = useState<"entries" | "notes">("entries")
   const [statuses, setStatuses] = useState<Set<JournalStatus>>(new Set(["done", "missed"]))
   const [query, setQuery] = useState("")
+  const [isAdding, setIsAdding] = useState(false)
+  const [draftStatus, setDraftStatus] = useState<JournalStatus>("done")
+  const [draftEntry, setDraftEntry] = useState("")
+  const [draftQuantity, setDraftQuantity] = useState("")
+  const [draftRemark, setDraftRemark] = useState("")
   const q = query.trim().toLowerCase()
+
+  const resetDraft = () => {
+    setDraftStatus("done")
+    setDraftEntry("")
+    setDraftQuantity("")
+    setDraftRemark("")
+    setIsAdding(false)
+  }
+
+  const submitEntry = () => {
+    const entry = draftEntry.trim()
+    if (!entry || !onAddEntry) return
+    onAddEntry({
+      status: draftStatus,
+      entry,
+      quantity: draftQuantity.trim() || undefined,
+      remark: draftRemark.trim() || undefined,
+    })
+    resetDraft()
+  }
 
   const counts = useMemo(() => {
     const tally: Record<JournalStatus, number> = { done: 0, missed: 0 }
@@ -218,62 +252,152 @@ export function LogStream({
       </div>
 
       {tab === "entries" ? (
-        visibleEntries.length === 0 ? (
-          <p className="px-4 py-10 text-center text-sm text-white/50">
-            {q ? `Nothing matches “${query.trim()}”.` : "No entries yet."}
-          </p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] border-collapse text-sm">
-              <thead>
-                <tr className="border-b border-white/10 text-left text-[11px] font-medium uppercase tracking-wide text-white/40">
-                  <th className="px-4 py-2.5 font-medium">Date</th>
-                  <th className="px-3 py-2.5 font-medium">Status</th>
-                  <th className="px-3 py-2.5 font-medium">Quantity</th>
-                  <th className="px-3 py-2.5 font-medium">Entry</th>
-                  <th className="w-12 px-3 py-2.5 text-center font-medium">
-                    <span className="sr-only">Remark</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {visibleEntries.map((entry) => {
-                  const status = statusInfo[entry.status]
-                  return (
-                    <tr key={entry.id} className="border-b border-white/10 last:border-b-0">
-                      <td className="whitespace-nowrap px-4 py-3 align-middle text-white/70 tabular-nums">
-                        {formatWhen(entry.ts)}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-3 align-middle">
-                        <span className={cn("inline-flex items-center gap-1.5 text-xs font-medium", status.chip)}>
-                          <span className={cn("size-1.5 rounded-full", status.dot)} aria-hidden />
-                          {status.label}
-                        </span>
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-3 align-middle text-white/70 tabular-nums">
-                        {entry.quantity ?? "—"}
-                      </td>
-                      <td className="px-3 py-3 align-middle text-white/85">
-                        <Mark query={q} text={entry.entry} />
-                      </td>
-                      <td className="px-3 py-3 text-center align-middle">
-                        {entry.remark ? (
-                          <span
-                            className="inline-flex size-7 items-center justify-center rounded-md text-sky-300"
-                            title={entry.remark}
-                            aria-label={`Remark: ${entry.remark}`}
-                          >
-                            <MessageSquareText className="size-4" aria-hidden />
+        <>
+          {visibleEntries.length === 0 ? (
+            <p className="px-4 py-10 text-center text-sm text-white/50">
+              {q ? `Nothing matches “${query.trim()}”.` : "No entries yet."}
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[640px] border-collapse text-sm">
+                <thead>
+                  <tr className="border-b border-white/10 text-left text-[11px] font-medium uppercase tracking-wide text-white/40">
+                    <th className="px-4 py-2.5 font-medium">Date</th>
+                    <th className="px-3 py-2.5 font-medium">Status</th>
+                    <th className="px-3 py-2.5 font-medium">Quantity</th>
+                    <th className="px-3 py-2.5 font-medium">Entry</th>
+                    <th className="w-12 px-3 py-2.5 text-center font-medium">
+                      <span className="sr-only">Remark</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {visibleEntries.map((entry) => {
+                    const status = statusInfo[entry.status]
+                    return (
+                      <tr key={entry.id} className="border-b border-white/10 last:border-b-0">
+                        <td className="whitespace-nowrap px-4 py-3 align-middle text-white/70 tabular-nums">
+                          {formatWhen(entry.ts)}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-3 align-middle">
+                          <span className={cn("inline-flex items-center gap-1.5 text-xs font-medium", status.chip)}>
+                            <span className={cn("size-1.5 rounded-full", status.dot)} aria-hidden />
+                            {status.label}
                           </span>
-                        ) : null}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        )
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-3 align-middle text-white/70 tabular-nums">
+                          {entry.quantity ?? "—"}
+                        </td>
+                        <td className="px-3 py-3 align-middle text-white/85">
+                          <Mark query={q} text={entry.entry} />
+                        </td>
+                        <td className="px-3 py-3 text-center align-middle">
+                          {entry.remark ? (
+                            <span
+                              className="inline-flex size-7 items-center justify-center rounded-md text-sky-300"
+                              title={entry.remark}
+                              aria-label={`Remark: ${entry.remark}`}
+                            >
+                              <MessageSquareText className="size-4" aria-hidden />
+                            </span>
+                          ) : null}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {onAddEntry && (
+            <div className="border-t border-white/10 px-4 py-3">
+              {isAdding ? (
+                <div className="flex flex-col gap-2.5 rounded-xl border border-white/15 bg-black/20 p-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {STATUSES.map((status) => {
+                      const on = draftStatus === status.id
+                      return (
+                        <button
+                          key={status.id}
+                          type="button"
+                          aria-pressed={on}
+                          onClick={() => setDraftStatus(status.id)}
+                          className={cn(
+                            "inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-medium",
+                            on
+                              ? "border-white/30 bg-white/10 text-white"
+                              : "border-white/10 text-white/45 hover:text-white"
+                          )}
+                        >
+                          <span className={cn("size-1.5 rounded-full", status.dot)} />
+                          {status.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  <input
+                    aria-label="Log entry"
+                    autoFocus
+                    className="h-10 w-full rounded-lg border border-white/10 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-white/35 focus:border-white/25"
+                    onChange={(event) => setDraftEntry(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" && !event.shiftKey) {
+                        event.preventDefault()
+                        submitEntry()
+                      }
+                      if (event.key === "Escape") resetDraft()
+                    }}
+                    placeholder="What happened? (e.g. Read 12 pages before bed)"
+                    value={draftEntry}
+                  />
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <input
+                      aria-label="Quantity"
+                      className="h-9 w-full rounded-lg border border-white/10 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-white/35 focus:border-white/25 sm:max-w-[10rem]"
+                      onChange={(event) => setDraftQuantity(event.target.value)}
+                      placeholder="Quantity (optional)"
+                      value={draftQuantity}
+                    />
+                    <input
+                      aria-label="Remark"
+                      className="h-9 w-full flex-1 rounded-lg border border-white/10 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-white/35 focus:border-white/25"
+                      onChange={(event) => setDraftRemark(event.target.value)}
+                      placeholder="Remark (optional)"
+                      value={draftRemark}
+                    />
+                  </div>
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={resetDraft}
+                      className="h-9 rounded-lg px-3 text-sm text-white/55 hover:text-white"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!draftEntry.trim()}
+                      onClick={submitEntry}
+                      className="h-9 rounded-lg bg-white px-3.5 text-sm font-semibold text-black disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      Add log
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsAdding(true)}
+                  className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-white/20 text-sm text-white/55 transition-colors hover:border-white/35 hover:text-white"
+                >
+                  <Plus className="size-4" />
+                  Add log
+                </button>
+              )}
+            </div>
+          )}
+        </>
       ) : visibleNotes.length === 0 ? (
         <p className="px-4 py-10 text-center text-sm text-white/50">
           {q ? `Nothing matches “${query.trim()}”.` : "No notes yet."}

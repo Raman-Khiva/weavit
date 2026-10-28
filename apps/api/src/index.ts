@@ -15,7 +15,7 @@ import {
   PatchProjectsProjectIdPhasesPhaseIdTasksTaskIdResponse,
   PostDeadlinesBody,
   PostDeadlinesResponse,
-  PostHabitsBody, PostHabitsResponse,
+  PostHabitsBody, PostHabitsIdToggleParams, PostHabitsResponse,
   PostProjectsBody,
   PostProjectsProjectIdPhasesBody,
   PostProjectsProjectIdPhasesPhaseIdTasksBody,
@@ -27,7 +27,7 @@ import {
   PostTodosBody, PostTodosResponse,
 } from "./zod/api"
 import { logger } from "./lib/logger.dev"
-import { boolean, int, number, string } from "zod"
+import z, { boolean, int, json, number, string } from "zod"
 import { fromCaught, invalidBody, invalidParamas, invalidRes } from "./lib/responseErrors"
 
 const app = express();
@@ -302,6 +302,81 @@ app.post("/habits", async (req: Request, res: Response) => {
     })
 
   }
+})
+
+// post habit log
+const PostHabitLogBody = z.object({
+  completedAt: z.iso.datetime({ offset: true }).optional(),
+  notes: z.string().optional(),
+})
+const PostHabitLogResponse = z.object({
+  id: z.string(),
+  habitId: z.string(),
+  completedAt: z.iso.datetime({ offset: true }),
+  notes: z.string().nullish(),
+})
+
+
+
+
+app.post("/habits/:habitId/logs",async (req : Request<{habitId : string}>, res : Response)=>{
+  try {
+    const userId = getUserId(req,res);
+    if(!userId) return;
+    
+    const {habitId} = req.params;
+
+    if(!habitId){
+      return invalidParamas(res);
+    }
+
+    const validateBody = PostHabitLogBody.safeParse(req.body);
+
+    if(!validateBody.success){
+      return invalidBody(res, validateBody.error);
+    }
+    const postedLog = await prisma.habitLog.create({
+      data : {habitId, ...validateBody.data}
+    })
+
+    const validateResponse = PostHabitLogResponse.safeParse(JSON.parse(JSON.stringify(postedLog)));
+    
+    if(!validateResponse.success){
+      return invalidRes(res,validateResponse.error);
+    }
+
+    return res.status(201).json(validateBody.data);
+
+    
+  } catch (error) {
+    throw error;
+  }
+})
+
+
+
+
+
+// patch habit
+
+app.patch("/habits/:habitId",async (req : Request<{habitId:string}>, res : Response)=>{
+   try{
+     const userId = getUserId(req,res);
+     if(!userId) return;
+     
+     const {habitId} = req.body;
+
+     if(!habitId){
+      return invalidParamas(res);
+     }
+
+     const validateBody = PostHabitsIdToggleParams
+
+
+
+   }catch(error){
+    throw error;
+   }
 })
 
 

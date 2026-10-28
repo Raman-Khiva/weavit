@@ -4,7 +4,12 @@ import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { HabitHeader, type HabitStatus } from "@workspace/ui/components/habit-header"
 import { HabitHeatmap } from "@workspace/ui/components/habit-heatmap"
-import { LogStream, type JournalEntry, type JournalNote } from "@workspace/ui/components/log-stream"
+import {
+  LogStream,
+  type JournalEntry,
+  type JournalNote,
+  type NewJournalEntryInput,
+} from "@workspace/ui/components/log-stream"
 import { StreakCard } from "@workspace/ui/components/streak-card"
 import {
   Card,
