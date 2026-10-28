@@ -29,6 +29,8 @@ export type UpdateTaskInput = Schemas["UpdateTaskInput"];
 export type CreateTaskNoteInput = Schemas["CreateTaskNoteInput"];
 
 export type CreateHabitInput = Schemas["CreateHabitInput"];
+export type CreateHabitLogInput = Schemas["CreateHabitLogInput"];
+export type HABIT_LOG = Schemas["HabitLog"];
 
 export type CreateTodoInput = Schemas["CreateTodoInput"];
 export type UpdateTodoInput = Schemas["UpdateTodoInput"];

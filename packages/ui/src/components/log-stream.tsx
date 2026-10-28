@@ -3,6 +3,7 @@
 import { MessageSquareText, NotebookPen, Plus, SearchIcon, XIcon } from "lucide-react"
 import { type ReactNode, useMemo, useState } from "react"
 import { cn } from "@workspace/ui/lib/utils"
+import type { CreateHabitLogInput, HABIT_LOG } from "@weavit/api-contract"
 
 export type JournalStatus = "done" | "missed"
 
@@ -23,19 +24,14 @@ export interface JournalNote {
   content: string
 }
 
-export type NewJournalEntryInput = {
-  status: JournalStatus
-  entry: string
-  quantity?: string
-  remark?: string
-}
+export type { CreateHabitLogInput }
 
 export interface LogStreamProps {
   entries?: JournalEntry[]
-  notes?: JournalNote[]
+  notes?: HABIT_LOG[]
   title?: string
   className?: string
-  onAddEntry?: (input: NewJournalEntryInput) => void
+  onAddEntry?: (body: CreateHabitLogInput) => void
 }
 
 const STATUSES: { id: JournalStatus; label: string; chip: string; dot: string }[] = [
@@ -120,10 +116,8 @@ export function LogStream({
     const entry = draftEntry.trim()
     if (!entry || !onAddEntry) return
     onAddEntry({
-      status: draftStatus,
-      entry,
-      quantity: draftQuantity.trim() || undefined,
-      remark: draftRemark.trim() || undefined,
+      completedAt: new Date().toISOString(),
+      notes: entry,
     })
     resetDraft()
   }
@@ -146,8 +140,14 @@ export function LogStream({
 
   const visibleNotes = useMemo(() => {
     return [...notes]
-      .filter((note) => !q || note.content.toLowerCase().includes(q))
-      .sort((a, b) => b.ts - a.ts)
+      .filter((note) => {
+        if (!q) return true
+        return (note.notes ?? "").toLowerCase().includes(q)
+      })
+      .sort(
+        (a, b) =>
+          new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime()
+      )
   }, [notes, q])
 
   const toggleStatus = (status: JournalStatus) => {
@@ -407,10 +407,10 @@ export function LogStream({
           {visibleNotes.map((note) => (
             <li key={note.id} className="flex items-start gap-4 px-4 py-3">
               <span className="w-32 shrink-0 pt-0.5 text-xs tabular-nums text-white/45">
-                {formatWhen(note.ts)}
+                {formatWhen(new Date(note.completedAt).getTime())}
               </span>
               <p className="min-w-0 text-sm leading-relaxed text-white/80">
-                <Mark query={q} text={note.content} />
+                <Mark query={q} text={note.notes?.trim() || "Checked in"} />
               </p>
             </li>
           ))}

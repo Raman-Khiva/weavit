@@ -28,7 +28,7 @@ import {
 } from "./zod/api"
 import { logger } from "./lib/logger.dev"
 import z, { boolean, int, json, number, string } from "zod"
-import { fromCaught, invalidBody, invalidParamas, invalidRes } from "./lib/responseErrors"
+import { fail, fromCaught, invalidBody, invalidParamas, invalidRes } from "./lib/responseErrors"
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000
@@ -225,7 +225,7 @@ app.get("/habits", async (req: Request, res: Response) => {
     const habits: Habit[] = await prisma.habit.findMany({
       where: {
         userId
-      }
+      },include : {logs : true}
     })
 
     const validateResponse = GetHabitsResponse.safeParse(JSON.parse(JSON.stringify(habits)));
@@ -319,37 +319,48 @@ const PostHabitLogResponse = z.object({
 
 
 
-app.post("/habits/:habitId/logs",async (req : Request<{habitId : string}>, res : Response)=>{
+app.post("/habits/:habitId/logs", async (req: Request<{ habitId: string }>, res: Response) => {
   try {
-    const userId = getUserId(req,res);
-    if(!userId) return;
-    
-    const {habitId} = req.params;
+    const userId = await getUserId(req, res)
+    if (!userId) return
 
-    if(!habitId){
-      return invalidParamas(res);
+    const { habitId } = req.params
+    if (!habitId) {
+      return invalidParamas(res)
     }
 
-    const validateBody = PostHabitLogBody.safeParse(req.body);
-
-    if(!validateBody.success){
-      return invalidBody(res, validateBody.error);
+    const habit = await prisma.habit.findFirst({
+      where: { id: habitId, userId },
+    })
+    if (!habit) {
+      return fail(res, 404, "Habit not found")
     }
+
+    const validateBody = PostHabitLogBody.safeParse(req.body)
+    if (!validateBody.success) {
+      return invalidBody(res, validateBody.error)
+    }
+
     const postedLog = await prisma.habitLog.create({
-      data : {habitId, ...validateBody.data}
+      data: {
+        habitId,
+        notes: validateBody.data.notes,
+        ...(validateBody.data.completedAt
+          ? { completedAt: new Date(validateBody.data.completedAt) }
+          : {}),
+      },
     })
 
-    const validateResponse = PostHabitLogResponse.safeParse(JSON.parse(JSON.stringify(postedLog)));
-    
-    if(!validateResponse.success){
-      return invalidRes(res,validateResponse.error);
+    const validateResponse = PostHabitLogResponse.safeParse(
+      JSON.parse(JSON.stringify(postedLog))
+    )
+    if (!validateResponse.success) {
+      return invalidRes(res, validateResponse.error)
     }
 
-    return res.status(201).json(validateBody.data);
-
-    
+    return res.status(201).json(validateResponse.data)
   } catch (error) {
-    throw error;
+    return fromCaught(res, "Internal Server Error", error)
   }
 })
 

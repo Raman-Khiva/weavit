@@ -1,14 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useParams } from "next/navigation"
 import { HabitHeader, type HabitStatus } from "@workspace/ui/components/habit-header"
 import { HabitHeatmap } from "@workspace/ui/components/habit-heatmap"
 import {
   LogStream,
   type JournalEntry,
-  type JournalNote,
-  type NewJournalEntryInput,
 } from "@workspace/ui/components/log-stream"
 import { StreakCard } from "@workspace/ui/components/streak-card"
 import {
@@ -21,7 +19,10 @@ import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { SkeletonWrapper, HabitDetailPageSkeleton } from "@workspace/ui/components/skeleton-wrapper"
 import { Link2Icon, UnlinkIcon } from "lucide-react"
-import { JsonToSseTransformStream } from "ai"
+import {
+  useGetHabitsQuery,
+  usePostHabitLogMutation,
+} from "@/features/habits/habits.api"
 
 type HabitProfile = {
   title: string
@@ -85,58 +86,6 @@ const streak = [
   { periodStart: "2024-01-03", periodEnd: "2024-01-03" },
 ]
 
-const JOURNAL_ENTRIES: JournalEntry[] = [
-  {
-    id: "oct-25-done",
-    ts: new Date(2026, 9, 25, 21, 40).getTime(),
-    status: "done",
-    quantity: "12 pages",
-    entry: "Read 12 pages and finished the chapter before bed.",
-    remark: "Easier once the phone was in the other room.",
-  },
-  {
-    id: "oct-24-missed",
-    ts: new Date(2026, 9, 24, 23, 10).getTime(),
-    status: "missed",
-    entry: "Missed the evening reading after a late night.",
-  },
-  {
-    id: "oct-22-done",
-    ts: new Date(2026, 9, 22, 8, 15).getTime(),
-    status: "done",
-    quantity: "20 pages",
-    entry: "Read 20 pages on the train, starting from a planned 10.",
-  },
-  {
-    id: "oct-21-done",
-    ts: new Date(2026, 9, 21, 7, 30).getTime(),
-    status: "done",
-    quantity: "15 min",
-    entry: "Read 8 pages over breakfast before leaving for work.",
-    remark: "Short session, still counted.",
-  },
-  {
-    id: "oct-19-done",
-    ts: new Date(2026, 9, 19, 22, 5).getTime(),
-    status: "done",
-    quantity: "45 min",
-    entry: "Read two chapters of the novel at the desk.",
-  },
-]
-
-const JOURNAL_NOTES: JournalNote[] = [
-  {
-    id: "note-phone",
-    ts: new Date(2026, 9, 23, 18, 5).getTime(),
-    content: "Leave the phone in the other room before opening the book.",
-  },
-  {
-    id: "note-floor",
-    ts: new Date(2026, 9, 20, 21, 0).getTime(),
-    content: "Ten pages is the floor. Stopping there still counts.",
-  },
-]
-
 function habitIdFromParams(id: string | string[] | undefined) {
   if (Array.isArray(id)) return id[0] ?? "habit"
   return id ?? "habit"
@@ -177,16 +126,52 @@ function LeetCodeMark({ className }: { className?: string }) {
 
 function Page(): JSX.Element {
   const params = useParams()
-  const habit = profileFor(habitIdFromParams(params.id))
+  const habitId = habitIdFromParams(params.id)
+  const { data: habits, isLoading : isLoadingHabits} = useGetHabitsQuery()
+
+
+  if(isLoadingHabits){
+    return(<h2>Please wait loading habits...</h2>)
+  }
+  const realHabit = habits?.find((item) => item.id === habitId)
+  const habit =  realHabit
+    ? {
+        title: realHabit.title,
+        description: realHabit.description ?? "",
+        category: realHabit.category ?? "General",
+        cadence:
+          realHabit.frequency === "WEEKLY"
+            ? ("Weekly" as const)
+            : realHabit.frequency === "MONTHLY"
+              ? ("Monthly" as const)
+              : ("Daily" as const),
+        goal: "Once a day",
+        reminder: "Not set",
+        checkedInToday: false,
+      }
+    : profileFor(habitId)
+
   const status: HabitStatus = habit.gap ? "behind" : "on_track"
 
   const [leetcodeHandle, setLeetcodeHandle] = useState<string | null>(null)
   const [draftHandle, setDraftHandle] = useState("")
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [doneToday,setDoneToday] = useState<boolean>(false);
+  const [isConnecting, setIsConnecting] = useState(false)
+  const [doneToday, setDoneToday] = useState<boolean>(false)
   const [reminder, setReminder] = useState<string | null>(
     habit.reminder === "Not set" ? null : habit.reminder
   )
+  const [postHabitLog] = usePostHabitLogMutation()
+
+  const journalEntries = useMemo<JournalEntry[]>(() => {
+    return (realHabit?.logs ?? []).map((log) => ({
+      id: log.id,
+      ts: new Date(log.completedAt).getTime(),
+      status: "done" as const,
+      entry: log.notes?.trim() || "Checked in",
+    }))
+  }, [realHabit?.logs])
+
+  const habitLogs = realHabit?.logs ?? []
 
 
   const connectLeetCode = () => {
@@ -384,7 +369,14 @@ function Page(): JSX.Element {
               doneToday={doneToday}
             />
 
-            <LogStream entries={JOURNAL_ENTRIES} notes={JOURNAL_NOTES} />
+            <LogStream
+              entries={journalEntries}
+              notes={habitLogs}
+              onAddEntry={async (body) => {
+                await postHabitLog({ habitId, body }).unwrap()
+                setDoneToday(true)
+              }}
+            />
           </div>
         </div>
 
