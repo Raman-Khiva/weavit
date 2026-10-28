@@ -9,10 +9,13 @@ import pinoHttp from "pino-http"
 import {
   GetDeadlinesResponse,
   GetHabitsResponse,
+  GetProjectsIdResponse,
   GetProjectsResponse,
   GetTodosResponse,
   PatchProjectsProjectIdPhasesPhaseIdTasksTaskIdBody,
   PatchProjectsProjectIdPhasesPhaseIdTasksTaskIdResponse,
+  PatchTodosIdBody,
+  PatchTodosIdResponse,
   PostDeadlinesBody,
   PostDeadlinesResponse,
   PostHabitsBody, PostHabitsIdToggleParams, PostHabitsResponse,
@@ -516,7 +519,6 @@ app.post('/todos', async (req: Request, res: Response) => {
 
 
 
-    // Enforce OpenAPI contract: only declared fields are sent to the client.
     const response = PostTodosResponse.parse(JSON.parse(JSON.stringify(postedTodo)))
     res.status(201).json(response)
 
@@ -533,9 +535,55 @@ app.post('/todos', async (req: Request, res: Response) => {
 })
 
 
+// patch todo
+
+app.patch('/todos/:todoId', async (req : Request<{todoId : string}>, res : Response)=>{
+    try{
+       const userId = await getUserId(req,res);
+       if(!userId){
+        return 
+       }
+
+       const {todoId} = req.params;
+
+       if(!todoId){
+        return invalidParamas(res);
+       }
+
+       const validateBody = PatchTodosIdBody.safeParse(req.body);
+
+       if(!validateBody.success){
+        return invalidBody(res, validateBody.error);
+       }
+
+       const updatedTodo = await prisma.todo.update({
+        where : {
+          userId,
+          id : todoId
+        },
+        data : validateBody.data
+       })
+
+       const validateRes = PatchTodosIdResponse.safeParse(JSON.parse(JSON.stringify(updatedTodo)));
+
+       if(!validateRes.success){
+        return invalidRes(res, validateRes.error);
+       }
+
+       return res.status(200).json(validateRes.data);
+
+    }catch(error){
+      throw error
+    }  
+
+})
+
+
 
 
 // Project Routes
+
+
 
 
 
@@ -562,7 +610,6 @@ app.get('/projects', async (req: Request, res: Response) => {
       })
     }
 
-    // Bug fix: was returning the safeParse wrapper {success, data} instead of the data
     return res.status(200).json(validateRes.data);
 
   } catch (error) {
@@ -570,6 +617,42 @@ app.get('/projects', async (req: Request, res: Response) => {
       message: "Server error while getting projects",
       error: error
     })
+  }
+})
+
+
+
+// Get Project by Id
+app.get('/projects/:projectId', async(req : Request<{projectId : string}>, res : Response)=>{
+
+  try {
+    const userId = await  getUserId(req,res);
+    if(!userId) return;
+   
+    const {projectId} = req.params;
+
+    if(!projectId){
+      return invalidParamas(res);
+    }
+
+    const foundedProject = await prisma.project.findUnique({
+      where : {
+        userId,
+        id : projectId
+      }
+    })
+
+    const validateResponse = GetProjectsIdResponse.safeParse(JSON.parse(JSON.stringify(foundedProject)));
+
+    if(!validateResponse.success){
+      return invalidRes(res,validateResponse.error);
+    }
+
+    return res.status(200).json(validateResponse.data);
+
+
+  } catch (error) {
+    throw error;
   }
 })
 
