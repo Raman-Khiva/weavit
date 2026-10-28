@@ -41,9 +41,9 @@ import { CreatePhaseInput, CreateTaskInput, CreateTaskNoteInput, PROJECT } from 
 
 interface ProjectPhasesProps {
   project: PROJECT
-  handleCreateTask: (args: { projectId: string, phaseId: string, addTaskInput: CreateTaskInput }) => Promise<void>
-  handleCreateNote: (args: { projectId: string, phaseId: string, taskId: string, addNoteInput: CreateTaskNoteInput }) => Promise<void>
-  onToggleTask: (projectId: string, phaseId: string, taskId: string, noteText?: string) => void
+  handleCreateTask: (args : { projectId: string, phaseId: string, addTaskInput: CreateTaskInput }) => void
+  handleCreateNote: (args: { projectId: string, phaseId: string, taskId: string, addNoteInput: CreateTaskNoteInput }) => void
+  onToggleTask: (projectId: string, phaseId: string, taskId: string, status: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "SKIPPED") => void
   onAddNote: (projectId: string, phaseId: string, taskId: string, text: string) => void
   onAddTask: (projectId: string, phaseId: string, task: { title: string; description?: string; category?: string; priority?: "low" | "medium" | "high" }) => void
   onAddPhase: (projectId: string, phase: { title: string; description?: string; category?: string }) => void

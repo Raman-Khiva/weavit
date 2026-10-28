@@ -19,17 +19,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
-import { ExecutableTask } from "@workspace/ui/lib/projects-store"
 import { TaskNoteDialog } from "@workspace/ui/components/task-note-dialog"
 import { TASK, CreateTaskInput, CreateTaskNoteInput } from "@weavit/api-types"
 
+type TaskStatus = TASK["status"]
+
 interface ProjectTasksProps {
   projectId: string
-  handleCreateNote: (args: { projectId: string, phaseId: string, taskId: string, addNoteInput: CreateTaskNoteInput }) => Promise<void>
-  handleCreateTask: (args: { projectId: string, phaseId: string, addTaskInput: CreateTaskInput }) => Promise<void>
+  handleCreateNote: (args: { projectId: string, phaseId: string, taskId: string, addNoteInput: CreateTaskNoteInput }) => void
+  handleCreateTask: (args: { projectId: string, phaseId: string, addTaskInput: CreateTaskInput }) => void
   phaseId: string
   tasks: TASK[]
-  onToggleTask: (projectId: string, phaseId: string, taskId: string, noteText?: string) => void
+  onToggleTask: (projectId: string, phaseId: string, taskId: string, status: TaskStatus) => void
   onAddNote: (projectId: string, phaseId: string, taskId: string, text: string) => void
   onAddTask: (projectId: string, phaseId: string, task: { title: string; description?: string; category?: string; priority?: "low" | "medium" | "high" }) => void
 }
@@ -49,7 +50,7 @@ export function ProjectTasks({
   onAddNote,
 }: ProjectTasksProps) {
   const [activeTaskForNote, setActiveTaskForNote] = useState<{
-    task: ExecutableTask
+    task: TASK
     mode: "complete_with_note" | "add_note" | "view_notes"
   } | null>(null)
 
@@ -166,14 +167,14 @@ export function ProjectTasks({
                     <DropdownMenuRadioGroup
                       value={statusValue}
                       onValueChange={(value) => {
-                        if (value === "COMPLETED" && !isDone) {
-                          onToggleTask(projectId, phaseId, task.id)
-                        } else if (
-                          (value === "PENDING" || value === "IN_PROGRESS") &&
-                          isDone
-                        ) {
-                          onToggleTask(projectId, phaseId, task.id)
-                        }
+
+                        if (value === statusValue) return;
+                        onToggleTask(
+                          projectId,
+                          phaseId,
+                          task.id,
+                          value as TaskStatus
+                        )
                       }}
                     >
                       <DropdownMenuRadioItem value="PENDING">
@@ -278,10 +279,11 @@ export function ProjectTasks({
           }}
           mode={activeTaskForNote.mode}
           onSaveNote={(taskId, text, toggleStatus) => {
-            if (toggleStatus) {
-              onToggleTask(projectId, phaseId, taskId, text)
-            } else if (text) {
+            if (text) {
               onAddNote(projectId, phaseId, taskId, text)
+            }
+            if (toggleStatus) {
+              onToggleTask(projectId, phaseId, taskId, "COMPLETED")
             }
             setActiveTaskForNote(null)
           }}

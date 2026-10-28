@@ -1,4 +1,5 @@
 import { api } from "@/services/api";
+import { UpdateTaskInput } from "@weavit/api-contract";
 import { CreatePhaseInput, CreateProjectInput, CreateTaskInput, CreateTaskNoteInput, PHASE, PROJECT, TASK, TASK_LOG_NOTE } from "@weavit/api-types";
 
 
@@ -17,6 +18,14 @@ interface CreateNoteProps {
     projectId?: string
     phaseId?: string
     taskId?: string
+}
+
+interface UpdateTaskProps{
+    body?: UpdateTaskInput
+    projectId: string
+    phaseId: string
+    taskId: string
+
 }
 
 export const projectsApi = api.injectEndpoints({
@@ -62,9 +71,21 @@ export const projectsApi = api.injectEndpoints({
                 body: payload.body,
             }),
             invalidatesTags: ["Projects"]
+        }),
+
+        // patch task
+        patchTask: builder.mutation<TASK, UpdateTaskProps>({
+            query: (payload) => ({
+                url: `/projects/${payload.projectId}/phases/${payload.phaseId}/tasks/${payload.taskId}`,
+                method: "PATCH",
+                body: payload.body,
+            }),
+            invalidatesTags: ["Projects"],
         })
+
+
     })
 })
 
 
-export const { useGetProjectsQuery, usePostProjectMutation, usePostPhaseMutation, usePostTaskMutation, usePostNoteMutation } = projectsApi;
+export const { useGetProjectsQuery, usePostProjectMutation, usePostPhaseMutation, usePostTaskMutation, usePostNoteMutation , usePatchTaskMutation} = projectsApi;

@@ -16,7 +16,7 @@ export interface ExecutableTask {
   status: "PENDING" | "COMPLETED" | "IN_PROGRESS" | "SKIPPED"
   category?: string | null
   priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT"
-  dueDate?: string
+  dueDate?: string | null
   CompletedAt?: string
   notes?: TASKLOGNOTE[]
 }

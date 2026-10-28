@@ -15,6 +15,7 @@ import { CreatePhaseInput, CreateTaskInput, CreateTaskNoteInput } from "@weavit/
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@workspace/ui/components/dialog"
 import { Label } from "@workspace/ui/components/label"
 import { RadioGroup } from "@workspace/ui/components/radio-group"
+import { ProjectPhasesContainer } from "@/features/projects/ProjectContainer"
 
 
 type AddPhaseInput = CreatePhaseInput;
@@ -333,16 +334,18 @@ function Page(): JSX.Element {
 
         {/* Phase & Task Timeline System */}
         <div className="w-full">
-          {realProject &&
-            <ProjectPhases
-              project={realProject}
-              handleCreateTask={handleCreateTask}
-              handleCreateNote={handleCreateNote}
-              onToggleTask={toggleTaskStatus}
-              onAddNote={addTaskNote}
-              onAddTask={addTaskToPhase}
-              onAddPhase={addPhaseToProject}
-            />}
+          {realProject &&(
+           <ProjectPhasesContainer projectId={projectId}/>
+            // <ProjectPhases
+
+            //   project={realProject}
+            //   handleCreateTask={handleCreateTask}
+            //   handleCreateNote={handleCreateNote}
+            //   onToggleTask={toggleTaskStatus}
+            //   onAddNote={addTaskNote}
+            //   onAddTask={addTaskToPhase}
+            //   onAddPhase={addPhaseToProject}/>
+          )}
         </div>
       </main>
     </SkeletonWrapper>

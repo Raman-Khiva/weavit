@@ -704,7 +704,7 @@ app.patch("/projects/:projectId/phases/:phaseId/tasks/:taskId", async (req : Req
       include : {notes : true},
     }) 
 
-    const validateRes = PatchProjectsProjectIdPhasesPhaseIdTasksTaskIdResponse.safeParse(updatedTask);
+    const validateRes = PatchProjectsProjectIdPhasesPhaseIdTasksTaskIdResponse.safeParse(JSON.parse(JSON.stringify(updatedTask)));
     
     if(!validateRes.success){
       return invalidRes(res,validateRes.error);
