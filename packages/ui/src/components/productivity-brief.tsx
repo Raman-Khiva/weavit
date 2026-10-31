@@ -6,7 +6,7 @@ const SCORE = { score: 92, trend: "+6.8%" }
 const BARS = 25
 
 function duePhrase(date: string) {
-  const [year, month, day] = date.split("-").map(Number)
+  const [year = 0, month = 1, day = 1] = date.split("-").map(Number)
   const due = new Date(year, month - 1, day)
   const now = new Date()
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())

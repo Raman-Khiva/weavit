@@ -28,17 +28,17 @@ type DeadlinesProps = {
 
 const pad = (n: number) => String(n).padStart(2, "0");
 const parse = (s: string) => {
-  const [y, m, d] = s.split("-").map(Number);
+  const [y = 0, m = 1, d = 1] = s.split("-").map(Number);
   return new Date(y, m - 1, d);
 };
 const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 const daysBetween = (a: Date, b: Date) => Math.round((a.getTime() - b.getTime()) / 86_400_000);
 const toMin = (hhmm: string) => {
-  const [h, m] = hhmm.split(":").map(Number);
+  const [h = 0, m = 0] = hhmm.split(":").map(Number);
   return h * 60 + m;
 };
 const fmt12 = (hhmm: string) => {
-  const [h, m] = hhmm.split(":").map(Number);
+  const [h = 0, m = 0] = hhmm.split(":").map(Number);
   return `${h % 12 || 12}:${pad(m)} ${h >= 12 ? "PM" : "AM"}`;
 };
 const span = (mins: number) => {

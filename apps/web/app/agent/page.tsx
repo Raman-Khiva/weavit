@@ -11,7 +11,7 @@ import { PlanPreview } from "@/components/agent/plan-preview";
 import { GenerationStatus } from "@/components/agent/generation-status";
 import { PromptInputBody, PromptInputActionMenu, PromptInputActionMenuTrigger, PromptInputActionMenuContent, PromptInputActionMenuItem } from "@workspace/ui/components/ai-elements/prompt-input";
 import { SequencedAchievementList, type SequencedAchievementItem, type SequencedAchievementProgress } from "@workspace/ui/components/achievement-list";
-import { CheckIcon, BotIcon, SparklesIcon, Loader2Icon, ChevronRightIcon, DownloadIcon, PlusIcon, Lightbulb, Cpu, Layers, GitBranch, Zap, Users, Star, Clock, BarChart3, ArrowRight } from "lucide-react";
+import { CheckIcon, BotIcon, SparklesIcon, Loader2Icon, ChevronRightIcon, DownloadIcon, PlusIcon, Lightbulb, Cpu, Layers, GitBranch, Zap, ArrowRight } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { cn } from "@workspace/ui/lib/utils";
@@ -557,11 +557,13 @@ function AgentSidebar({
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border px-4 py-3 bg-background/95 backdrop-blur sticky top-0 z-10">
         <div className="flex items-center gap-3">
-          <div className="size-9 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
-            <SparklesIcon className="size-5 text-primary-foreground" />
-          </div>
+          <img
+            src="/logo-weavit.png"
+            alt="Weavit"
+            className="size-9 rounded-xl object-contain"
+          />
           <div>
-            <h1 className="font-semibold text-foreground">Agent</h1>
+            <h1 className="font-semibold text-foreground">weavit agent</h1>
             <p className="text-xs text-muted-foreground">Your AI planning assistant</p>
           </div>
         </div>
@@ -658,13 +660,6 @@ const FEATURE_HIGHLIGHTS = [
   },
 ] as const;
 
-const EMPTY_STATS = [
-  { icon: Users, value: "12k+", label: "Projects generated" },
-  { icon: Star, value: "4.9", label: "Average rating" },
-  { icon: Clock, value: "<3s", label: "Generation time" },
-  { icon: BarChart3, value: "98%", label: "Task accuracy" },
-] as const;
-
 const EXAMPLE_PROMPTS = [
   "A Python learning platform",
   "E-commerce store with React",
@@ -686,10 +681,12 @@ function AgentEmptyState({ onSubmit }: { onSubmit: (text: string) => void }) {
     <div className="flex h-screen flex-col text-foreground">
       <header className="flex items-center justify-between border-b px-5 py-3">
         <div className="flex items-center gap-2">
-          <div className="flex size-7 items-center justify-center rounded-lg bg-primary">
-            <SparklesIcon className="size-3.5 text-primary-foreground" />
-          </div>
-          <span className="text-sm font-semibold">Agent</span>
+          <img
+            src="/logo-weavit.png"
+            alt="Weavit"
+            className="size-7 rounded-lg object-contain"
+          />
+          <span className="text-sm font-semibold">weavit agent</span>
         </div>
       </header>
 
@@ -751,19 +748,6 @@ function AgentEmptyState({ onSubmit }: { onSubmit: (text: string) => void }) {
                 <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{description}</p>
               </div>
             </div>
-          ))}
-        </div>
-
-        <div className="mb-8 flex w-full max-w-lg items-center justify-around rounded-2xl border bg-muted/30 px-6 py-4">
-          {EMPTY_STATS.map(({ icon: Icon, value, label }, index) => (
-            <React.Fragment key={label}>
-              {index > 0 && <div className="h-10 w-px bg-border" />}
-              <div className="flex flex-col items-center gap-1">
-                <Icon className="size-4 text-muted-foreground" />
-                <span className="text-lg font-bold tabular-nums">{value}</span>
-                <span className="text-xs text-muted-foreground">{label}</span>
-              </div>
-            </React.Fragment>
           ))}
         </div>
 

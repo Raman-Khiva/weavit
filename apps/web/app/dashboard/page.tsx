@@ -1,16 +1,20 @@
+
+
 "use client"
 import { useEffect, useMemo, useState } from "react"
 import { FloatingDockDemo } from "@workspace/ui/components/mvpblocks/floating-dock-demo"
 import { Habits } from "@workspace/ui/components/habits"
 import { Deadlines, type Deadline } from "@workspace/ui/components/deadlines"
 import { PlanItemCard, TaskCard as QueueTaskCard } from "@workspace/ui/components/queue-cards"
-import { NextUp, ProductivityBoard } from "@workspace/ui/components/productivity-board"
+import { ProductivityBoard } from "@workspace/ui/components/productivity-board"
+import { PlansOverview } from "@workspace/ui/components/plans-overview"
 import { HeaderIslands, type ScheduleEvent } from "@workspace/ui/components/header-islands"
 import { Bot } from "lucide-react"
 import { useAuth } from "@clerk/nextjs"
 import { useGetProjectsQuery } from "@/features/projects/projects.api"
 import { useGetHabitsQuery } from "@/features/habits/habits.api"
 import type { PROJECT } from "@weavit/api-types"
+import AgentContainer from "@/features/agent/AgentContainer"
 
 function eventToday(id: string, title: string, startHour: number, endHour: number): ScheduleEvent {
   const start = new Date()
@@ -35,9 +39,8 @@ const DEADLINES: Deadline[] = [
   { id: "docs", title: "Write documentation", due: "2026-10-30", priority: "low" },
 ]
 
-function AssistantGreeting({ nextTitle, nextDue }: { nextTitle: string; nextDue: string }) {
+function AssistantGreeting() {
   const [index, setIndex] = useState(0)
-  const [done, setDone] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -47,20 +50,18 @@ function AssistantGreeting({ nextTitle, nextDue }: { nextTitle: string; nextDue:
   }, [])
 
   return (
-    <section aria-label="Assistant" className="@container flex min-h-0 flex-1 flex-col overflow-y-auto px-8 pt-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      <p className="text-[clamp(2.5rem,14cqw,4.5rem)] font-semibold leading-none tracking-tight text-foreground">hi, raman.</p>
+    <section
+      aria-label="Assistant"
+      className="@container flex min-h-0 flex-1 flex-col overflow-y-auto px-8 pt-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    >
+      <p className="text-[clamp(2.5rem,14cqw,4.5rem)] font-semibold leading-none tracking-tight text-foreground">
+        hi, raman.
+      </p>
       <p className="mt-1 flex items-center gap-2 text-lg text-muted-foreground">
         <Bot className="size-6 shrink-0" strokeWidth={1.75} />
         <span>{ASSISTANT_MESSAGES[index]}</span>
       </p>
-      <NextUp title={nextTitle} due={nextDue} />
-      <Deadlines
-        className="mt-auto pt-6"
-        deadlines={DEADLINES.map((item) => ({ ...item, done: done[item.id] }))}
-        onToggle={(item) =>
-          setDone((current) => ({ ...current, [item.id]: !current[item.id] }))
-        }
-      />
+      <AgentContainer />
     </section>
   )
 }
@@ -132,10 +133,44 @@ function planRows(projects: PROJECT[]) {
   return rows
 }
 
+/** Projects + deadlines, side by side above the dock in the central column. */
+function CenterBottomRail({
+  projects,
+  deadlines,
+  onToggleDeadline,
+}: {
+  projects: PROJECT[]
+  deadlines: Deadline[]
+  onToggleDeadline: (item: Deadline) => void
+}) {
+  return (
+    <div
+      aria-label="Plans and deadlines"
+      className="flex h-80 shrink-0 gap-1 overflow-hidden px-1 pb-1"
+    >
+      <PlansOverview
+        className="min-h-0 min-w-0 flex-1"
+        projects={projects}
+        max={3}
+      />
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-sm border border-white/10 bg-white/[0.03]">
+        <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <Deadlines
+            className="max-w-none border-0 bg-transparent p-0"
+            deadlines={deadlines}
+            onToggle={onToggleDeadline}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function Page(): React.ReactElement {
   const { isLoaded, isSignedIn } = useAuth()
   const { data } = useGetProjectsQuery(undefined, { skip: !isLoaded || !isSignedIn })
   const { data: habits } = useGetHabitsQuery(undefined, { skip: !isLoaded || !isSignedIn })
+  const [deadlineDone, setDeadlineDone] = useState<Record<string, boolean>>({})
   const events = useMemo(
     () => [eventToday("quiz", "Math Quiz", 14, 15), eventToday("reading", "Reading Assignment", 17, 18)],
     []
@@ -144,6 +179,11 @@ export default function Page(): React.ReactElement {
     const rows = planRows(data ?? [])
     return rows.length > 0 ? rows : FALLBACK_PLANS
   }, [data])
+
+  const deadlines = useMemo(
+    () => DEADLINES.map((item) => ({ ...item, done: deadlineDone[item.id] })),
+    [deadlineDone]
+  )
 
   return (
     <main className="relative flex h-screen w-full flex-col bg-background pt-16 pb-19">
@@ -175,16 +215,30 @@ export default function Page(): React.ReactElement {
               />
             ))}
           </div>
-          {/* Projects panel removed from this column
-          <Projects projects={data ?? []} />
-          */}
         </div>
 
-        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <AssistantGreeting nextTitle={TASKS[1].title} nextDue={TASKS[1].dueDate} />
+        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <AssistantGreeting />
+          </div>
+          <CenterBottomRail
+            projects={data ?? []}
+            deadlines={deadlines}
+            onToggleDeadline={(item) =>
+              setDeadlineDone((current) => ({
+                ...current,
+                [item.id]: !current[item.id],
+              }))
+            }
+          />
         </div>
 
-        <ProductivityBoard className="self-stretch" />
+        <aside
+          aria-label="Stats"
+          className="h-full min-h-0 w-96 shrink-0 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          <ProductivityBoard />
+        </aside>
       </div>
 
       <div className="absolute right-0 bottom-2 left-0 flex w-full items-center justify-between">

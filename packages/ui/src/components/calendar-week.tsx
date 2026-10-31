@@ -101,9 +101,10 @@ const settle = { type: "spring", stiffness: 640, damping: 46 } as const;
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const FALLBACK_CAL: CalendarSource = { id: "me", name: "Personal", tone: "teal" };
 
 function parse(iso: string) {
-  const [y, m, d] = iso.split("-").map(Number);
+  const [y = 2026, m = 1, d = 1] = iso.split("-").map(Number);
   return new Date(Date.UTC(y, m - 1, d));
 }
 function iso(d: Date) {
@@ -232,14 +233,18 @@ function packAllDay(list: CalendarEvent[], first: string, count: number) {
       const startIdx = Math.max(0, diffDays(e.date, first));
       const endIdx = Math.min(count - 1, diffDays(addDays(e.date, (e.days ?? 1) - 1), first));
       let row = rows.findIndex((r) => r.every((c) => c < startIdx || c > endIdx));
-      if (row < 0) row = rows.push([]) - 1;
-      for (let c = startIdx; c <= endIdx; c++) rows[row].push(c);
+      if (row < 0) {
+        rows.push([]);
+        row = rows.length - 1;
+      }
+      const lane = rows[row]!;
+      for (let c = startIdx; c <= endIdx; c++) lane.push(c);
       return { e, row, startIdx, endIdx };
     });
 }
 
 function toDate(date: string) {
-  const [y, m, d] = date.split("-").map(Number);
+  const [y = 0, m = 1, d = 1] = date.split("-").map(Number);
   return new Date(y, m - 1, d);
 }
 function fromDate(d: Date) {
@@ -308,7 +313,7 @@ export function CalendarWeek({
   className,
 }: CalendarWeekProps) {
   const today = now.slice(0, 10);
-  const [hh, mm] = now.slice(11, 16).split(":").map(Number);
+  const [hh = 0, mm = 0] = now.slice(11, 16).split(":").map(Number);
   const [nowMin, setNowMin] = useState(hh * 60 + mm);
   const [calendars, setCalendars] = useState(initialCalendars);
   const [events, setEvents] = useState<CalendarEvent[]>(() => initialEvents ?? buildEvents());
@@ -336,7 +341,9 @@ export function CalendarWeek({
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
-    const ro = new ResizeObserver(([e]) => {
+    const ro = new ResizeObserver((entries) => {
+      const e = entries[0];
+      if (!e) return;
       setNarrow(e.contentRect.width < 672);
       setDocked(e.contentRect.width >= 896);
     });
@@ -357,11 +364,19 @@ export function CalendarWeek({
   const mode: ViewMode = narrow ? "day" : view;
   const weekStart = startOfWeek(focusDay);
   const days = mode === "week" ? Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)) : [focusDay];
+  const firstDay = days[0] ?? focusDay;
+  const lastDay = days[days.length - 1] ?? focusDay;
   const visibleCal = new Set(calendars.filter((c) => c.visible !== false).map((c) => c.id));
-  const calOf = (id: string) => calendars.find((c) => c.id === id) ?? calendars[0];
+  const calOf = (id: string): CalendarSource =>
+    calendars.find((c) => c.id === id) ?? calendars[0] ?? FALLBACK_CAL;
   const shown = events.filter((e) => visibleCal.has(e.calendar));
   const timed = shown.filter((e) => !e.allDay);
-  const allDay = shown.filter((e) => e.allDay && diffDays(addDays(e.date, (e.days ?? 1) - 1), days[0]) >= 0 && diffDays(e.date, days[days.length - 1]) <= 0);
+  const allDay = shown.filter(
+    (e) =>
+      e.allDay &&
+      diffDays(addDays(e.date, (e.days ?? 1) - 1), firstDay) >= 0 &&
+      diffDays(e.date, lastDay) <= 0
+  );
   const busy = new Set(shown.map((e) => e.date));
   const selected = events.find((e) => e.id === selectedId) ?? null;
 
@@ -374,11 +389,23 @@ export function CalendarWeek({
   const step = (dir: number) => goto(addDays(focusDay, dir * (mode === "week" ? 7 : 1)));
 
   const header = () => {
-    const a = parse(days[0]);
-    const b = parse(days[days.length - 1]);
-    if (mode === "day" && !narrow) return { main: `${MONTHS[a.getUTCMonth()]} ${a.getUTCDate()}`, sub: DAY_NAMES[weekday(days[0])] };
-    if (a.getUTCMonth() === b.getUTCMonth()) return { main: MONTHS[a.getUTCMonth()], sub: String(a.getUTCFullYear()) };
-    return { main: `${MONTHS[a.getUTCMonth()].slice(0, 3)} – ${MONTHS[b.getUTCMonth()].slice(0, 3)}`, sub: String(b.getUTCFullYear()) };
+    const a = parse(firstDay);
+    const b = parse(lastDay);
+    const aMonth = MONTHS[a.getUTCMonth()] ?? "";
+    const bMonth = MONTHS[b.getUTCMonth()] ?? "";
+    if (mode === "day" && !narrow) {
+      return {
+        main: `${aMonth} ${a.getUTCDate()}`,
+        sub: DAY_NAMES[weekday(firstDay)] ?? "",
+      };
+    }
+    if (a.getUTCMonth() === b.getUTCMonth()) {
+      return { main: aMonth, sub: String(a.getUTCFullYear()) };
+    }
+    return {
+      main: `${aMonth.slice(0, 3)} – ${bMonth.slice(0, 3)}`,
+      sub: String(b.getUTCFullYear()),
+    };
   };
   const head = header();
 
@@ -420,8 +447,8 @@ export function CalendarWeek({
       const len = drag.end - drag.start;
       const start = Math.max(0, Math.min(24 * 60 - len, drag.start + deltaMin));
       const dDay = mode === "week" ? Math.round(dx / columnWidth()) : 0;
-      const idx = Math.max(0, Math.min(days.length - 1, diffDays(drag.date, days[0]) + dDay));
-      patch(drag.id, { start, end: start + len, date: days[idx] });
+      const idx = Math.max(0, Math.min(days.length - 1, diffDays(drag.date, firstDay) + dDay));
+      patch(drag.id, { start, end: start + len, date: days[idx] ?? focusDay });
     } else if (drag.mode === "resize") {
       const end = Math.max(drag.start + SNAP, Math.min(24 * 60, drag.end + deltaMin));
       patch(drag.id, { end });
@@ -494,7 +521,7 @@ export function CalendarWeek({
   };
 
   const newEventNow = () => {
-    const date = mode === "day" ? focusDay : days.includes(today) ? today : days[0];
+    const date = mode === "day" ? focusDay : days.includes(today) ? today : firstDay;
     const start = Math.ceil((date === today ? nowMin : 9 * 60) / 30) * 30;
     const ev: CalendarEvent = { id: `new-${Date.now()}`, title: "", calendar: calendars[0]?.id ?? "me", date, start, end: start + 30 };
     setEvents((es) => [...es, ev]);
@@ -752,7 +779,7 @@ export function CalendarWeek({
                       />
                     )}
                     <span className={cn("relative text-[11px]", isToday ? "font-medium text-destructive-foreground" : "text-muted-foreground")}>
-                      {DOW[weekday(d)].slice(0, 2)}
+                      {(DOW[weekday(d)] ?? "").slice(0, 2)}
                     </span>
                     <span className={cn("relative font-medium tabular-nums", isToday && "text-destructive-foreground")}>{parse(d).getUTCDate()}</span>
                     {busy.has(d) && <span className="absolute bottom-1 size-1 rounded-full bg-muted-foreground/60" />}
@@ -800,7 +827,7 @@ export function CalendarWeek({
                 {days.map((d) => (
                   <div className="border-s" key={d} style={{ gridColumn: "span 1", gridRow: "1 / span 3" }} />
                 ))}
-                {packAllDay(allDay, days[0], days.length).map(({ e, row, startIdx, endIdx }) => {
+                {packAllDay(allDay, firstDay, days.length).map(({ e, row, startIdx, endIdx }) => {
                   const cal = calOf(e.calendar);
                   return (
                     <button
@@ -1078,7 +1105,7 @@ function EventCard({
   onDelete: () => void;
   onEdit: () => void;
 }) {
-  const cal = calendars.find((c) => c.id === ev.calendar) ?? calendars[0];
+  const cal = calendars.find((c) => c.id === ev.calendar) ?? calendars[0] ?? FALLBACK_CAL;
   const cardRef = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const card = cardRef.current;
@@ -1141,7 +1168,7 @@ function EventCard({
         <div className="flex items-center gap-2">
           <ClockIcon className="size-3.5 shrink-0" />
           <span className="tabular-nums">
-            {DOW[weekday(ev.date)]} {MONTHS[parse(ev.date).getUTCMonth()].slice(0, 3)} {parse(ev.date).getUTCDate()} · {fmtRange(ev.start, ev.end)}
+            {DOW[weekday(ev.date)] ?? ""} {(MONTHS[parse(ev.date).getUTCMonth()] ?? "").slice(0, 3)} {parse(ev.date).getUTCDate()} · {fmtRange(ev.start, ev.end)}
           </span>
           <span className="ms-auto tabular-nums">{fmtDuration(ev.end - ev.start)}</span>
         </div>

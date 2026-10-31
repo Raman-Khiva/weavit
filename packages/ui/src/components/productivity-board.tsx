@@ -31,7 +31,7 @@ const QUEUES: { key: string; label: string; slice: QueueSlice }[] = [
 ]
 
 function duePhrase(date: string) {
-  const [year, month, day] = date.split("-").map(Number)
+  const [year = 0, month = 1, day = 1] = date.split("-").map(Number)
   const due = new Date(year, month - 1, day)
   const now = new Date()
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
@@ -89,7 +89,10 @@ function QueueBar({ label, slice }: { label: string; slice: QueueSlice }) {
               <span
                 key={segment.key}
                 className="h-full"
-                style={{ width: `${(segment.value / total) * 100}%`, backgroundColor: segment.color }}
+                style={{
+                  width: `${(segment.value / total) * 100}%`,
+                  backgroundColor: segment.color,
+                }}
               />
             ) : null
           )}
@@ -147,12 +150,12 @@ export function ProductivityBoard({ className }: { className?: string }) {
     <section
       aria-label="Productivity"
       className={cn(
-        "flex h-full min-h-0 w-96 shrink-0 flex-col overflow-y-auto rounded-sm border border-white/10 bg-white/[0.03] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+        "flex w-full flex-col rounded-sm border border-white/10 bg-white/[0.03]",
         className
       )}
     >
-      <div className="shrink-0 px-5 pt-6 pb-5">
-        <header className="mb-5 flex items-center justify-between gap-3">
+      <div className="shrink-0 px-5 pt-5 pb-4">
+        <header className="mb-4 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <h2 className="text-lg leading-none font-semibold text-white">Productivity</h2>
             <span
@@ -191,7 +194,7 @@ export function ProductivityBoard({ className }: { className?: string }) {
           {current.trend}
           <span className="font-normal text-white/45">{current.text}</span>
         </p>
-        <div className="mt-5">
+        <div className="mt-4">
           <ScoreMeter score={current.score} />
         </div>
       </div>

@@ -45,7 +45,7 @@ const PRIORITY: Record<Priority, { label: string; bar: string; dot: string; badg
 
 // "2024-04-01" -> { text: "Apr 1 · 3 days overdue", tone: "overdue" }
 function dueInfo(date: string) {
-  const [y, m, d] = date.split("-").map(Number);
+  const [y = 0, m = 1, d = 1] = date.split("-").map(Number);
   const due = new Date(y, m - 1, d);
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());

@@ -20,14 +20,8 @@ export const FloatingNav = (): JSX.Element => {
         </div>
         <div className="hidden items-center gap-6 text-sm font-medium text-muted-foreground md:flex">
           <Link
-            href="/overview"
-            className="transition-colors hover:text-foreground font-semibold text-indigo-400"
-          >
-            Overview
-          </Link>
-          <Link
             href="/dashboard"
-            className="transition-colors hover:text-foreground"
+            className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-xs transition-all hover:bg-blue-500 active:scale-[0.98]"
           >
             Dashboard
           </Link>

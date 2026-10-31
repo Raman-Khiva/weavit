@@ -8,16 +8,20 @@ import { cn } from "@workspace/ui/lib/utils"
 function Progress({
   className,
   value,
+  showValue = true,
   ...props
-}: React.ComponentProps<typeof ProgressPrimitive.Root>) {
+}: React.ComponentProps<typeof ProgressPrimitive.Root> & {
+  showValue?: boolean
+}) {
   return (
-    <main className="flex items-center justify-between gap-2">
+    <div className="flex w-full min-w-0 items-center gap-2">
       <ProgressPrimitive.Root
         data-slot="progress"
         className={cn(
-          "relative flex h-1.5 w-full items-center overflow-x-hidden rounded-full bg-muted",
+          "relative h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-foreground/15",
           className
         )}
+        value={value}
         {...props}
       >
         <ProgressPrimitive.Indicator
@@ -27,8 +31,12 @@ function Progress({
         />
       </ProgressPrimitive.Root>
 
-      <p className="font-semibold text-foreground">{value}%</p>
-    </main>
+      {showValue ? (
+        <p className="shrink-0 text-xs font-semibold tabular-nums text-foreground">
+          {value ?? 0}%
+        </p>
+      ) : null}
+    </div>
   )
 }
 

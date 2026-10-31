@@ -217,13 +217,8 @@ app.get("/habits", async (req: Request, res: Response) => {
 
   try {
     const userId: string | null = await getUserId(req, res);
-
-    if (!userId) {
-      return res.status(400).json({
-        error: "failed while finding user"
-      })
-
-    }
+    // getUserId already wrote 401/404 when auth fails
+    if (!userId) return;
 
     const habits: Habit[] = await prisma.habit.findMany({
       where: {
@@ -234,23 +229,15 @@ app.get("/habits", async (req: Request, res: Response) => {
     const validateResponse = GetHabitsResponse.safeParse(JSON.parse(JSON.stringify(habits)));
 
     if (!validateResponse.success) {
-      return res.status(500).json({
-        message: "Response didn't match OpenApi contract",
-        error: validateResponse.error.flatten()
-      })
+      return invalidRes(res, validateResponse.error)
     }
 
 
-    res.status(200).json(validateResponse.data);
+    return res.status(200).json(validateResponse.data);
 
 
   } catch (error) {
-
-    res.status(500).json({
-      message: "Server error while getting habits data",
-      error: error
-    })
-
+    return fromCaught(res, "Server error while getting habits data", error)
   }
 })
 
@@ -373,24 +360,9 @@ app.post("/habits/:habitId/logs", async (req: Request<{ habitId: string }>, res:
 
 // patch habit
 
-app.patch("/habits/:habitId",async (req : Request<{habitId:string}>, res : Response)=>{
-   try{
-     const userId = getUserId(req,res);
-     if(!userId) return;
-     
-     const {habitId} = req.body;
-
-     if(!habitId){
-      return invalidParamas(res);
-     }
-
-     const validateBody = PostHabitsIdToggleParams
-
-
-
-   }catch(error){
-    throw error;
-   }
+app.patch("/habits/:habitId", async (_req: Request<{ habitId: string }>, res: Response) => {
+  // Placeholder — not implemented yet
+  return fail(res, 501, "PATCH /habits/:habitId is not implemented")
 })
 
 
@@ -492,12 +464,7 @@ app.get('/todos', async (req: Request, res: Response) => {
 app.post('/todos', async (req: Request, res: Response) => {
   try {
     const userId: string | null = await getUserId(req, res);
-
-    if (!userId) {
-      return res.status(400).json({
-        error: "failed while finding user"
-      })
-    }
+    if (!userId) return;
 
     const result = await PostTodosBody.safeParse(req.body);
 
@@ -1170,6 +1137,10 @@ app.get("/userId",(req : Request, res : Response)=>{
 })
 
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+  if (res.headersSent) {
+    logger.error({ err }, "Unhandled error after response was sent")
+    return
+  }
   const status =
     typeof err === "object" && err !== null && "status" in err
       ? Number((err as { status: number }).status)
