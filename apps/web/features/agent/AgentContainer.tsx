@@ -16,7 +16,7 @@ import { userPrompot } from './prompt.agent'
 
 
 const groq = new Groq({dangerouslyAllowBrowser : true, apiKey : 
-   process.env.GROQ_API_KEY
+   process.env.NEXT_PUBLIC_GROQ_API_KEY
  });
 
 const AgentContainer = () => {
