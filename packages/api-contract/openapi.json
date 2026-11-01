@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Weavit Platform API",
-    "description": "Comprehensive REST API specification for Weavit productivity, roadmap management, habits, todos, deadlines, and activity analytics platform.",
-    "version": "1.2.0",
+    "description": "REST API for Weavit productivity: roadmaps, habits, todos, deadlines, and timeline calendar.",
+    "version": "1.4.0",
     "contact": {
       "name": "Weavit Engineering Team",
       "url": "https://weavit.dev"
@@ -38,9 +38,18 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "ok" },
-                    "health": { "type": "string", "example": "100%" },
-                    "timestamp": { "type": "string", "format": "date-time" }
+                    "status": {
+                      "type": "string",
+                      "example": "ok"
+                    },
+                    "health": {
+                      "type": "string",
+                      "example": "100%"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
                   }
                 }
               }
@@ -61,8 +70,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "message": { "type": "string", "example": "user is Authenticated" },
-                    "userId": { "type": "string", "example": "user_2x9A..." }
+                    "message": {
+                      "type": "string",
+                      "example": "user is Authenticated"
+                    },
+                    "userId": {
+                      "type": "string",
+                      "example": "user_2x9A..."
+                    }
                   }
                 }
               }
@@ -81,7 +96,9 @@
             "name": "username",
             "in": "path",
             "required": true,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "LeetCode username"
           }
         ],
@@ -90,7 +107,9 @@
             "description": "Whether the latest submission counts for today",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/LeetCodeCheckIn" }
+                "schema": {
+                  "$ref": "#/components/schemas/LeetCodeCheckIn"
+                }
               }
             }
           },
@@ -98,7 +117,9 @@
             "description": "LeetCode rejected the username",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -106,7 +127,9 @@
             "description": "The LeetCode request failed",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -125,11 +148,16 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "message": { "type": "string", "example": "Existing user found" },
+                    "message": {
+                      "type": "string",
+                      "example": "Existing user found"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
-                        "user": { "$ref": "#/components/schemas/User" }
+                        "user": {
+                          "$ref": "#/components/schemas/User"
+                        }
                       }
                     }
                   }
@@ -151,7 +179,9 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": { "$ref": "#/components/schemas/Project" }
+                  "items": {
+                    "$ref": "#/components/schemas/Project"
+                  }
                 }
               }
             }
@@ -164,7 +194,9 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateProjectInput" }
+              "schema": {
+                "$ref": "#/components/schemas/CreateProjectInput"
+              }
             }
           }
         },
@@ -173,7 +205,9 @@
             "description": "Project created successfully",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Project" }
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
               }
             }
           }
@@ -184,14 +218,23 @@
       "get": {
         "summary": "Get Project by ID",
         "parameters": [
-          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
             "description": "Project details with nested phases and tasks",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Project" }
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
               }
             }
           }
@@ -200,13 +243,22 @@
       "patch": {
         "summary": "Update Project",
         "parameters": [
-          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/UpdateProjectInput" }
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProjectInput"
+              }
             }
           }
         },
@@ -215,7 +267,9 @@
             "description": "Project updated successfully",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Project" }
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
               }
             }
           }
@@ -224,7 +278,14 @@
       "delete": {
         "summary": "Delete Project",
         "parameters": [
-          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -237,13 +298,22 @@
       "post": {
         "summary": "Add Phase to Project",
         "parameters": [
-          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreatePhaseInput" }
+              "schema": {
+                "$ref": "#/components/schemas/CreatePhaseInput"
+              }
             }
           }
         },
@@ -252,7 +322,9 @@
             "description": "Phase created",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ProjectPhase" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectPhase"
+                }
               }
             }
           }
@@ -263,14 +335,30 @@
       "post": {
         "summary": "Add Executable Task to Phase",
         "parameters": [
-          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string" } },
-          { "name": "phaseId", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "phaseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateTaskInput" }
+              "schema": {
+                "$ref": "#/components/schemas/CreateTaskInput"
+              }
             }
           }
         },
@@ -279,7 +367,9 @@
             "description": "Task created",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ProjectTask" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectTask"
+                }
               }
             }
           }
@@ -290,15 +380,38 @@
       "patch": {
         "summary": "Update Task Status / Details",
         "parameters": [
-          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string" } },
-          { "name": "phaseId", "in": "path", "required": true, "schema": { "type": "string" } },
-          { "name": "taskId", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "phaseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/UpdateTaskInput" }
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTaskInput"
+              }
             }
           }
         },
@@ -307,7 +420,9 @@
             "description": "Task updated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ProjectTask" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectTask"
+                }
               }
             }
           }
@@ -318,15 +433,38 @@
       "post": {
         "summary": "Log Note on Task Execution",
         "parameters": [
-          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string" } },
-          { "name": "phaseId", "in": "path", "required": true, "schema": { "type": "string" } },
-          { "name": "taskId", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "phaseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateTaskNoteInput" }
+              "schema": {
+                "$ref": "#/components/schemas/CreateTaskNoteInput"
+              }
             }
           }
         },
@@ -335,7 +473,9 @@
             "description": "Note added to task",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/TaskLogNote" }
+                "schema": {
+                  "$ref": "#/components/schemas/TaskLogNote"
+                }
               }
             }
           }
@@ -352,7 +492,9 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": { "$ref": "#/components/schemas/Habit" }
+                  "items": {
+                    "$ref": "#/components/schemas/Habit"
+                  }
                 }
               }
             }
@@ -365,7 +507,9 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateHabitInput" }
+              "schema": {
+                "$ref": "#/components/schemas/CreateHabitInput"
+              }
             }
           }
         },
@@ -374,7 +518,9 @@
             "description": "Habit created",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Habit" }
+                "schema": {
+                  "$ref": "#/components/schemas/Habit"
+                }
               }
             }
           }
@@ -383,20 +529,30 @@
     },
     "/habits/{id}/toggle": {
       "post": {
-        "summary": "Toggle Habit Completion Today",
+        "summary": "Toggle Habit Completion for Today",
         "parameters": [
-          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
             "description": "Habit status toggled",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Habit" }
+                "schema": {
+                  "$ref": "#/components/schemas/Habit"
+                }
               }
             }
           }
-        }
+        },
+        "description": "Adds or removes today (YYYY-MM-DD, UTC) from completedDates and recomputes streakCount."
       }
     },
     "/todos": {
@@ -409,7 +565,9 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": { "$ref": "#/components/schemas/Todo" }
+                  "items": {
+                    "$ref": "#/components/schemas/Todo"
+                  }
                 }
               }
             }
@@ -422,7 +580,9 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateTodoInput" }
+              "schema": {
+                "$ref": "#/components/schemas/CreateTodoInput"
+              }
             }
           }
         },
@@ -431,7 +591,9 @@
             "description": "Todo created",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Todo" }
+                "schema": {
+                  "$ref": "#/components/schemas/Todo"
+                }
               }
             }
           }
@@ -442,13 +604,22 @@
       "patch": {
         "summary": "Update Todo",
         "parameters": [
-          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/UpdateTodoInput" }
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTodoInput"
+              }
             }
           }
         },
@@ -457,7 +628,9 @@
             "description": "Todo updated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Todo" }
+                "schema": {
+                  "$ref": "#/components/schemas/Todo"
+                }
               }
             }
           }
@@ -466,10 +639,19 @@
       "delete": {
         "summary": "Delete Todo",
         "parameters": [
-          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
-          "200": { "description": "Todo deleted" }
+          "200": {
+            "description": "Todo deleted"
+          }
         }
       }
     },
@@ -483,7 +665,9 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": { "$ref": "#/components/schemas/Deadline" }
+                  "items": {
+                    "$ref": "#/components/schemas/Deadline"
+                  }
                 }
               }
             }
@@ -496,7 +680,9 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateDeadlineInput" }
+              "schema": {
+                "$ref": "#/components/schemas/CreateDeadlineInput"
+              }
             }
           }
         },
@@ -505,24 +691,8 @@
             "description": "Deadline created",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Deadline" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/activities": {
-      "get": {
-        "summary": "Get Activity Logs",
-        "responses": {
-          "200": {
-            "description": "Array of activity entries",
-            "content": {
-              "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": { "$ref": "#/components/schemas/Activity" }
+                  "$ref": "#/components/schemas/Deadline"
                 }
               }
             }
@@ -530,17 +700,37 @@
         }
       }
     },
-    "/notifications": {
-      "get": {
-        "summary": "List Notifications",
+    "/habits/{habitId}/logs": {
+      "post": {
+        "summary": "Create Habit Journal Log",
+        "description": "Append a journal note for a habit. Does not mark the habit complete — use toggle for completion dates.",
+        "parameters": [
+          {
+            "name": "habitId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateHabitLogInput"
+              }
+            }
+          }
+        },
         "responses": {
-          "200": {
-            "description": "Array of notifications",
+          "201": {
+            "description": "Journal log created",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": { "$ref": "#/components/schemas/Notification" }
+                  "$ref": "#/components/schemas/HabitLog"
                 }
               }
             }
@@ -548,17 +738,75 @@
         }
       }
     },
-    "/drafts": {
-      "get": {
-        "summary": "List Draft Notes",
+    "/deadlines/{id}": {
+      "patch": {
+        "summary": "Update Deadline",
+        "description": "Partial update for a deadline. Used by UI completion toggle and edits.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDeadlineInput"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": "Array of drafts",
+            "description": "Deadline updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Deadline"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/timeline": {
+      "get": {
+        "summary": "Get Timeline (calendars + events)",
+        "description": "Returns the full CalendarWeek data set for the authenticated user.",
+        "responses": {
+          "200": {
+            "description": "Timeline payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Timeline"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/calendars": {
+      "get": {
+        "summary": "List Calendars",
+        "responses": {
+          "200": {
+            "description": "Calendar sources",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": { "$ref": "#/components/schemas/Draft" }
+                  "items": {
+                    "$ref": "#/components/schemas/CalendarSource"
+                  }
                 }
               }
             }
@@ -566,23 +814,184 @@
         }
       },
       "post": {
-        "summary": "Create Draft Note",
+        "summary": "Create Calendar",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateDraftInput" }
+              "schema": {
+                "$ref": "#/components/schemas/CreateCalendarSourceInput"
+              }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Draft created",
+            "description": "Calendar created",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Draft" }
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarSource"
+                }
               }
             }
+          }
+        }
+      }
+    },
+    "/calendars/{id}": {
+      "patch": {
+        "summary": "Update Calendar",
+        "description": "Update name/tone/visible (visibility toggle in CalendarWeek sidebar).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCalendarSourceInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calendar updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarSource"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Calendar",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Calendar deleted (cascades events)"
+          }
+        }
+      }
+    },
+    "/calendar-events": {
+      "get": {
+        "summary": "List Calendar Events",
+        "responses": {
+          "200": {
+            "description": "Events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CalendarEvent"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Calendar Event",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCalendarEventInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Event created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarEvent"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/calendar-events/{id}": {
+      "patch": {
+        "summary": "Update Calendar Event",
+        "description": "Partial update for drag/resize/edit in CalendarWeek.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCalendarEventInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Event updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarEvent"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Calendar Event",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Event deleted"
           }
         }
       }
@@ -601,352 +1010,1087 @@
       "User": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "clerkId": { "type": "string" },
-          "email": { "type": "string", "nullable": true },
-          "name": { "type": "string", "nullable": true },
-          "avatarUrl": { "type": "string", "nullable": true },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "updatedAt": { "type": "string", "format": "date-time" }
+          "id": {
+            "type": "string"
+          },
+          "clerkId": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         },
-        "required": ["id", "clerkId"]
+        "required": [
+          "id",
+          "clerkId"
+        ]
       },
       "Project": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "userId": { "type": "string" },
-          "title": { "type": "string" },
-          "description": { "type": "string", "nullable": true },
-          "category": { "type": "string" },
-          "icon": { "type": "string", "nullable": true },
-          "status": { "type": "string", "enum": ["DRAFT", "ACTIVE", "COMPLETED", "ARCHIVED"] },
-          "startDate": { "type": "string", "format": "date-time", "nullable": true },
-          "endDate": { "type": "string", "format": "date-time", "nullable": true },
+          "id": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "category": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "ACTIVE",
+              "COMPLETED",
+              "ARCHIVED"
+            ]
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
           "phases": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/ProjectPhase" }
+            "items": {
+              "$ref": "#/components/schemas/ProjectPhase"
+            }
           },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "updatedAt": { "type": "string", "format": "date-time" }
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         },
-        "required": ["id", "userId", "title", "category", "status"]
+        "required": [
+          "id",
+          "userId",
+          "title",
+          "category",
+          "status"
+        ]
       },
       "CreateProjectInput": {
         "type": "object",
         "properties": {
-          "title": { "type": "string" },
-          "description": { "type": "string" },
-          "category": { "type": "string" },
-          "icon": { "type": "string" },
-          "startDate": { "type": "string" },
-          "endDate": { "type": "string" },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string"
+          },
+          "endDate": {
+            "type": "string"
+          },
           "phases": {
             "type": "array",
             "description": "Optional nested phases (each may include tasks and notes)",
-            "items": { "$ref": "#/components/schemas/CreatePhaseInput" }
+            "items": {
+              "$ref": "#/components/schemas/CreatePhaseInput"
+            }
           }
         },
-        "required": ["title"]
+        "required": [
+          "title"
+        ]
       },
       "UpdateProjectInput": {
         "type": "object",
         "properties": {
-          "title": { "type": "string" },
-          "description": { "type": "string" },
-          "category": { "type": "string" },
-          "status": { "type": "string", "enum": ["DRAFT", "ACTIVE", "COMPLETED", "ARCHIVED"] },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "ACTIVE",
+              "COMPLETED",
+              "ARCHIVED"
+            ]
+          },
           "phases": {
             "type": "array",
             "description": "Optional nested phases when replacing or seeding plan structure",
-            "items": { "$ref": "#/components/schemas/CreatePhaseInput" }
+            "items": {
+              "$ref": "#/components/schemas/CreatePhaseInput"
+            }
           }
         }
       },
       "ProjectPhase": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "projectId": { "type": "string" },
-          "title": { "type": "string" },
-          "description": { "type": "string", "nullable": true },
-          "category": { "type": "string", "nullable": true },
-          "status": { "type": "string", "enum": ["PENDING", "ACTIVE", "COMPLETED"] },
-          "order": { "type": "integer" },
-          "startDate": { "type": "string", "format": "date-time", "nullable": true },
-          "endDate": { "type": "string", "format": "date-time", "nullable": true },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "updatedAt": { "type": "string", "format": "date-time" },
+          "id": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "category": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACTIVE",
+              "COMPLETED"
+            ]
+          },
+          "order": {
+            "type": "integer"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
           "tasks": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/ProjectTask" }
+            "items": {
+              "$ref": "#/components/schemas/ProjectTask"
+            }
           }
         },
-        "required": ["id", "projectId", "title", "status"]
+        "required": [
+          "id",
+          "projectId",
+          "title",
+          "status"
+        ]
       },
       "CreatePhaseInput": {
         "type": "object",
         "properties": {
-          "title": { "type": "string" },
-          "description": { "type": "string" },
-          "category": { "type": "string" },
-          "order": { "type": "integer" },
-          "startDate": { "type": "string", "format": "date-time" },
-          "endDate": { "type": "string", "format": "date-time" },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "order": {
+            "type": "integer"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time"
+          },
           "tasks": {
             "type": "array",
             "description": "Optional nested tasks for this phase",
-            "items": { "$ref": "#/components/schemas/CreateTaskInput" }
+            "items": {
+              "$ref": "#/components/schemas/CreateTaskInput"
+            }
           }
         },
-        "required": ["title"]
+        "required": [
+          "title"
+        ]
       },
       "ProjectTask": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "phaseId": { "type": "string" },
-          "title": { "type": "string" },
-          "description": { "type": "string", "nullable": true },
-          "status": { "type": "string", "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "SKIPPED"] },
-          "category": { "type": "string", "nullable": true },
-          "priority": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"] },
-          "dueDate": { "type": "string", "format": "date-time", "nullable": true },
-          "completedAt": { "type": "string", "format": "date-time", "nullable": true },
-          "order": { "type": "integer" },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "updatedAt": { "type": "string", "format": "date-time" },
+          "id": {
+            "type": "string"
+          },
+          "phaseId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "IN_PROGRESS",
+              "COMPLETED",
+              "SKIPPED"
+            ]
+          },
+          "category": {
+            "type": "string",
+            "nullable": true
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH",
+              "URGENT"
+            ]
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "order": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
           "notes": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/TaskLogNote" }
+            "items": {
+              "$ref": "#/components/schemas/TaskLogNote"
+            }
           }
         },
-        "required": ["id", "phaseId", "title", "status"]
+        "required": [
+          "id",
+          "phaseId",
+          "title",
+          "status"
+        ]
       },
       "CreateTaskInput": {
         "type": "object",
         "properties": {
-          "title": { "type": "string" },
-          "description": { "type": "string" },
-          "category": { "type": "string" },
-          "priority": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"] },
-          "dueDate": { "type": "string", "description": "Calendar date (YYYY-MM-DD) or ISO date-time" },
-          "order": { "type": "integer" },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH",
+              "URGENT"
+            ]
+          },
+          "dueDate": {
+            "type": "string",
+            "description": "Calendar date (YYYY-MM-DD) or ISO date-time"
+          },
+          "order": {
+            "type": "integer"
+          },
           "notes": {
             "type": "array",
             "description": "Optional nested log notes for this task",
-            "items": { "$ref": "#/components/schemas/CreateTaskNoteInput" }
+            "items": {
+              "$ref": "#/components/schemas/CreateTaskNoteInput"
+            }
           }
         },
-        "required": ["title"]
+        "required": [
+          "title"
+        ]
       },
       "UpdateTaskInput": {
         "type": "object",
         "properties": {
-          "title": { "type": "string" },
-          "status": { "type": "string", "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "SKIPPED"] },
-          "note": { "type": "string" },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "IN_PROGRESS",
+              "COMPLETED",
+              "SKIPPED"
+            ]
+          },
+          "note": {
+            "type": "string"
+          },
           "notes": {
             "type": "array",
             "description": "Optional notes to append when updating a task",
-            "items": { "$ref": "#/components/schemas/CreateTaskNoteInput" }
+            "items": {
+              "$ref": "#/components/schemas/CreateTaskNoteInput"
+            }
           }
         }
       },
       "TaskLogNote": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "taskId": { "type": "string" },
-          "text": { "type": "string" },
-          "author": { "type": "string", "nullable": true },
-          "createdAt": { "type": "string", "format": "date-time" }
+          "id": {
+            "type": "string"
+          },
+          "taskId": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         },
-        "required": ["id", "taskId", "text"]
+        "required": [
+          "id",
+          "taskId",
+          "text"
+        ]
       },
       "CreateTaskNoteInput": {
         "type": "object",
         "properties": {
-          "text": { "type": "string" },
-          "author": { "type": "string" }
+          "text": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          }
         },
-        "required": ["text"]
+        "required": [
+          "text"
+        ]
       },
       "Habit": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "userId": { "type": "string" },
-          "title": { "type": "string" },
-          "frequency": { "type": "string", "enum": ["DAILY", "WEEKLY", "MONTHLY"] },
-          "description": { "type": "string", "nullable": true },
-          "category": { "type": "string" },
-          "streakCount": { "type": "integer" },
-          "bestStreak": { "type": "integer" },
+          "id": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "DAILY",
+              "WEEKLY",
+              "MONTHLY"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "category": {
+            "type": "string"
+          },
+          "streakCount": {
+            "type": "integer",
+            "description": "Cached current streak from completedDates"
+          },
+          "completedDates": {
+            "type": "array",
+            "description": "Source of truth: calendar days (YYYY-MM-DD) the habit was completed",
+            "items": {
+              "type": "string",
+              "format": "date"
+            }
+          },
           "logs": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/HabitLog" }
+            "description": "Journal entries only; not used for completion",
+            "items": {
+              "$ref": "#/components/schemas/HabitLog"
+            }
           },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "updatedAt": { "type": "string", "format": "date-time" }
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         },
-        "required": ["id", "userId", "title"]
+        "required": [
+          "id",
+          "userId",
+          "title",
+          "frequency",
+          "category",
+          "streakCount",
+          "completedDates"
+        ]
       },
       "HabitLog": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "habitId": { "type": "string" },
-          "completedAt": { "type": "string", "format": "date-time" },
-          "notes": { "type": "string", "nullable": true }
+          "id": {
+            "type": "string"
+          },
+          "habitId": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         },
-        "required": ["id", "habitId", "completedAt"]
+        "required": [
+          "id",
+          "habitId",
+          "createdAt"
+        ]
       },
       "CreateHabitLogInput": {
         "type": "object",
         "properties": {
-          "completedAt": { "type": "string", "format": "date-time" },
-          "notes": { "type": "string" }
+          "notes": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Optional journal timestamp; defaults to now"
+          }
         }
       },
       "CreateHabitInput": {
         "type": "object",
         "properties": {
-          "title": { "type": "string" },
-          "description": { "type": "string" },
-          "frequency": { "type": "string", "enum": ["DAILY", "WEEKLY", "MONTHLY"] },
-          "category": { "type": "string" },
-          "logs": {
-            "type": "array",
-            "description": "Optional nested check-in logs to seed with the habit",
-            "items": { "$ref": "#/components/schemas/CreateHabitLogInput" }
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "DAILY",
+              "WEEKLY",
+              "MONTHLY"
+            ]
+          },
+          "category": {
+            "type": "string"
           }
         },
-        "required": ["title"]
+        "required": [
+          "title"
+        ]
       },
       "Todo": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "userId": { "type": "string" },
-          "title": { "type": "string" },
-          "description": { "type": "string", "nullable": true },
-          "status": { "type": "string", "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "SKIPPED"] },
-          "priority": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"] },
-          "dueDate": { "type": "string", "format": "date-time", "nullable": true },
-          "tags": { "type": "array", "items": { "type": "string" } },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "updatedAt": { "type": "string", "format": "date-time" }
+          "id": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "IN_PROGRESS",
+              "COMPLETED",
+              "SKIPPED"
+            ]
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH",
+              "URGENT"
+            ]
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         },
-        "required": ["id", "userId", "title"]
+        "required": [
+          "id",
+          "userId",
+          "title",
+          "status",
+          "priority"
+        ]
       },
       "CreateTodoInput": {
         "type": "object",
         "properties": {
-          "title": { "type": "string" },
-          "description": { "type": "string" },
-          "priority": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"] },
-          "dueDate": { "type": "string", "description": "Calendar date (YYYY-MM-DD) or ISO date-time" },
-          "tags": { "type": "array", "items": { "type": "string" } }
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH",
+              "URGENT"
+            ]
+          },
+          "dueDate": {
+            "type": "string",
+            "description": "Calendar date (YYYY-MM-DD) or ISO date-time"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
         },
-        "required": ["title"]
+        "required": [
+          "title"
+        ]
       },
       "UpdateTodoInput": {
         "type": "object",
         "properties": {
-          "title": { "type": "string" },
-          "status": { "type": "string", "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "SKIPPED"] }
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "IN_PROGRESS",
+              "COMPLETED",
+              "SKIPPED"
+            ]
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH",
+              "URGENT"
+            ]
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
         }
       },
       "Deadline": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "userId": { "type": "string" },
-          "title": { "type": "string" },
-          "course": { "type": "string", "nullable": true },
-          "time": { "type": "string", "nullable": true },
-          "dueDate": { "type": "string", "format": "date-time" },
-          "priority": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"] },
-          "isCompleted": { "type": "boolean" },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "updatedAt": { "type": "string", "format": "date-time" }
+          "id": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "course": {
+            "type": "string",
+            "nullable": true
+          },
+          "time": {
+            "type": "string",
+            "nullable": true
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH",
+              "URGENT"
+            ]
+          },
+          "isCompleted": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         },
-        "required": ["id", "userId", "title", "dueDate"]
+        "required": [
+          "id",
+          "userId",
+          "title",
+          "dueDate",
+          "priority",
+          "isCompleted"
+        ]
       },
       "LeetCodeCheckIn": {
         "type": "object",
         "properties": {
-          "doneToday": { "type": "boolean" }
+          "doneToday": {
+            "type": "boolean"
+          }
         },
-        "required": ["doneToday"]
+        "required": [
+          "doneToday"
+        ]
       },
       "ErrorResponse": {
         "type": "object",
         "properties": {
-          "message": { "type": "string" },
-          "error": { "type": "string" }
+          "message": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
+          }
         }
       },
       "CreateDeadlineInput": {
         "type": "object",
         "properties": {
-          "title": { "type": "string" },
-          "course": { "type": "string" },
-          "time": { "type": "string" },
-          "dueDate": { "type": "string", "format": "date-time" },
-          "priority": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"] }
+          "title": {
+            "type": "string"
+          },
+          "course": {
+            "type": "string"
+          },
+          "time": {
+            "type": "string"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH",
+              "URGENT"
+            ]
+          }
         },
-        "required": ["title", "dueDate"]
+        "required": [
+          "title",
+          "dueDate"
+        ]
       },
-      "Activity": {
+      "UpdateDeadlineInput": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "userId": { "type": "string" },
-          "title": { "type": "string" },
-          "type": { "type": "string" },
-          "durationMinutes": { "type": "integer" },
-          "timestamp": { "type": "string", "format": "date-time" }
-        },
-        "required": ["id", "userId", "title", "type"]
+          "title": {
+            "type": "string"
+          },
+          "course": {
+            "type": "string",
+            "nullable": true
+          },
+          "time": {
+            "type": "string",
+            "nullable": true
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH",
+              "URGENT"
+            ]
+          },
+          "isCompleted": {
+            "type": "boolean"
+          }
+        }
       },
-      "Notification": {
+      "CalendarTone": {
+        "type": "string",
+        "enum": [
+          "teal",
+          "violet",
+          "sky",
+          "amber",
+          "rose"
+        ],
+        "description": "CalendarWeek tone token"
+      },
+      "CalendarSource": {
+        "type": "object",
+        "description": "Named calendar used by CalendarWeek for color + visibility filtering",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "tone": {
+            "$ref": "#/components/schemas/CalendarTone"
+          },
+          "visible": {
+            "type": "boolean",
+            "description": "When false, events on this calendar are hidden in CalendarWeek"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "tone",
+          "visible"
+        ]
+      },
+      "CreateCalendarSourceInput": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "userId": { "type": "string" },
-          "title": { "type": "string" },
-          "body": { "type": "string" },
-          "status": { "type": "string", "enum": ["UNREAD", "READ", "ARCHIVED"] },
-          "actionUrl": { "type": "string", "nullable": true },
-          "createdAt": { "type": "string", "format": "date-time" }
+          "name": {
+            "type": "string"
+          },
+          "tone": {
+            "$ref": "#/components/schemas/CalendarTone"
+          },
+          "visible": {
+            "type": "boolean"
+          }
         },
-        "required": ["id", "userId", "title", "body", "status"]
+        "required": [
+          "name",
+          "tone"
+        ]
       },
-      "Draft": {
+      "UpdateCalendarSourceInput": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "userId": { "type": "string" },
-          "title": { "type": "string" },
-          "content": { "type": "string" },
-          "category": { "type": "string" },
-          "tags": { "type": "array", "items": { "type": "string" } },
-          "isPinned": { "type": "boolean" },
-          "createdAt": { "type": "string", "format": "date-time" }
-        },
-        "required": ["id", "userId", "title", "content"]
+          "name": {
+            "type": "string"
+          },
+          "tone": {
+            "$ref": "#/components/schemas/CalendarTone"
+          },
+          "visible": {
+            "type": "boolean"
+          }
+        }
       },
-      "CreateDraftInput": {
+      "CalendarEvent": {
+        "type": "object",
+        "description": "Timed or all-day event block for CalendarWeek",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "calendar": {
+            "type": "string",
+            "description": "CalendarSource id"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "description": "YYYY-MM-DD start day"
+          },
+          "start": {
+            "type": "integer",
+            "description": "Minutes from midnight"
+          },
+          "end": {
+            "type": "integer",
+            "description": "Minutes from midnight"
+          },
+          "allDay": {
+            "type": "boolean"
+          },
+          "days": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Multi-day span for all-day events"
+          },
+          "location": {
+            "type": "string",
+            "nullable": true
+          },
+          "video": {
+            "type": "boolean"
+          },
+          "people": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "calendar",
+          "date",
+          "start",
+          "end",
+          "allDay",
+          "video",
+          "people"
+        ]
+      },
+      "CreateCalendarEventInput": {
         "type": "object",
         "properties": {
-          "title": { "type": "string" },
-          "content": { "type": "string" },
-          "category": { "type": "string" },
-          "tags": { "type": "array", "items": { "type": "string" } }
+          "title": {
+            "type": "string"
+          },
+          "calendar": {
+            "type": "string",
+            "description": "CalendarSource id"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "start": {
+            "type": "integer"
+          },
+          "end": {
+            "type": "integer"
+          },
+          "allDay": {
+            "type": "boolean"
+          },
+          "days": {
+            "type": "integer",
+            "nullable": true
+          },
+          "location": {
+            "type": "string",
+            "nullable": true
+          },
+          "video": {
+            "type": "boolean"
+          },
+          "people": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
         },
-        "required": ["title", "content"]
+        "required": [
+          "title",
+          "calendar",
+          "date",
+          "start",
+          "end"
+        ]
+      },
+      "UpdateCalendarEventInput": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "calendar": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "start": {
+            "type": "integer"
+          },
+          "end": {
+            "type": "integer"
+          },
+          "allDay": {
+            "type": "boolean"
+          },
+          "days": {
+            "type": "integer",
+            "nullable": true
+          },
+          "location": {
+            "type": "string",
+            "nullable": true
+          },
+          "video": {
+            "type": "boolean"
+          },
+          "people": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Timeline": {
+        "type": "object",
+        "description": "Payload for CalendarWeek: calendars + events",
+        "properties": {
+          "calendars": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalendarSource"
+            }
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalendarEvent"
+            }
+          }
+        },
+        "required": [
+          "calendars",
+          "events"
+        ]
       }
     }
   }

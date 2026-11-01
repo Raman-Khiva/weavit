@@ -8,7 +8,11 @@ import {
 import { useCallback } from "react"
 import { useGetProjectsQuery, usePatchTaskMutation, usePostNoteMutation } from "../projects/projects.api"
 import { useAuth } from "@clerk/nextjs"
-import { useGetHabitsQuery, usePostHabitLogMutation } from "../habits/habits.api"
+import {
+  useGetHabitsQuery,
+  usePostHabitLogMutation,
+  useToggleHabitMutation,
+} from "../habits/habits.api"
 import z from 'zod/v3'
 import {zodToJsonSchema} from 'zod-to-json-schema'
 import { ActionsListSchema,ActionItemSchema,ActionItem } from './schema.agent'
@@ -26,6 +30,7 @@ const { isLoaded, isSignedIn} = useAuth();
   const {data : plans, isLoading : loadingPlansData} = useGetProjectsQuery(undefined,{skip : !isLoaded || !isSignedIn});
 
   const [postHabitLog] = usePostHabitLogMutation();
+  const [toggleHabit] = useToggleHabitMutation();
   const [patchTask] = usePatchTaskMutation();
   const [postTaskLog] = usePostNoteMutation();
 
@@ -169,15 +174,20 @@ const { isLoaded, isSignedIn} = useAuth();
 
   const execute = useCallback(async (action: ActionItem) => {
     switch (action.actionType) {
-      case "create_habit_log":
-        await postHabitLog({
-          habitId: action.data.habitId,
-          body: {
-            completedAt: new Date().toISOString(),
-            notes: action.data.notes,
-          },
-        }).unwrap()
+      case "create_habit_log": {
+        const habit = habits?.find((h) => h.id === action.data.habitId)
+        const today = new Date().toISOString().slice(0, 10)
+        if (!habit?.completedDates?.includes(today)) {
+          await toggleHabit(action.data.habitId).unwrap()
+        }
+        if (action.data.notes?.trim()) {
+          await postHabitLog({
+            habitId: action.data.habitId,
+            body: { notes: action.data.notes },
+          }).unwrap()
+        }
         break
+      }
 
       case "create_task_log":
         await postTaskLog({
@@ -199,7 +209,7 @@ const { isLoaded, isSignedIn} = useAuth();
         break
       }
     }
-  }, [postHabitLog, postTaskLog, patchTask])
+  }, [habits, toggleHabit, postHabitLog, postTaskLog, patchTask])
 
   const suggest = useCallback(() => {
     const habitTitles = flatHabits.map((h) => h.habitTitle).filter(Boolean)

@@ -116,7 +116,6 @@ export function LogStream({
     const entry = draftEntry.trim()
     if (!entry || !onAddEntry) return
     onAddEntry({
-      completedAt: new Date().toISOString(),
       notes: entry,
     })
     resetDraft()
@@ -146,7 +145,7 @@ export function LogStream({
       })
       .sort(
         (a, b) =>
-          new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime()
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       )
   }, [notes, q])
 
@@ -407,7 +406,7 @@ export function LogStream({
           {visibleNotes.map((note) => (
             <li key={note.id} className="flex items-start gap-4 px-4 py-3">
               <span className="w-32 shrink-0 pt-0.5 text-xs tabular-nums text-white/45">
-                {formatWhen(new Date(note.completedAt).getTime())}
+                {formatWhen(new Date(note.createdAt).getTime())}
               </span>
               <p className="min-w-0 text-sm leading-relaxed text-white/80">
                 <Mark query={q} text={note.notes?.trim() || "Checked in"} />

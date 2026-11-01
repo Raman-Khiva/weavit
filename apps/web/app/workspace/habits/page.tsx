@@ -43,7 +43,7 @@ type Ritual = {
 
 const STATIC_RITUALS: Ritual[] = [
   {
-    id: "reading",
+    id: "demo-reading",
     title: "Demo: Reading",
     description: "Read 10 pages of a physical book",
     streak: 9,
@@ -51,26 +51,6 @@ const STATIC_RITUALS: Ritual[] = [
     category: "Learning",
     done: false,
     gap: "3 days gap",
-  },
-  {
-    id: "exercise",
-    title: "Demo: Exercise",
-    description: "30 mins cardio or resistance",
-    streak: 36,
-    cadence: "DAILY",
-    category: "Health",
-    done: true,
-    chip: "Done Today",
-  },
-  {
-    id: "drink-water",
-    title: "Demo: Drink Water",
-    description: "2.5 Liters throughout the day",
-    streak: 12,
-    cadence: "DAILY",
-    category: "Health",
-    done: true,
-    chip: "Done Today",
   },
 ]
 
@@ -93,6 +73,8 @@ function normalizeCategory(value?: string | null) {
 }
 
 function mapApiHabit(habit: Habit): Ritual {
+  const today = new Date().toISOString().slice(0, 10)
+  const done = (habit.completedDates ?? []).includes(today)
   return {
     id: habit.id,
     title: habit.title,
@@ -100,8 +82,8 @@ function mapApiHabit(habit: Habit): Ritual {
     streak: habit.streakCount ?? 0,
     cadence: habit.frequency ?? "DAILY",
     category: normalizeCategory(habit.category),
-    done: false,
-    chip: undefined,
+    done,
+    chip: done ? "Done Today" : undefined,
   }
 }
 

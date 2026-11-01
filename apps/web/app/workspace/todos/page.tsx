@@ -1,5 +1,9 @@
 'use client'
-import { useGetTodosQuery, usePostTodoMutation } from "@/features/todos/todos.api"
+import {
+  useGetTodosQuery,
+  usePostTodoMutation,
+  usePatchTodoMutation,
+} from "@/features/todos/todos.api"
 
 import { useAuth } from "@clerk/nextjs"
 import { Pattern } from "@workspace/ui/components/kanban-board"
@@ -21,98 +25,46 @@ import { SkeletonWrapper, TodosPageSkeleton } from "@workspace/ui/components/ske
 
 
 type TODO = components["schemas"]["Todo"];
-type CreateTodoInput = components["schemas"]["CreateTodoInput"]
-  ;
+type CreateTodoInput = components["schemas"]["CreateTodoInput"];
+
+const DEMO_TODO: TODO = {
+  id: "demo-1",
+  userId: "demo-user",
+  title: "Demo: AI-powered search",
+  status: "PENDING",
+  priority: "HIGH",
+  tags: ["demo"],
+};
 
 function Page(): JSX.Element {
-
-
   const { isLoaded, isSignedIn } = useAuth();
-  const { data, isLoading, isError, error } = useGetTodosQuery(undefined, { skip: !isLoaded || !isSignedIn });
-  const [postTodo, { isLoading: isPostingTodo, isError: isErrorPostingTodo }] = usePostTodoMutation();
+  const { data, isLoading, isError } = useGetTodosQuery(undefined, { skip: !isLoaded || !isSignedIn });
+  const [postTodo, { isLoading: isPostingTodo }] = usePostTodoMutation();
+  const [patchTodo] = usePatchTodoMutation();
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
+  const todos: TODO[] = [...(data ?? []), DEMO_TODO];
 
-  const demoTodos: TODO[] = [
-    {
-      id: "demo-1",
-      userId: "demo-user",
-      title: "Demo: AI-powered search",
-      status: "PENDING",
-      priority: "HIGH",
-      tags: ["demo", "AI"],
-    },
-    {
-      id: "demo-2",
-      userId: "demo-user",
-      title: "Demo: Custom webhooks",
-      status: "PENDING",
-      priority: "MEDIUM",
-      tags: ["demo", "backend"],
-    },
-    {
-      id: "demo-3",
-      userId: "demo-user",
-      title: "Demo: Real-time collaboration",
-      status: "IN_PROGRESS",
-      priority: "URGENT",
-      tags: ["demo", "realtime"],
-    },
-    {
-      id: "demo-4",
-      userId: "demo-user",
-      title: "Demo: API v2 migration",
-      status: "IN_PROGRESS",
-      priority: "HIGH",
-      tags: ["demo", "API"],
-    },
-    {
-      id: "demo-5",
-      userId: "demo-user",
-      title: "Demo: Dark mode",
-      status: "COMPLETED",
-      priority: "LOW",
-      tags: ["demo", "UI"],
-    },
-    {
-      id: "demo-6",
-      userId: "demo-user",
-      title: "Demo: Export to CSV",
-      status: "COMPLETED",
-      priority: "MEDIUM",
-      tags: ["demo", "export"],
-    },
-  ];
-
-  const todos: TODO[] = [...(data ?? []), ...demoTodos];
-
-  const plannedData: TODO[] = todos?.filter((todo) => todo.status == "PENDING") ?? [];
-  const buildingData: TODO[] = todos?.filter((todo) => todo.status == "IN_PROGRESS") ?? [];
-  const shippedData: TODO[] = todos?.filter((todo) => todo.status == "COMPLETED") ?? [];
+  const plannedData: TODO[] = todos.filter((todo) => todo.status == "PENDING");
+  const buildingData: TODO[] = todos.filter((todo) => todo.status == "IN_PROGRESS");
+  const shippedData: TODO[] = todos.filter((todo) => todo.status == "COMPLETED");
   const initialFormState: CreateTodoInput = { title: "", priority: "MEDIUM", tags: [] };
   const [createTodoForm, updateCreateTodoForm] = useState<CreateTodoInput>(initialFormState);
 
-
   const handlePostTodo = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
     if (!createTodoForm.title.trim()) {
       alert("Title required");
       return;
     }
-
-    const data = await postTodo(createTodoForm).unwrap();
-    console.log("Posted successfully! data : ", data);
+    await postTodo(createTodoForm).unwrap();
     setIsOpen(false);
     updateCreateTodoForm(initialFormState);
-
   }
-
 
   return (
     <SkeletonWrapper skeleton={<TodosPageSkeleton />} delay={2000}>
       <div className="flex min-h-full w-full flex-col items-center gap-10 px-16 py-15">
-      {/* ADD TODO Model*/}
       <header className="w-full flex justify-between border-b">
         <h1 className="pb-4 text-4xl font-bold">
           Tasks To Do
@@ -120,7 +72,7 @@ function Page(): JSX.Element {
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button className="h-8 rounded-md px-3 text-xs font-semibold">
-              <Plus className="mr-1 size-3.5" /> New Ritual
+              <Plus className="mr-1 size-3.5" /> New Todo
             </Button>
           </DialogTrigger>
           <DialogContent className="border-border bg-popover text-popover-foreground">
@@ -129,11 +81,11 @@ function Page(): JSX.Element {
             </DialogHeader>
             <form onSubmit={handlePostTodo} className="space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="habit-title">Title</Label>
+                <Label htmlFor="todo-title">Title</Label>
                 <Input
-                  id="habit-title"
+                  id="todo-title"
                   className="border-input bg-background"
-                  placeholder="e.g. Drink Water"
+                  placeholder="e.g. Ship docs"
                   value={createTodoForm.title}
                   onChange={(event) =>
                     updateCreateTodoForm((prev) => ({ ...prev, title: event.target.value }))
@@ -142,12 +94,12 @@ function Page(): JSX.Element {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="habit-category">Tags</Label>
+                <Label htmlFor="todo-tags">Tags</Label>
                 <Input
-                  id="habit-category"
+                  id="todo-tags"
                   className="border-input bg-background"
                   placeholder="e.g. Health"
-                  value={createTodoForm.tags ?? []}
+                  value={createTodoForm.tags?.[0] ?? ""}
                   onChange={(event) =>
                     updateCreateTodoForm((prev) => ({ ...prev, tags: [event.target.value] }))
                   }
@@ -177,7 +129,7 @@ function Page(): JSX.Element {
                 className="w-full"
                 disabled={isPostingTodo}
               >
-                {isPostingTodo ? "Saving..." : "Add Habit"}
+                {isPostingTodo ? "Saving..." : "Add Todo"}
               </Button>
             </form>
           </DialogContent>
@@ -185,7 +137,20 @@ function Page(): JSX.Element {
 
       </header>
       <div className="w-full">
-        <Pattern plannedData={plannedData} buildingData={buildingData} shippedData={shippedData} />
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">Loading todos…</p>
+        ) : isError ? (
+          <p className="text-sm text-muted-foreground">Couldn&apos;t load todos.</p>
+        ) : (
+          <Pattern
+            plannedData={plannedData}
+            buildingData={buildingData}
+            shippedData={shippedData}
+            onStatusChange={(id, status) => {
+              void patchTodo({ id, body: { status } })
+            }}
+          />
+        )}
       </div>
     </div>
   </SkeletonWrapper>

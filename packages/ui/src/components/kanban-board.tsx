@@ -27,6 +27,7 @@ interface PatternProps {
   plannedData: TODO[];
   buildingData: TODO[];
   shippedData: TODO[];
+  onStatusChange?: (id: string, status: TODO["status"]) => void;
 }
 
 type ColumnId = "planned" | "building" | "shipped";
@@ -105,32 +106,76 @@ function TodoCard({ todo }: { todo: TODO }) {
   );
 }
 
+const COLUMN_TO_STATUS = {
+  planned: "PENDING",
+  building: "IN_PROGRESS",
+  shipped: "COMPLETED",
+} as const;
+
+function columnFingerprint(cols: Columns) {
+  return (Object.keys(COLUMNS) as ColumnId[])
+    .map((col) => `${col}:${cols[col].map((t) => t.id).join(",")}`)
+    .join("|");
+}
+
 export function Pattern({
   plannedData,
   buildingData,
   shippedData,
+  onStatusChange,
 }: PatternProps) {
   const [columns, setColumns] = useState<Columns>(() =>
     groupTodos([...plannedData, ...buildingData, ...shippedData])
   );
 
-  // Refresh when API data changes.
+  // Refresh when API todo ids/statuses change (ignore new array refs each render).
+  const apiKey = columnFingerprint(
+    groupTodos([...plannedData, ...buildingData, ...shippedData])
+  );
   useEffect(() => {
     setColumns(
       groupTodos([...plannedData, ...buildingData, ...shippedData])
     );
-  }, [plannedData, buildingData, shippedData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- sync only when apiKey changes
+  }, [apiKey]);
 
   return (
     <Kanban
       value={columns}
-      onValueChange={(value) =>
-        setColumns({
-          planned: value.planned ?? [],
-          building: value.building ?? [],
-          shipped: value.shipped ?? [],
-        })
-      }
+      onValueChange={(value) => {
+        const next: Columns = {
+          planned: (value.planned ?? []).map((t) => ({
+            ...t,
+            status: "PENDING",
+          })),
+          building: (value.building ?? []).map((t) => ({
+            ...t,
+            status: "IN_PROGRESS",
+          })),
+          shipped: (value.shipped ?? []).map((t) => ({
+            ...t,
+            status: "COMPLETED",
+          })),
+        };
+
+        // Avoid controlled-Kanban setState ↔ onValueChange loops
+        if (columnFingerprint(next) === columnFingerprint(columns)) return;
+
+        const prevColumn = new Map<string, ColumnId>();
+        for (const col of Object.keys(COLUMNS) as ColumnId[]) {
+          for (const todo of columns[col]) prevColumn.set(todo.id, col);
+        }
+
+        setColumns(next);
+
+        for (const col of Object.keys(COLUMNS) as ColumnId[]) {
+          for (const todo of next[col]) {
+            if (todo.id.startsWith("demo-")) continue;
+            if (prevColumn.get(todo.id) === col) continue;
+            onStatusChange?.(todo.id, COLUMN_TO_STATUS[col]);
+          }
+        }
+      }}
       getItemValue={(item) => item.id}
     >
       <KanbanBoard className="grid grid-cols-3 gap-3">

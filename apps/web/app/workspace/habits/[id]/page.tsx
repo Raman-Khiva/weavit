@@ -23,6 +23,7 @@ import { Link2Icon, UnlinkIcon } from "lucide-react"
 import {
   useGetHabitsQuery,
   usePostHabitLogMutation,
+  useToggleHabitMutation,
 } from "@/features/habits/habits.api"
 
 const PERIOD_START = new Date(2026, 0, 1)
@@ -39,10 +40,47 @@ function frequencyLabel(frequency?: string | null) {
   return "Daily" as const
 }
 
-function startOfTodayMs() {
-  const d = new Date()
-  d.setHours(0, 0, 0, 0)
-  return d.getTime()
+function utcToday(): string {
+  return new Date().toISOString().slice(0, 10)
+}
+
+function shiftUtcDate(dateStr: string, days: number): string {
+  const d = new Date(`${dateStr}T00:00:00.000Z`)
+  d.setUTCDate(d.getUTCDate() + days)
+  return d.toISOString().slice(0, 10)
+}
+
+function streakFromDates(completedDates: string[], today = utcToday()): number {
+  const set = new Set(completedDates)
+  let cursor = today
+  if (!set.has(cursor)) {
+    cursor = shiftUtcDate(today, -1)
+    if (!set.has(cursor)) return 0
+  }
+  let streak = 0
+  while (set.has(cursor)) {
+    streak += 1
+    cursor = shiftUtcDate(cursor, -1)
+  }
+  return streak
+}
+
+function bestStreakFromDates(completedDates: string[]): number {
+  if (completedDates.length === 0) return 0
+  const sorted = [...new Set(completedDates)].sort()
+  let best = 1
+  let run = 1
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = sorted[i - 1]!
+    const cur = sorted[i]!
+    if (shiftUtcDate(prev, 1) === cur) {
+      run += 1
+      best = Math.max(best, run)
+    } else {
+      run = 1
+    }
+  }
+  return best
 }
 
 function LeetCodeMark({ className }: { className?: string }) {
@@ -66,6 +104,7 @@ function Page(): JSX.Element {
     { skip: !isLoaded || !isSignedIn }
   )
   const [postHabitLog] = usePostHabitLogMutation()
+  const [toggleHabit] = useToggleHabitMutation()
 
   const [leetcodeHandle, setLeetcodeHandle] = useState<string | null>(null)
   const [draftHandle, setDraftHandle] = useState("")
@@ -74,77 +113,41 @@ function Page(): JSX.Element {
 
   const realHabit = habits?.find((item) => item.id === habitId)
   const habitLogs = realHabit?.logs ?? []
+  const completedDates = realHabit?.completedDates ?? []
 
   const journalEntries = useMemo<JournalEntry[]>(() => {
     return habitLogs.map((log) => ({
       id: log.id,
-      ts: new Date(log.completedAt).getTime(),
+      ts: new Date(log.createdAt).getTime(),
       status: "done" as const,
       entry: log.notes?.trim() || "Checked in",
     }))
   }, [habitLogs])
 
   const stats = useMemo(() => {
-    const dayKeys = new Set(
-      habitLogs.map((log) => new Date(log.completedAt).toDateString())
-    )
-    const totalActiveDays = dayKeys.size
-    const sortedDays = [...dayKeys]
-      .map((key) => new Date(key).getTime())
-      .sort((a, b) => b - a)
-
-    let currentStreak = 0
     const dayMs = 24 * 60 * 60 * 1000
-    let cursor = startOfTodayMs()
-
-    // If nothing today, streak can still count from yesterday
-    if (sortedDays[0] !== undefined && sortedDays[0] < cursor) {
-      const yesterday = cursor - dayMs
-      if (sortedDays[0] === yesterday) cursor = yesterday
-      else {
-        return {
-          currentStreak: 0,
-          maxStreak: totalActiveDays,
-          totalActiveDays,
-          totalDays: Math.max(
-            1,
-            Math.ceil((Date.now() - PERIOD_START.getTime()) / dayMs)
-          ),
-        }
-      }
-    }
-
-    for (const day of sortedDays) {
-      if (day === cursor) {
-        currentStreak += 1
-        cursor -= dayMs
-      } else if (day < cursor) {
-        break
-      }
-    }
-
+    const totalActiveDays = completedDates.length
     return {
-      currentStreak,
-      maxStreak: Math.max(currentStreak, totalActiveDays),
+      currentStreak: realHabit?.streakCount ?? streakFromDates(completedDates),
+      maxStreak: bestStreakFromDates(completedDates),
       totalActiveDays,
       totalDays: Math.max(
         1,
         Math.ceil((Date.now() - PERIOD_START.getTime()) / dayMs)
       ),
     }
-  }, [habitLogs])
+  }, [completedDates, realHabit?.streakCount])
 
-  const isDoneToday = habitLogs.some(
-    (log) => new Date(log.completedAt).getTime() >= startOfTodayMs()
-  )
+  const isDoneToday = completedDates.includes(utcToday())
 
   const streak = useMemo(
     () =>
-      habitLogs.slice(0, 3).map((log) => {
-        const day = new Date(log.completedAt).toISOString().slice(0, 10)
-        return { periodStart: day, periodEnd: day }
-      }),
-    [habitLogs]
+      [...completedDates]
+        .sort()
+        .slice(-3)
+        .reverse()
+        .map((day) => ({ periodStart: day, periodEnd: day })),
+    [completedDates]
   )
 
   useEffect(() => {
@@ -218,11 +221,7 @@ function Page(): JSX.Element {
           totalDays={stats.totalDays}
           doneToday={isDoneToday}
           onToggleDone={async () => {
-            if (isDoneToday) return
-            await postHabitLog({
-              habitId,
-              body: { completedAt: new Date().toISOString() },
-            }).unwrap()
+            await toggleHabit(habitId).unwrap()
           }}
           onSetReminder={() => setReminder("08:00 PM")}
         />

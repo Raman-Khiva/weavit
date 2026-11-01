@@ -1,5 +1,5 @@
 import { api } from "@/services/api";
-import { UpdateTaskInput } from "@weavit/api-contract";
+import { UpdateProjectInput, UpdateTaskInput } from "@weavit/api-contract";
 import { CreatePhaseInput, CreateProjectInput, CreateTaskInput, CreateTaskNoteInput, PHASE, PROJECT, TASK, TASK_LOG_NOTE } from "@weavit/api-types";
 
 
@@ -35,6 +35,10 @@ export const projectsApi = api.injectEndpoints({
             query: () => "/projects",
             providesTags: ["Projects"]
         }),
+        getProject: builder.query<PROJECT, string>({
+            query: (id) => `/projects/${id}`,
+            providesTags: ["Projects"],
+        }),
         postProject: builder.mutation<PROJECT, CreateProjectInput>({
             query: (body) => ({
                 url: "/projects",
@@ -43,7 +47,21 @@ export const projectsApi = api.injectEndpoints({
             }),
             invalidatesTags: ["Projects"]
         }),
-
+        patchProject: builder.mutation<PROJECT, { id: string; body: UpdateProjectInput }>({
+            query: ({ id, body }) => ({
+                url: `/projects/${id}`,
+                method: "PATCH",
+                body,
+            }),
+            invalidatesTags: ["Projects"],
+        }),
+        deleteProject: builder.mutation<void, string>({
+            query: (id) => ({
+                url: `/projects/${id}`,
+                method: "DELETE",
+            }),
+            invalidatesTags: ["Projects"],
+        }),
 
         postPhase: builder.mutation<PHASE, CreatePhaseProps>({
             query: ({ body, projectId }) => ({
@@ -88,4 +106,14 @@ export const projectsApi = api.injectEndpoints({
 })
 
 
-export const { useGetProjectsQuery, usePostProjectMutation, usePostPhaseMutation, usePostTaskMutation, usePostNoteMutation , usePatchTaskMutation} = projectsApi;
+export const {
+  useGetProjectsQuery,
+  useGetProjectQuery,
+  usePostProjectMutation,
+  usePatchProjectMutation,
+  useDeleteProjectMutation,
+  usePostPhaseMutation,
+  usePostTaskMutation,
+  usePostNoteMutation,
+  usePatchTaskMutation,
+} = projectsApi;

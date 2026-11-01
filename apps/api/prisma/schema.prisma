@@ -41,32 +41,74 @@ enum HabitFrequency {
   MONTHLY
 }
 
-enum NotificationStatus {
-  UNREAD
-  READ
-  ARCHIVED
-}
-
-model Test {
-  name String @id @default(cuid())
+/// Matches CalendarWeek CalendarTone
+enum CalendarTone {
+  teal
+  violet
+  sky
+  amber
+  rose
 }
 
 model User {
-  id            String         @id @default(cuid())
-  clerkId       String         @unique
-  email         String?
-  name          String?
-  avatarUrl     String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String?
+  name      String?
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  projects      Project[]
-  habits        Habit[]
-  todos         Todo[]
-  deadlines     Deadline[]
-  activities    Activity[]
-  notifications Notification[]
-  drafts        Draft[]
+  projects  Project[]
+  habits    Habit[]
+  todos     Todo[]
+  deadlines Deadline[]
+  calendars Calendar[]
+  calendarEvents CalendarEvent[]
+}
+
+/// CalendarWeek CalendarSource — named calendars that color/filter events
+model Calendar {
+  id        String       @id @default(cuid())
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  tone      CalendarTone
+  visible   Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  events CalendarEvent[]
+
+  @@index([userId])
+}
+
+/// CalendarWeek CalendarEvent — timed / all-day blocks on the week grid
+model CalendarEvent {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  calendarId String
+  calendar   Calendar @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+  title      String
+  /// YYYY-MM-DD (UTC calendar day)
+  date       String
+  /// Minutes from midnight
+  start      Int
+  /// Minutes from midnight
+  end        Int
+  allDay     Boolean  @default(false)
+  /// Multi-day span for all-day events (UI `days`)
+  days       Int?
+  location   String?
+  video      Boolean  @default(false)
+  people     String[] @default([])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+  @@index([calendarId])
+  @@index([userId, date])
 }
 
 model Project {
@@ -83,7 +125,7 @@ model Project {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  phases      ProjectPhase[]
+  phases ProjectPhase[]
 
   @@index([userId])
 }
@@ -102,27 +144,27 @@ model ProjectPhase {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
-  tasks       ProjectTask[]
+  tasks ProjectTask[]
 
   @@index([projectId])
 }
 
 model ProjectTask {
-  id          String        @id @default(cuid())
+  id          String       @id @default(cuid())
   phaseId     String
-  phase       ProjectPhase  @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  phase       ProjectPhase @relation(fields: [phaseId], references: [id], onDelete: Cascade)
   title       String
   description String?
-  status      TaskStatus    @default(PENDING)
+  status      TaskStatus   @default(PENDING)
   category    String?
-  priority    Priority      @default(MEDIUM)
+  priority    Priority     @default(MEDIUM)
   dueDate     DateTime?
   completedAt DateTime?
-  order       Int           @default(0)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  order       Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
-  notes       TaskLogNote[]
+  notes TaskLogNote[]
 
   @@index([phaseId])
 }
@@ -138,32 +180,38 @@ model TaskLogNote {
   @@index([taskId])
 }
 
+/// Habit completion is tracked on `completedDates` (YYYY-MM-DD).
+/// `HabitLog` is journal-only and must not be treated as completion.
 model Habit {
-  id          String         @id @default(cuid())
-  userId      String
-  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title       String
-  description String?
-  frequency   HabitFrequency @default(DAILY)
-  category    String         @default("General")
-  streakCount Int            @default(0)
-  bestStreak  Int            @default(0)
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  id             String         @id @default(cuid())
+  userId         String
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title          String
+  description    String?
+  frequency      HabitFrequency @default(DAILY)
+  category       String         @default("General")
+  /// Cached current streak; recomputed from completedDates on write.
+  streakCount    Int            @default(0)
+  /// Source of truth for which calendar days this habit was completed.
+  completedDates String[]       @default([])
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
-  logs        HabitLog[]
+  logs HabitLog[]
 
   @@index([userId])
 }
 
+/// Journal / notes for a habit. Does not imply completion.
 model HabitLog {
-  id          String   @id @default(cuid())
-  habitId     String
-  habit       Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
-  completedAt DateTime @default(now())
-  notes       String?
+  id        String   @id @default(cuid())
+  habitId   String
+  habit     Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  notes     String?
+  createdAt DateTime @default(now())
 
   @@index([habitId])
+  @@index([habitId, createdAt])
 }
 
 model Todo {
@@ -194,48 +242,6 @@ model Deadline {
   isCompleted Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  @@index([userId])
-}
-
-model Activity {
-  id              String   @id @default(cuid())
-  userId          String
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title           String
-  type            String
-  durationMinutes Int      @default(0)
-  timestamp       DateTime @default(now())
-  createdAt       DateTime @default(now())
-
-  @@index([userId])
-}
-
-model Notification {
-  id        String             @id @default(cuid())
-  userId    String
-  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title     String
-  body      String
-  status    NotificationStatus @default(UNREAD)
-  actionUrl String?
-  createdAt DateTime           @default(now())
-  updatedAt DateTime           @updatedAt
-
-  @@index([userId])
-}
-
-model Draft {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title     String
-  content   String
-  category  String   @default("General")
-  tags      String[]
-  isPinned  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
   @@index([userId])
 }

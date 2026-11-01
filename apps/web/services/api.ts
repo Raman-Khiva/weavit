@@ -38,7 +38,15 @@ export const api = createApi({
         }
 
     }),
-    tagTypes: ["Habit", "Todos", "Deadlines", "Projects"],
+    tagTypes: [
+      "Habit",
+      "Todos",
+      "Deadlines",
+      "Projects",
+      "Timeline",
+      "Calendar",
+      "CalendarEvent",
+    ],
     endpoints: () => ({})
 
 })

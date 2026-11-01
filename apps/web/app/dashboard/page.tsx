@@ -1,5 +1,3 @@
-
-
 "use client"
 import { useEffect, useMemo, useState } from "react"
 import { FloatingDockDemo } from "@workspace/ui/components/mvpblocks/floating-dock-demo"
@@ -12,7 +10,9 @@ import { HeaderIslands, type ScheduleEvent } from "@workspace/ui/components/head
 import { Bot } from "lucide-react"
 import { useAuth } from "@clerk/nextjs"
 import { useGetProjectsQuery } from "@/features/projects/projects.api"
-import { useGetHabitsQuery } from "@/features/habits/habits.api"
+import { useGetHabitsQuery, useToggleHabitMutation } from "@/features/habits/habits.api"
+import { useGetDeadlinesQuery, usePatchDeadlineMutation } from "@/features/deadlines/deadlines.api"
+import { useGetTodosQuery } from "@/features/todos/todos.api"
 import type { PROJECT } from "@weavit/api-types"
 import DashboardAgent from "@/features/agent/DashboardAgent"
 
@@ -31,12 +31,29 @@ const ASSISTANT_MESSAGES = [
   "what's left for today?",
 ]
 
-const DEADLINES: Deadline[] = [
-  { id: "auth", title: "Add authentication", due: "2026-10-23", priority: "high" },
-  { id: "api", title: "Create API endpoints", due: "2026-10-26", priority: "medium" },
-  { id: "quiz", title: "Math Quiz", due: "2026-10-26", dueTime: "14:00", priority: "high" },
-  { id: "reading", title: "Reading Assignment", due: "2026-10-26", dueTime: "17:00", priority: "low" },
-  { id: "docs", title: "Write documentation", due: "2026-10-30", priority: "low" },
+const DEMO_DEADLINE: Deadline = {
+  id: "demo-deadline",
+  title: "Demo: Math Quiz",
+  due: new Date().toISOString().slice(0, 10),
+  dueTime: "14:00",
+  priority: "high",
+  done: false,
+}
+
+const DEMO_TASK = {
+  title: "Demo: Add authentication",
+  description: "Sample queue card",
+  dueDate: new Date().toISOString().slice(0, 10),
+  priority: "high" as const,
+}
+
+const FALLBACK_PLANS = [
+  {
+    id: "demo-plan-row",
+    title: "Demo: Trees, Graphs & Traversals",
+    planName: "SDE Interview Preparation",
+    topic: "Data Structures & Algorithms",
+  },
 ]
 
 function AssistantGreeting() {
@@ -65,42 +82,6 @@ function AssistantGreeting() {
     </section>
   )
 }
-
-const TASKS = [
-  {
-    title: "Add authentication",
-    description: "Implement OAuth2 with Google and GitHub providers",
-    dueDate: "2026-10-23",
-    priority: "high" as const,
-  },
-  {
-    title: "Create API endpoints",
-    description: "Set up basic CRUD operations for user profiles",
-    dueDate: "2026-10-26",
-    priority: "medium" as const,
-  },
-  {
-    title: "Write documentation",
-    description: "Draft API documentation using Swagger",
-    dueDate: "2026-10-28",
-    priority: "low" as const,
-  },
-]
-
-const FALLBACK_PLANS = [
-  {
-    id: "preview-trees",
-    title: "Trees, Graphs & Traversals",
-    planName: "SDE Interview Preparation",
-    topic: "Data Structures & Algorithms",
-  },
-  {
-    id: "preview-recruiter",
-    title: "Reply to the recruiter",
-    planName: "Job search",
-    topic: "Outreach",
-  },
-]
 
 function SectionRule({ label }: { label: string }) {
   return (
@@ -133,7 +114,12 @@ function planRows(projects: PROJECT[]) {
   return rows
 }
 
-/** Projects + deadlines, side by side above the dock in the central column. */
+function mapPriority(p?: string): Deadline["priority"] {
+  if (p === "HIGH" || p === "URGENT") return "high"
+  if (p === "LOW") return "low"
+  return "medium"
+}
+
 function CenterBottomRail({
   projects,
   deadlines,
@@ -168,28 +154,68 @@ function CenterBottomRail({
 
 export default function Page(): React.ReactElement {
   const { isLoaded, isSignedIn } = useAuth()
-  const { data } = useGetProjectsQuery(undefined, { skip: !isLoaded || !isSignedIn })
-  const { data: habits } = useGetHabitsQuery(undefined, { skip: !isLoaded || !isSignedIn })
-  const [deadlineDone, setDeadlineDone] = useState<Record<string, boolean>>({})
-  const events = useMemo(
-    () => [eventToday("quiz", "Math Quiz", 14, 15), eventToday("reading", "Reading Assignment", 17, 18)],
-    []
-  )
+  const skip = !isLoaded || !isSignedIn
+  const { data } = useGetProjectsQuery(undefined, { skip })
+  const { data: habits } = useGetHabitsQuery(undefined, { skip })
+  const { data: apiDeadlines } = useGetDeadlinesQuery(undefined, { skip })
+  const { data: todos } = useGetTodosQuery(undefined, { skip })
+  const [toggleHabit] = useToggleHabitMutation()
+  const [patchDeadline] = usePatchDeadlineMutation()
+
+  const today = new Date().toISOString().slice(0, 10)
+  const habitsDone = (habits ?? []).filter((h) =>
+    (h.completedDates ?? []).includes(today)
+  ).length
+  const habitsTotal = Math.max((habits ?? []).length, 1)
+
+  const events = useMemo(() => {
+    const fromDeadlines = (apiDeadlines ?? [])
+      .filter((d) => d.dueDate.slice(0, 10) === today && !d.isCompleted)
+      .slice(0, 2)
+      .map((d, i) => {
+        const hour = d.time ? Number(d.time.split(":")[0]) || 14 + i : 14 + i
+        return eventToday(d.id, d.title, hour, hour + 1)
+      })
+    return fromDeadlines.length > 0
+      ? fromDeadlines
+      : [eventToday("demo-event", "Demo: Math Quiz", 14, 15)]
+  }, [apiDeadlines, today])
+
   const fromPlans = useMemo(() => {
     const rows = planRows(data ?? [])
     return rows.length > 0 ? rows : FALLBACK_PLANS
   }, [data])
 
-  const deadlines = useMemo(
-    () => DEADLINES.map((item) => ({ ...item, done: deadlineDone[item.id] })),
-    [deadlineDone]
-  )
+  const deadlines: Deadline[] = useMemo(() => {
+    const mapped = (apiDeadlines ?? []).map((d) => ({
+      id: d.id,
+      title: d.title,
+      due: d.dueDate.slice(0, 10),
+      dueTime: d.time ?? undefined,
+      priority: mapPriority(d.priority),
+      done: d.isCompleted,
+    }))
+    return [...mapped, DEMO_DEADLINE]
+  }, [apiDeadlines])
+
+  const taskCards = useMemo(() => {
+    const open = (todos ?? [])
+      .filter((t) => t.status !== "COMPLETED" && t.status !== "SKIPPED")
+      .slice(0, 3)
+      .map((t) => ({
+        title: t.title,
+        description: t.description ?? t.tags?.join(", ") ?? "",
+        dueDate: t.dueDate?.slice(0, 10) ?? today,
+        priority: mapPriority(t.priority),
+      }))
+    return open.length > 0 ? [...open, DEMO_TASK].slice(0, 4) : [DEMO_TASK]
+  }, [todos, today])
 
   return (
     <main className="relative flex h-screen w-full flex-col bg-background pt-16 pb-19">
       <HeaderIslands
-        habitsDone={1}
-        habitsTotal={Math.min(habits?.length || 2, 4)}
+        habitsDone={habitsDone}
+        habitsTotal={habitsTotal}
         events={events}
         notificationCount={3}
       />
@@ -197,10 +223,15 @@ export default function Page(): React.ReactElement {
       <div className="flex min-h-0 flex-1 gap-1 px-1 pt-1">
         <div className="flex w-96 shrink-0 flex-col overflow-y-auto rounded-sm border border-white/10 bg-white/[0.03] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <SectionRule label="Habits" />
-          <Habits habits={habits ?? []} />
+          <Habits
+            habits={habits ?? []}
+            onToggle={(habitId) => {
+              void toggleHabit(habitId)
+            }}
+          />
           <div className="mt-3 flex flex-col gap-1.5 px-1">
             <SectionRule label="Tasks" />
-            {TASKS.map((task) => (
+            {taskCards.map((task) => (
               <QueueTaskCard key={task.title} {...task} />
             ))}
           </div>
@@ -224,12 +255,13 @@ export default function Page(): React.ReactElement {
           <CenterBottomRail
             projects={data ?? []}
             deadlines={deadlines}
-            onToggleDeadline={(item) =>
-              setDeadlineDone((current) => ({
-                ...current,
-                [item.id]: !current[item.id],
-              }))
-            }
+            onToggleDeadline={(item) => {
+              if (item.id.startsWith("demo-")) return
+              void patchDeadline({
+                id: item.id,
+                body: { isCompleted: !item.done },
+              })
+            }}
           />
         </div>
 

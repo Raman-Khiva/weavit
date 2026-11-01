@@ -7,18 +7,42 @@ import cors from "cors"
 import { Habit, User } from "@prisma/client"
 import pinoHttp from "pino-http"
 import {
+  DeleteProjectsIdParams,
+  DeleteTodosIdParams,
+  GetCalendarEventsResponse,
+  GetCalendarsResponse,
   GetDeadlinesResponse,
   GetHabitsResponse,
   GetProjectsIdResponse,
   GetProjectsResponse,
+  GetTimelineResponse,
   GetTodosResponse,
+  PatchCalendarEventsIdBody,
+  PatchCalendarEventsIdResponse,
+  PatchCalendarsIdBody,
+  PatchCalendarsIdResponse,
+  PatchDeadlinesIdBody,
+  PatchDeadlinesIdParams,
+  PatchDeadlinesIdResponse,
+  PatchProjectsIdBody,
+  PatchProjectsIdParams,
+  PatchProjectsIdResponse,
   PatchProjectsProjectIdPhasesPhaseIdTasksTaskIdBody,
   PatchProjectsProjectIdPhasesPhaseIdTasksTaskIdResponse,
   PatchTodosIdBody,
   PatchTodosIdResponse,
+  PostCalendarEventsBody,
+  PostCalendarEventsResponse,
+  PostCalendarsBody,
+  PostCalendarsResponse,
   PostDeadlinesBody,
   PostDeadlinesResponse,
-  PostHabitsBody, PostHabitsIdToggleParams, PostHabitsResponse,
+  PostHabitsBody,
+  PostHabitsHabitIdLogsBody,
+  PostHabitsHabitIdLogsResponse,
+  PostHabitsIdToggleParams,
+  PostHabitsIdToggleResponse,
+  PostHabitsResponse,
   PostProjectsBody,
   PostProjectsProjectIdPhasesBody,
   PostProjectsProjectIdPhasesPhaseIdTasksBody,
@@ -32,6 +56,40 @@ import {
 import { logger } from "./lib/logger.dev"
 import z, { boolean, int, json, number, string } from "zod"
 import { fail, fromCaught, invalidBody, invalidParamas, invalidRes } from "./lib/responseErrors"
+import {
+  computeStreakCount,
+  toggleCompletedDate,
+  utcDateString,
+} from "./lib/habitDates"
+
+// Map DB event → API shape (calendar id field matches CalendarWeek)
+function mapCalendarEvent(ev: {
+  id: string
+  title: string
+  calendarId: string
+  date: string
+  start: number
+  end: number
+  allDay: boolean
+  days: number | null
+  location: string | null
+  video: boolean
+  people: string[]
+}) {
+  return {
+    id: ev.id,
+    title: ev.title,
+    calendar: ev.calendarId,
+    date: ev.date,
+    start: ev.start,
+    end: ev.end,
+    allDay: ev.allDay,
+    days: ev.days,
+    location: ev.location,
+    video: ev.video,
+    people: ev.people,
+  }
+}
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000
@@ -258,22 +316,12 @@ app.post("/habits", async (req: Request, res: Response) => {
       })
     }
 
-    const { logs, ...habitFields } = result.data;
-
     const postedHabit = await prisma.habit.create({
       data: {
         userId,
-        ...habitFields,
-        ...(logs?.length
-          ? {
-              logs: {
-                create: logs.map((log) => ({
-                  ...(log.completedAt ? { completedAt: new Date(log.completedAt) } : {}),
-                  notes: log.notes,
-                })),
-              },
-            }
-          : {}),
+        ...result.data,
+        completedDates: [],
+        streakCount: 0,
       },
       include: { logs: true },
     })
@@ -294,21 +342,49 @@ app.post("/habits", async (req: Request, res: Response) => {
   }
 })
 
-// post habit log
-const PostHabitLogBody = z.object({
-  completedAt: z.iso.datetime({ offset: true }).optional(),
-  notes: z.string().optional(),
+// Toggle today's completion date (source of truth: completedDates)
+app.post("/habits/:id/toggle", async (req: Request<{ id: string }>, res: Response) => {
+  try {
+    const userId = await getUserId(req, res)
+    if (!userId) return
+
+    const params = PostHabitsIdToggleParams.safeParse(req.params)
+    if (!params.success) {
+      return invalidParamas(res)
+    }
+
+    const habit = await prisma.habit.findFirst({
+      where: { id: params.data.id, userId },
+      include: { logs: true },
+    })
+    if (!habit) {
+      return fail(res, 404, "Habit not found")
+    }
+
+    const today = utcDateString()
+    const completedDates = toggleCompletedDate(habit.completedDates, today)
+    const streakCount = computeStreakCount(completedDates, today)
+
+    const updated = await prisma.habit.update({
+      where: { id: habit.id },
+      data: { completedDates, streakCount },
+      include: { logs: true },
+    })
+
+    const validateResponse = PostHabitsIdToggleResponse.safeParse(
+      JSON.parse(JSON.stringify(updated))
+    )
+    if (!validateResponse.success) {
+      return invalidRes(res, validateResponse.error)
+    }
+
+    return res.status(200).json(validateResponse.data)
+  } catch (error) {
+    return fromCaught(res, "Server error while toggling habit", error)
+  }
 })
-const PostHabitLogResponse = z.object({
-  id: z.string(),
-  habitId: z.string(),
-  completedAt: z.iso.datetime({ offset: true }),
-  notes: z.string().nullish(),
-})
 
-
-
-
+// Journal log only — does not update completedDates
 app.post("/habits/:habitId/logs", async (req: Request<{ habitId: string }>, res: Response) => {
   try {
     const userId = await getUserId(req, res)
@@ -326,7 +402,7 @@ app.post("/habits/:habitId/logs", async (req: Request<{ habitId: string }>, res:
       return fail(res, 404, "Habit not found")
     }
 
-    const validateBody = PostHabitLogBody.safeParse(req.body)
+    const validateBody = PostHabitsHabitIdLogsBody.safeParse(req.body)
     if (!validateBody.success) {
       return invalidBody(res, validateBody.error)
     }
@@ -335,13 +411,13 @@ app.post("/habits/:habitId/logs", async (req: Request<{ habitId: string }>, res:
       data: {
         habitId,
         notes: validateBody.data.notes,
-        ...(validateBody.data.completedAt
-          ? { completedAt: new Date(validateBody.data.completedAt) }
+        ...(validateBody.data.createdAt
+          ? { createdAt: new Date(validateBody.data.createdAt) }
           : {}),
       },
     })
 
-    const validateResponse = PostHabitLogResponse.safeParse(
+    const validateResponse = PostHabitsHabitIdLogsResponse.safeParse(
       JSON.parse(JSON.stringify(postedLog))
     )
     if (!validateResponse.success) {
@@ -353,10 +429,6 @@ app.post("/habits/:habitId/logs", async (req: Request<{ habitId: string }>, res:
     return fromCaught(res, "Internal Server Error", error)
   }
 })
-
-
-
-
 
 // patch habit
 
@@ -533,7 +605,7 @@ app.patch('/todos/:todoId', async (req : Request<{todoId : string}>, res : Respo
 
        const validateRes = PatchTodosIdResponse.safeParse(JSON.parse(JSON.stringify(updatedTodo)));
 
-       if(!validateRes.success){
+       if (!validateRes.success) {
         return invalidRes(res, validateRes.error);
        }
 
@@ -545,7 +617,27 @@ app.patch('/todos/:todoId', async (req : Request<{todoId : string}>, res : Respo
 
 })
 
+// delete todo
+app.delete('/todos/:todoId', async (req: Request<{ todoId: string }>, res: Response) => {
+  try {
+    const userId = await getUserId(req, res)
+    if (!userId) return
 
+    const { todoId } = req.params
+    if (!todoId) return invalidParamas(res)
+
+    const params = DeleteTodosIdParams.safeParse({ id: todoId })
+    if (!params.success) return invalidParamas(res)
+
+    await prisma.todo.delete({
+      where: { id: todoId, userId },
+    })
+
+    return res.status(200).json({ message: "Todo deleted" })
+  } catch (error) {
+    return fromCaught(res, "Server error while deleting todo", error)
+  }
+})
 
 
 // Project Routes
@@ -606,7 +698,8 @@ app.get('/projects/:projectId', async(req : Request<{projectId : string}>, res :
       where : {
         userId,
         id : projectId
-      }
+      },
+      include: { phases: { include: { tasks: { include: { notes: true } } } } },
     })
 
     const validateResponse = GetProjectsIdResponse.safeParse(JSON.parse(JSON.stringify(foundedProject)));
@@ -623,7 +716,59 @@ app.get('/projects/:projectId', async(req : Request<{projectId : string}>, res :
   }
 })
 
+// patch project (scalar fields only)
+app.patch('/projects/:projectId', async (req: Request<{ projectId: string }>, res: Response) => {
+  try {
+    const userId = await getUserId(req, res)
+    if (!userId) return
 
+    const { projectId } = req.params
+    if (!projectId) return invalidParamas(res)
+
+    const params = PatchProjectsIdParams.safeParse({ id: projectId })
+    if (!params.success) return invalidParamas(res)
+
+    const body = PatchProjectsIdBody.safeParse(req.body)
+    if (!body.success) return invalidBody(res, body.error)
+
+    const { phases: _phases, ...fields } = body.data
+
+    const updated = await prisma.project.update({
+      where: { id: projectId, userId },
+      data: fields,
+      include: { phases: { include: { tasks: { include: { notes: true } } } } },
+    })
+
+    const validateRes = PatchProjectsIdResponse.safeParse(JSON.parse(JSON.stringify(updated)))
+    if (!validateRes.success) return invalidRes(res, validateRes.error)
+
+    return res.status(200).json(validateRes.data)
+  } catch (error) {
+    return fromCaught(res, "Server error while updating project", error)
+  }
+})
+
+// delete project
+app.delete('/projects/:projectId', async (req: Request<{ projectId: string }>, res: Response) => {
+  try {
+    const userId = await getUserId(req, res)
+    if (!userId) return
+
+    const { projectId } = req.params
+    if (!projectId) return invalidParamas(res)
+
+    const params = DeleteProjectsIdParams.safeParse({ id: projectId })
+    if (!params.success) return invalidParamas(res)
+
+    await prisma.project.delete({
+      where: { id: projectId, userId },
+    })
+
+    return res.status(200).json({ message: "Project deleted successfully" })
+  } catch (error) {
+    return fromCaught(res, "Server error while deleting project", error)
+  }
+})
 
 
 // Post Projects
@@ -1076,29 +1221,270 @@ app.get('/deadlines', async (req: Request, res: Response) => {
   }
 })
 
-
-app.post('/db-test', async (req: Request, res: Response) => {
-  const { name } = req.body;
-
+// Patch deadline (completion toggle / edits)
+app.patch("/deadlines/:id", async (req: Request<{ id: string }>, res: Response) => {
   try {
-    const createTest = await prisma.test.create({
-      data: {
-        name
-      }
-    })
-    res.status(201).json({
-      message: "Test create successfully",
-      createTest
-    })
-  } catch (err) {
-    res.status(500).json({
-      message: "failed to create test",
-      error: err
-    })
-  }
+    const userId = await getUserId(req, res)
+    if (!userId) return
 
+    const params = PatchDeadlinesIdParams.safeParse(req.params)
+    if (!params.success) {
+      return invalidParamas(res)
+    }
+
+    const body = PatchDeadlinesIdBody.safeParse(req.body)
+    if (!body.success) {
+      return invalidBody(res, body.error)
+    }
+
+    const existing = await prisma.deadline.findFirst({
+      where: { id: params.data.id, userId },
+    })
+    if (!existing) {
+      return fail(res, 404, "Deadline not found")
+    }
+
+    const updated = await prisma.deadline.update({
+      where: { id: existing.id },
+      data: body.data,
+    })
+
+    const validateResponse = PatchDeadlinesIdResponse.safeParse(
+      JSON.parse(JSON.stringify(updated))
+    )
+    if (!validateResponse.success) {
+      return invalidRes(res, validateResponse.error)
+    }
+
+    return res.status(200).json(validateResponse.data)
+  } catch (error) {
+    return fromCaught(res, "Server error while updating deadline", error)
+  }
 })
 
+// Timeline routes
+
+// Get timeline (calendars + events)
+app.get('/timeline', async (req: Request, res: Response) => {
+  try {
+    const userId = await getUserId(req, res)
+    if (!userId) return
+
+    const calendars = await prisma.calendar.findMany({ where: { userId } })
+    const events = await prisma.calendarEvent.findMany({ where: { userId } })
+
+    const payload = {
+      calendars,
+      events: events.map(mapCalendarEvent),
+    }
+
+    const validateRes = GetTimelineResponse.safeParse(JSON.parse(JSON.stringify(payload)))
+    if (!validateRes.success) return invalidRes(res, validateRes.error)
+
+    return res.status(200).json(validateRes.data)
+  } catch (error) {
+    return fromCaught(res, "Server error while fetching timeline", error)
+  }
+})
+
+// Get calendars
+app.get('/calendars', async (req: Request, res: Response) => {
+  try {
+    const userId = await getUserId(req, res)
+    if (!userId) return
+
+    const calendars = await prisma.calendar.findMany({ where: { userId } })
+
+    const validateRes = GetCalendarsResponse.safeParse(JSON.parse(JSON.stringify(calendars)))
+    if (!validateRes.success) return invalidRes(res, validateRes.error)
+
+    return res.status(200).json(validateRes.data)
+  } catch (error) {
+    return fromCaught(res, "Server error while fetching calendars", error)
+  }
+})
+
+// Post calendar
+app.post('/calendars', async (req: Request, res: Response) => {
+  try {
+    const userId = await getUserId(req, res)
+    if (!userId) return
+
+    const result = PostCalendarsBody.safeParse(req.body)
+    if (!result.success) {
+      return res.status(400).json({
+        message: "Invalid request payload",
+        error: result.error.flatten(),
+      })
+    }
+
+    const posted = await prisma.calendar.create({
+      data: {
+        userId,
+        ...result.data,
+      },
+    })
+
+    const response = PostCalendarsResponse.parse(JSON.parse(JSON.stringify(posted)))
+    return res.status(201).json(response)
+  } catch (error) {
+    return res.status(400).json({
+      message: "failed while posting calendar",
+      error,
+    })
+  }
+})
+
+// Patch calendar
+app.patch('/calendars/:id', async (req: Request<{ id: string }>, res: Response) => {
+  try {
+    const userId = await getUserId(req, res)
+    if (!userId) return
+
+    const { id } = req.params
+    if (!id) return invalidParamas(res)
+
+    const validateBody = PatchCalendarsIdBody.safeParse(req.body)
+    if (!validateBody.success) return invalidBody(res, validateBody.error)
+
+    const updated = await prisma.calendar.update({
+      where: { id, userId },
+      data: validateBody.data,
+    })
+
+    const validateRes = PatchCalendarsIdResponse.safeParse(JSON.parse(JSON.stringify(updated)))
+    if (!validateRes.success) return invalidRes(res, validateRes.error)
+
+    return res.status(200).json(validateRes.data)
+  } catch (error) {
+    return fromCaught(res, "Server error while updating calendar", error)
+  }
+})
+
+// Delete calendar
+app.delete('/calendars/:id', async (req: Request<{ id: string }>, res: Response) => {
+  try {
+    const userId = await getUserId(req, res)
+    if (!userId) return
+
+    const { id } = req.params
+    if (!id) return invalidParamas(res)
+
+    await prisma.calendar.delete({
+      where: { id, userId },
+    })
+
+    return res.status(204).send()
+  } catch (error) {
+    return fromCaught(res, "Server error while deleting calendar", error)
+  }
+})
+
+// Get calendar events
+app.get('/calendar-events', async (req: Request, res: Response) => {
+  try {
+    const userId = await getUserId(req, res)
+    if (!userId) return
+
+    const events = await prisma.calendarEvent.findMany({ where: { userId } })
+    const mapped = events.map(mapCalendarEvent)
+
+    const validateRes = GetCalendarEventsResponse.safeParse(JSON.parse(JSON.stringify(mapped)))
+    if (!validateRes.success) return invalidRes(res, validateRes.error)
+
+    return res.status(200).json(validateRes.data)
+  } catch (error) {
+    return fromCaught(res, "Server error while fetching calendar events", error)
+  }
+})
+
+// Post calendar event
+app.post('/calendar-events', async (req: Request, res: Response) => {
+  try {
+    const userId = await getUserId(req, res)
+    if (!userId) return
+
+    const result = PostCalendarEventsBody.safeParse(req.body)
+    if (!result.success) {
+      return res.status(400).json({
+        message: "Invalid request payload",
+        error: result.error.flatten(),
+      })
+    }
+
+    const { calendar, ...fields } = result.data
+
+    const posted = await prisma.calendarEvent.create({
+      data: {
+        userId,
+        calendarId: calendar,
+        ...fields,
+      },
+    })
+
+    const response = PostCalendarEventsResponse.parse(
+      JSON.parse(JSON.stringify(mapCalendarEvent(posted)))
+    )
+    return res.status(201).json(response)
+  } catch (error) {
+    return res.status(400).json({
+      message: "failed while posting calendar event",
+      error,
+    })
+  }
+})
+
+// Patch calendar event
+app.patch('/calendar-events/:id', async (req: Request<{ id: string }>, res: Response) => {
+  try {
+    const userId = await getUserId(req, res)
+    if (!userId) return
+
+    const { id } = req.params
+    if (!id) return invalidParamas(res)
+
+    const validateBody = PatchCalendarEventsIdBody.safeParse(req.body)
+    if (!validateBody.success) return invalidBody(res, validateBody.error)
+
+    const { calendar, ...fields } = validateBody.data
+
+    const updated = await prisma.calendarEvent.update({
+      where: { id, userId },
+      data: {
+        ...fields,
+        ...(calendar ? { calendarId: calendar } : {}),
+      },
+    })
+
+    const validateRes = PatchCalendarEventsIdResponse.safeParse(
+      JSON.parse(JSON.stringify(mapCalendarEvent(updated)))
+    )
+    if (!validateRes.success) return invalidRes(res, validateRes.error)
+
+    return res.status(200).json(validateRes.data)
+  } catch (error) {
+    return fromCaught(res, "Server error while updating calendar event", error)
+  }
+})
+
+// Delete calendar event
+app.delete('/calendar-events/:id', async (req: Request<{ id: string }>, res: Response) => {
+  try {
+    const userId = await getUserId(req, res)
+    if (!userId) return
+
+    const { id } = req.params
+    if (!id) return invalidParamas(res)
+
+    await prisma.calendarEvent.delete({
+      where: { id, userId },
+    })
+
+    return res.status(204).send()
+  } catch (error) {
+    return fromCaught(res, "Server error while deleting calendar event", error)
+  }
+})
 
 app.get("/", (req: Request, res: Response) => {
   res.json({ message: "Hello from Express API", openapi: "/openapi.json" })

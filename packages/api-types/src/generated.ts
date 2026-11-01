@@ -588,7 +588,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Toggle Habit Completion Today */
+        /**
+         * Toggle Habit Completion for Today
+         * @description Adds or removes today (YYYY-MM-DD, UTC) from completedDates and recomputes streakCount.
+         */
         post: {
             parameters: {
                 query?: never;
@@ -799,14 +802,107 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/activities": {
+    "/habits/{habitId}/logs": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Get Activity Logs */
+        get?: never;
+        put?: never;
+        /**
+         * Create Habit Journal Log
+         * @description Append a journal note for a habit. Does not mark the habit complete — use toggle for completion dates.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    habitId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateHabitLogInput"];
+                };
+            };
+            responses: {
+                /** @description Journal log created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HabitLog"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/deadlines/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update Deadline
+         * @description Partial update for a deadline. Used by UI completion toggle and edits.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateDeadlineInput"];
+                };
+            };
+            responses: {
+                /** @description Deadline updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Deadline"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/timeline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Timeline (calendars + events)
+         * @description Returns the full CalendarWeek data set for the authenticated user.
+         */
         get: {
             parameters: {
                 query?: never;
@@ -816,13 +912,13 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Array of activity entries */
+                /** @description Timeline payload */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["Activity"][];
+                        "application/json": components["schemas"]["Timeline"];
                     };
                 };
             };
@@ -835,14 +931,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/notifications": {
+    "/calendars": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** List Notifications */
+        /** List Calendars */
         get: {
             parameters: {
                 query?: never;
@@ -852,55 +948,19 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Array of notifications */
+                /** @description Calendar sources */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["Notification"][];
+                        "application/json": components["schemas"]["CalendarSource"][];
                     };
                 };
             };
         };
         put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/drafts": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Draft Notes */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Array of drafts */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Draft"][];
-                    };
-                };
-            };
-        };
-        put?: never;
-        /** Create Draft Note */
+        /** Create Calendar */
         post: {
             parameters: {
                 query?: never;
@@ -910,17 +970,17 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["CreateDraftInput"];
+                    "application/json": components["schemas"]["CreateCalendarSourceInput"];
                 };
             };
             responses: {
-                /** @description Draft created */
+                /** @description Calendar created */
                 201: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["Draft"];
+                        "application/json": components["schemas"]["CalendarSource"];
                     };
                 };
             };
@@ -929,6 +989,196 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/calendars/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Calendar */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Calendar deleted (cascades events) */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Update Calendar
+         * @description Update name/tone/visible (visibility toggle in CalendarWeek sidebar).
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateCalendarSourceInput"];
+                };
+            };
+            responses: {
+                /** @description Calendar updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CalendarSource"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/calendar-events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Calendar Events */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Events */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CalendarEvent"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Create Calendar Event */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateCalendarEventInput"];
+                };
+            };
+            responses: {
+                /** @description Event created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CalendarEvent"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/calendar-events/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Calendar Event */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Event deleted */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Update Calendar Event
+         * @description Partial update for drag/resize/edit in CalendarWeek.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateCalendarEventInput"];
+                };
+            };
+            responses: {
+                /** @description Event updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CalendarEvent"];
+                    };
+                };
+            };
+        };
         trace?: never;
     };
 }
@@ -1073,11 +1323,14 @@ export interface components {
             userId: string;
             title: string;
             /** @enum {string} */
-            frequency?: "DAILY" | "WEEKLY" | "MONTHLY";
+            frequency: "DAILY" | "WEEKLY" | "MONTHLY";
             description?: string | null;
-            category?: string;
-            streakCount?: number;
-            bestStreak?: number;
+            category: string;
+            /** @description Cached current streak from completedDates */
+            streakCount: number;
+            /** @description Source of truth: calendar days (YYYY-MM-DD) the habit was completed */
+            completedDates: string[];
+            /** @description Journal entries only; not used for completion */
             logs?: components["schemas"]["HabitLog"][];
             /** Format: date-time */
             createdAt?: string;
@@ -1087,14 +1340,17 @@ export interface components {
         HabitLog: {
             id: string;
             habitId: string;
-            /** Format: date-time */
-            completedAt: string;
             notes?: string | null;
+            /** Format: date-time */
+            createdAt: string;
         };
         CreateHabitLogInput: {
-            /** Format: date-time */
-            completedAt?: string;
             notes?: string;
+            /**
+             * Format: date-time
+             * @description Optional journal timestamp; defaults to now
+             */
+            createdAt?: string;
         };
         CreateHabitInput: {
             title: string;
@@ -1102,8 +1358,6 @@ export interface components {
             /** @enum {string} */
             frequency?: "DAILY" | "WEEKLY" | "MONTHLY";
             category?: string;
-            /** @description Optional nested check-in logs to seed with the habit */
-            logs?: components["schemas"]["CreateHabitLogInput"][];
         };
         Todo: {
             id: string;
@@ -1111,9 +1365,9 @@ export interface components {
             title: string;
             description?: string | null;
             /** @enum {string} */
-            status?: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "SKIPPED";
+            status: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "SKIPPED";
             /** @enum {string} */
-            priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+            priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
             /** Format: date-time */
             dueDate?: string | null;
             tags?: string[];
@@ -1133,8 +1387,14 @@ export interface components {
         };
         UpdateTodoInput: {
             title?: string;
+            description?: string | null;
             /** @enum {string} */
             status?: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "SKIPPED";
+            /** @enum {string} */
+            priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+            /** Format: date-time */
+            dueDate?: string | null;
+            tags?: string[];
         };
         Deadline: {
             id: string;
@@ -1145,8 +1405,8 @@ export interface components {
             /** Format: date-time */
             dueDate: string;
             /** @enum {string} */
-            priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
-            isCompleted?: boolean;
+            priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+            isCompleted: boolean;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -1168,42 +1428,92 @@ export interface components {
             /** @enum {string} */
             priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
         };
-        Activity: {
-            id: string;
-            userId: string;
-            title: string;
-            type: string;
-            durationMinutes?: number;
+        UpdateDeadlineInput: {
+            title?: string;
+            course?: string | null;
+            time?: string | null;
             /** Format: date-time */
-            timestamp?: string;
-        };
-        Notification: {
-            id: string;
-            userId: string;
-            title: string;
-            body: string;
+            dueDate?: string;
             /** @enum {string} */
-            status: "UNREAD" | "READ" | "ARCHIVED";
-            actionUrl?: string | null;
-            /** Format: date-time */
-            createdAt?: string;
+            priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+            isCompleted?: boolean;
         };
-        Draft: {
+        /**
+         * @description CalendarWeek tone token
+         * @enum {string}
+         */
+        CalendarTone: "teal" | "violet" | "sky" | "amber" | "rose";
+        /** @description Named calendar used by CalendarWeek for color + visibility filtering */
+        CalendarSource: {
             id: string;
-            userId: string;
-            title: string;
-            content: string;
-            category?: string;
-            tags?: string[];
-            isPinned?: boolean;
-            /** Format: date-time */
-            createdAt?: string;
+            name: string;
+            tone: components["schemas"]["CalendarTone"];
+            /** @description When false, events on this calendar are hidden in CalendarWeek */
+            visible: boolean;
         };
-        CreateDraftInput: {
+        CreateCalendarSourceInput: {
+            name: string;
+            tone: components["schemas"]["CalendarTone"];
+            visible?: boolean;
+        };
+        UpdateCalendarSourceInput: {
+            name?: string;
+            tone?: components["schemas"]["CalendarTone"];
+            visible?: boolean;
+        };
+        /** @description Timed or all-day event block for CalendarWeek */
+        CalendarEvent: {
+            id: string;
             title: string;
-            content: string;
-            category?: string;
-            tags?: string[];
+            /** @description CalendarSource id */
+            calendar: string;
+            /**
+             * Format: date
+             * @description YYYY-MM-DD start day
+             */
+            date: string;
+            /** @description Minutes from midnight */
+            start: number;
+            /** @description Minutes from midnight */
+            end: number;
+            allDay: boolean;
+            /** @description Multi-day span for all-day events */
+            days?: number | null;
+            location?: string | null;
+            video: boolean;
+            people: string[];
+        };
+        CreateCalendarEventInput: {
+            title: string;
+            /** @description CalendarSource id */
+            calendar: string;
+            /** Format: date */
+            date: string;
+            start: number;
+            end: number;
+            allDay?: boolean;
+            days?: number | null;
+            location?: string | null;
+            video?: boolean;
+            people?: string[];
+        };
+        UpdateCalendarEventInput: {
+            title?: string;
+            calendar?: string;
+            /** Format: date */
+            date?: string;
+            start?: number;
+            end?: number;
+            allDay?: boolean;
+            days?: number | null;
+            location?: string | null;
+            video?: boolean;
+            people?: string[];
+        };
+        /** @description Payload for CalendarWeek: calendars + events */
+        Timeline: {
+            calendars: components["schemas"]["CalendarSource"][];
+            events: components["schemas"]["CalendarEvent"][];
         };
     };
     responses: never;

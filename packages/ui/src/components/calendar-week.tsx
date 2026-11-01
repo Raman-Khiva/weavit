@@ -58,6 +58,10 @@ export interface CalendarWeekProps {
   events?: CalendarEvent[];
   now?: string;
   className?: string;
+  onCreateEvent?: (ev: CalendarEvent) => void;
+  onUpdateEvent?: (id: string, patch: Partial<CalendarEvent>) => void;
+  onDeleteEvent?: (id: string) => void;
+  onUpdateCalendar?: (id: string, patch: Partial<CalendarSource>) => void;
 }
 
 const toneDot: Record<CalendarTone, string> = {
@@ -311,12 +315,24 @@ export function CalendarWeek({
   events: initialEvents,
   now = "2026-10-22T10:40",
   className,
+  onCreateEvent,
+  onUpdateEvent,
+  onDeleteEvent,
+  onUpdateCalendar,
 }: CalendarWeekProps) {
   const today = now.slice(0, 10);
   const [hh = 0, mm = 0] = now.slice(11, 16).split(":").map(Number);
   const [nowMin, setNowMin] = useState(hh * 60 + mm);
   const [calendars, setCalendars] = useState(initialCalendars);
   const [events, setEvents] = useState<CalendarEvent[]>(() => initialEvents ?? buildEvents());
+
+  useEffect(() => {
+    setCalendars(initialCalendars);
+  }, [initialCalendars]);
+
+  useEffect(() => {
+    if (initialEvents) setEvents(initialEvents);
+  }, [initialEvents]);
   const [view, setView] = useState<ViewMode>("week");
   const [focusDay, setFocusDay] = useState(today);
   const [month, setMonth] = useState(today.slice(0, 8) + "01");
@@ -380,7 +396,9 @@ export function CalendarWeek({
   const busy = new Set(shown.map((e) => e.date));
   const selected = events.find((e) => e.id === selectedId) ?? null;
 
-  const patch = (id: string, p: Partial<CalendarEvent>) => setEvents((es) => es.map((e) => (e.id === id ? { ...e, ...p } : e)));
+  const patch = (id: string, p: Partial<CalendarEvent>) => {
+    setEvents((es) => es.map((e) => (e.id === id ? { ...e, ...p } : e)));
+  };
 
   const goto = (d: string) => {
     setFocusDay(d);
@@ -478,6 +496,9 @@ export function CalendarWeek({
     const ev = events.find((x) => x.id === d.id);
     if (ev && (ev.start !== d.start || ev.end !== d.end || ev.date !== d.date)) {
       setSelectedId(d.id);
+      if (!ev.id.startsWith("new-") && !ev.id.startsWith("demo-")) {
+        onUpdateEvent?.(ev.id, { start: ev.start, end: ev.end, date: ev.date });
+      }
       setToast({
         key: Date.now(),
         text: `${ev.title || "Event"} → ${DOW[weekday(ev.date)]} ${fmtRange(ev.start, ev.end)}`,
@@ -496,6 +517,9 @@ export function CalendarWeek({
     setEvents((es) => es.filter((e) => e.id !== id));
     setSelectedId(null);
     setEditing(null);
+    if (!id.startsWith("new-") && !id.startsWith("demo-")) {
+      onDeleteEvent?.(id);
+    }
     if (ev.title) {
       setToast({
         key: Date.now(),
@@ -614,7 +638,11 @@ export function CalendarWeek({
                 <button
                   aria-pressed={on}
                   className="flex h-8 w-full cursor-pointer items-center gap-2.5 rounded-lg px-1.5 text-left outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
-                  onClick={() => setCalendars((cs) => cs.map((x) => (x.id === c.id ? { ...x, visible: !on } : x)))}
+                  onClick={() => {
+                    const next = !on;
+                    setCalendars((cs) => cs.map((x) => (x.id === c.id ? { ...x, visible: next } : x)));
+                    if (!c.id.startsWith("demo-")) onUpdateCalendar?.(c.id, { visible: next });
+                  }}
                   type="button"
                 >
                   <span
@@ -700,7 +728,11 @@ export function CalendarWeek({
                             on ? "bg-accent" : "text-muted-foreground",
                           )}
                           key={c.id}
-                          onClick={() => setCalendars((cs) => cs.map((x) => (x.id === c.id ? { ...x, visible: !on } : x)))}
+                          onClick={() => {
+                            const next = !on;
+                            setCalendars((cs) => cs.map((x) => (x.id === c.id ? { ...x, visible: next } : x)));
+                            if (!c.id.startsWith("demo-")) onUpdateCalendar?.(c.id, { visible: next });
+                          }}
                           type="button"
                         >
                           <span className={cn("size-2 rounded-full", on ? toneDot[c.tone] : "bg-muted-foreground/40")} />
@@ -998,7 +1030,12 @@ export function CalendarWeek({
                       editing={editing === panel.ev.id}
                       ev={panel.ev}
                       key={panel.ev.id}
-                      onCalendar={(id) => patch(panel.ev.id, { calendar: id })}
+                      onCalendar={(id) => {
+                        patch(panel.ev.id, { calendar: id });
+                        if (!panel.ev.id.startsWith("new-") && !panel.ev.id.startsWith("demo-")) {
+                          onUpdateEvent?.(panel.ev.id, { calendar: id });
+                        }
+                      }}
                       onClose={closeEditor}
                       onDelete={() => remove(panel.ev.id)}
                       onEdit={() => {
@@ -1006,7 +1043,24 @@ export function CalendarWeek({
                         requestAnimationFrame(() => titleRef.current?.focus());
                       }}
                       onSave={() => {
-                        if (!panel.ev.title.trim()) patch(panel.ev.id, { title: "Busy" });
+                        const title = panel.ev.title.trim() || "Busy";
+                        if (!panel.ev.title.trim()) patch(panel.ev.id, { title });
+                        const saved = { ...panel.ev, title };
+                        if (saved.id.startsWith("new-")) {
+                          onCreateEvent?.(saved);
+                        } else if (!saved.id.startsWith("demo-")) {
+                          onUpdateEvent?.(saved.id, {
+                            title: saved.title,
+                            calendar: saved.calendar,
+                            date: saved.date,
+                            start: saved.start,
+                            end: saved.end,
+                            allDay: saved.allDay,
+                            location: saved.location,
+                            video: saved.video,
+                            people: saved.people,
+                          });
+                        }
                         setEditing(null);
                         setToast({ key: Date.now(), text: `Saved for ${DOW[weekday(panel.ev.date)]} ${fmtRange(panel.ev.start, panel.ev.end)}` });
                         rootRef.current?.focus({ preventScroll: true });

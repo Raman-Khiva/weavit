@@ -7,7 +7,7 @@ import { ProjectPhases } from "@workspace/ui/components/project-phases"
 import { Button } from "@workspace/ui/components/button"
 import { ArrowLeft, Layers, AlertCircle, Search, Plus } from "lucide-react"
 import { SkeletonWrapper, ProjectDetailPageSkeleton } from "@workspace/ui/components/skeleton-wrapper"
-import { useGetProjectsQuery, usePostNoteMutation, usePostPhaseMutation, usePostTaskMutation } from "@/features/projects/projects.api"
+import { useGetProjectQuery, usePostNoteMutation, usePostPhaseMutation, usePostTaskMutation } from "@/features/projects/projects.api"
 import { useAuth } from "@clerk/nextjs"
 import { Input } from "@workspace/ui/components/input"
 import { useState } from "react"
@@ -30,7 +30,9 @@ function Page(): JSX.Element {
 
   const { isLoaded: loadingAuth, isSignedIn } = useAuth();
 
-  const { data: realProjects, isLoading, isError } = useGetProjectsQuery(undefined, { skip: !loadingAuth || !isSignedIn });
+  const { data: realProject, isLoading, isError } = useGetProjectQuery(projectId, {
+    skip: !loadingAuth || !isSignedIn || !projectId,
+  });
 
   const [postPhase, { isLoading: isPostingPhase, isError: isErrorPostingPhase }] = usePostPhaseMutation();
 
@@ -132,7 +134,6 @@ function Page(): JSX.Element {
   }
 
   const project = getProject(projectId)
-  const realProject = realProjects?.find((project) => (project.id == projectId));
 
   if (!isLoaded) {
     return (

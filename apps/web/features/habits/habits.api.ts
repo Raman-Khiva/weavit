@@ -28,7 +28,15 @@ export const habitsApi = api.injectEndpoints({
 
             invalidatesTags: ["Habit"],
 
-        }), postHabitLog : builder.mutation<HABIT_LOG, CreateHabitLogProps>({
+        }),
+        toggleHabit: builder.mutation<Habit, string>({
+            query: (habitId) => ({
+                url: `/habits/${habitId}/toggle`,
+                method: "POST",
+            }),
+            invalidatesTags: ["Habit"],
+        }),
+        postHabitLog : builder.mutation<HABIT_LOG, CreateHabitLogProps>({
             query : (payload)=>({
                 url : `/habits/${payload.habitId}/logs`,
                 method : "POST",
@@ -40,4 +48,9 @@ export const habitsApi = api.injectEndpoints({
 })
 
 
-export const { useGetHabitsQuery, usePostHabitMutation, usePostHabitLogMutation } = habitsApi;
+export const {
+  useGetHabitsQuery,
+  usePostHabitMutation,
+  useToggleHabitMutation,
+  usePostHabitLogMutation,
+} = habitsApi;
