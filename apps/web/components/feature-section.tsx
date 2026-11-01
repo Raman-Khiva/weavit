@@ -7,7 +7,7 @@ import {
   FingerprintIcon,
   PencilIcon,
   Settings2Icon,
-  SparklesIcon,
+  BotIcon,
 } from "lucide-react"
 import { GridPattern } from "@workspace/ui/components/grid-pattern"
 import { cn } from "@workspace/ui/lib/utils"
@@ -51,7 +51,7 @@ const features: FeatureType[] = [
   },
   {
     title: "Built for agents",
-    icon: <SparklesIcon />,
+    icon: <BotIcon />,
     description:
       "JSON schemas, not chat theater — the assistant talks to your real plans and habits.",
   },

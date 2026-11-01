@@ -17,7 +17,7 @@ import {
   LayoutDashboard,
   MinusCircle,
   Sliders,
-  Sparkles,
+  Star,
   Zap,
 } from "lucide-react"
 import { FloatingNav } from "../../components/floating-nav"
@@ -696,7 +696,7 @@ function Page(): React.ReactElement {
               <div className="space-y-5">
                 <div className="flex items-center gap-1 text-indigo-400">
                   {Array.from({ length: 5 }, (_, index) => (
-                    <Sparkles key={index} className="h-4 w-4 fill-current" />
+                    <Star key={index} className="h-4 w-4 fill-current" />
                   ))}
                 </div>
                 <h2 className="max-w-2xl text-[clamp(2rem,4.4vw,3.75rem)] font-bold leading-[1.08] tracking-tight text-foreground">

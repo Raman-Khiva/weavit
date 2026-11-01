@@ -9,7 +9,6 @@ import {
   Clock,
   CheckCircle2,
   Award,
-  Sparkles,
   ArrowLeft,
   Activity,
   BarChart3,
@@ -205,7 +204,7 @@ export default function OverviewPage() {
           <div className="flex items-center gap-2.5">
             <img src="/logo-weavit.png" alt="Weavit Logo" className="h-6 w-auto object-contain" />
             <h1 className="text-xs sm:text-sm font-semibold tracking-wider text-slate-200 uppercase">
-              Alex Mercer <span className="text-red-500 font-normal">| Productive Command Canvas</span>
+              Raman Khiva <span className="text-muted-foreground font-normal">| Productive Command Canvas</span>
             </h1>
           </div>
         </div>

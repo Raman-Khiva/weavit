@@ -1,7 +1,6 @@
-import z from "zod/v3";
+import zodToJsonSchema from "zod-to-json-schema"
+import z from "zod/v3"
 
-
-// action item schema
 export const ActionItemSchema = z.discriminatedUnion("actionType", [
   z.object({
     actionType: z.literal("create_habit_log"),
@@ -37,18 +36,27 @@ export const ActionItemSchema = z.discriminatedUnion("actionType", [
         .optional(),
     }),
   }),
-]);
-
-
-
-//action list schema
+])
 
 export const ActionsListSchema = z.object({
-  actions: z.array(ActionItemSchema).describe("all actions implied by the user message, in order; empty if none"),
-});
-
-
-//action item type
+  actions: z
+    .array(ActionItemSchema)
+    .describe("all actions implied by the user message, in order; empty if none"),
+})
 
 export type ActionItem = z.infer<typeof ActionItemSchema>
 
+export const LlmResponseSchema = z.object({
+  message: z
+    .string()
+    .describe(
+      "Rich markdown shown to the user (tables, lists, checklists, short commentary)"
+    ),
+  actions: z
+    .array(ActionItemSchema)
+    .describe("0..n allowlisted actions; empty for pure Q&A"),
+})
+
+export const LlmResponseJsonSchema = zodToJsonSchema(LlmResponseSchema, {
+  $refStrategy: "none",
+})

@@ -24,7 +24,7 @@ export function Notifications() {
   const notifications = [
     {
       id: "1",
-      title: "New message from Alex",
+      title: "New message from Raman",
       body: "Hey! Just wanted to check in on the project status. Can we schedule a quick call?",
       status: "unread" as const,
       createdAt: DEMO_DATES.fiveMinutesAgo,

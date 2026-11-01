@@ -31,7 +31,6 @@ import {
   Filter,
   Plus,
   Layers,
-  Sparkles
 } from "lucide-react";
 import { ProjectTasks } from "@workspace/ui/components/project-tasks";
 import { Progress } from "@workspace/ui/components/progress";

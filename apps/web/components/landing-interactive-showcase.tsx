@@ -16,7 +16,6 @@ import {
   MinusCircle,
   Calendar,
   CheckSquare,
-  Sparkles
 } from "lucide-react"
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@workspace/ui/components/accordion"
 

@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react"
 import Link from "next/link"
-import { ArrowRight, CheckCircle2, Sparkles, Zap, LayoutDashboard, FolderOpen } from "lucide-react"
+import { ArrowRight, CheckCircle2, Zap, LayoutDashboard, FolderOpen } from "lucide-react"
 import { FloatingNav } from "../components/floating-nav"
 import { FlickeringGrid } from "@workspace/ui/components/flicking-grid"
 import { IntelligenceSimplicitySection } from "../components/intelligence-simplicity"

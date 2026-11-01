@@ -14,7 +14,7 @@ import { useAuth } from "@clerk/nextjs"
 import { useGetProjectsQuery } from "@/features/projects/projects.api"
 import { useGetHabitsQuery } from "@/features/habits/habits.api"
 import type { PROJECT } from "@weavit/api-types"
-import AgentContainer from "@/features/agent/AgentContainer"
+import DashboardAgent from "@/features/agent/DashboardAgent"
 
 function eventToday(id: string, title: string, startHour: number, endHour: number): ScheduleEvent {
   const start = new Date()
@@ -61,7 +61,7 @@ function AssistantGreeting() {
         <Bot className="size-6 shrink-0" strokeWidth={1.75} />
         <span>{ASSISTANT_MESSAGES[index]}</span>
       </p>
-      <AgentContainer />
+      <DashboardAgent />
     </section>
   )
 }

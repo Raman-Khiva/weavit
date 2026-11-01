@@ -19,7 +19,7 @@ import { Badge } from "@workspace/ui/components/badge"
 //   SOFTWARE_MVP_TEMPLATE,
 //   Project,
 // } from "@workspace/ui/lib/projects-store"
-import { Code2, Rocket, Plus, Layers, Sparkles, Check } from "lucide-react"
+import { Code2, Rocket, Plus, Layers, Check } from "lucide-react"
 import { components } from "@weavit/api-types"
 
 type PROJECT = components["schemas"]["Project"];
@@ -88,10 +88,7 @@ export function CreateProjectDialog({ onAddProject, trigger }: CreateProjectDial
       </DialogTrigger>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <div className="flex items-center gap-2 text-primary">
-            <Sparkles className="size-5" />
-            <DialogTitle className="text-xl font-bold">Create Roadmap or Plan</DialogTitle>
-          </div>
+          <DialogTitle className="text-xl font-bold">Create Roadmap or Plan</DialogTitle>
           <DialogDescription>
             Select a structured template or build a custom multi-phase plan for SDE interviews, software projects, or personal goals.
           </DialogDescription>

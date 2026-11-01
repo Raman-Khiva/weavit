@@ -6,7 +6,7 @@ import { CreateProjectDialog } from "@workspace/ui/components/create-project-dia
 import { useProjectsStore } from "@workspace/ui/lib/projects-store"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
-import { Search, Sparkles, RefreshCw, FolderPlus } from "lucide-react"
+import { Search, RefreshCw, FolderPlus } from "lucide-react"
 import { SkeletonWrapper, ProjectsPageSkeleton } from "@workspace/ui/components/skeleton-wrapper"
 import { useAuth } from "@clerk/nextjs"
 import { useGetProjectsQuery } from "@/features/projects/projects.api"
@@ -36,9 +36,8 @@ function Page(): JSX.Element {
         {/* Header */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-              <Sparkles className="size-4" />
-              <span>Structured Roadmap & Execution Engine</span>
+            <div className="text-xs font-semibold uppercase tracking-wider text-primary">
+              Structured Roadmap & Execution Engine
             </div>
             <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
               Roadmaps & Plans

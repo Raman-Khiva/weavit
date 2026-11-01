@@ -40,7 +40,7 @@ export function NavProjects({
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <div className="flex items-center justify-between px-2 py-1">
+      <div className="flex items-center justify-between px-2">
         <SidebarGroupLabel className="p-0 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
           Roadmaps & Plans
         </SidebarGroupLabel>
@@ -52,7 +52,7 @@ export function NavProjects({
         </SidebarGroupAction>
       </div>
 
-      <SidebarMenu className="gap-0.5">
+      <SidebarMenu>
         {projects.map((item) => {
           const isItemActive = currentPath
             ? currentPath === item.url || currentPath.startsWith(item.url + "/")
@@ -66,7 +66,7 @@ export function NavProjects({
                   tooltip={item.name}
                   isActive={isItemActive}
                   className={cn(
-                    "relative group/proj-item rounded-lg px-2.5 py-2 transition-all duration-150",
+                    "relative group/proj-item rounded-lg px-2.5 transition-all duration-150",
                     isItemActive
                       ? "bg-sidebar-accent font-semibold text-foreground shadow-2xs"
                       : "text-foreground hover:bg-sidebar-accent/60 hover:text-foreground"
@@ -103,8 +103,8 @@ export function NavProjects({
                         <span className="sr-only">Toggle</span>
                       </SidebarMenuAction>
                     </CollapsibleTrigger>
-                    <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down pb-2.5 mb-1 pt-1">
-                      <SidebarMenuSub className="ml-[19px] pl-3 border-l border-sidebar-border/80 flex flex-col gap-1 my-0.5">
+                    <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down pb-1 pt-0.5">
+                      <SidebarMenuSub className="my-0 ml-[19px] flex flex-col gap-0 border-l border-sidebar-border/80 pl-3">
                         {item.items?.map((subItem) => {
                           const isSubActive = currentPath ? currentPath === subItem.url : false
                           return (
@@ -113,7 +113,7 @@ export function NavProjects({
                                 asChild
                                 isActive={isSubActive}
                                 className={cn(
-                                  "h-7 rounded-md text-[12px] px-2 transition-colors",
+                                  "h-6 rounded-md px-2 text-[12px] transition-colors",
                                   isSubActive
                                     ? "bg-sidebar-accent/80 font-semibold text-sidebar-accent-foreground"
                                     : "text-muted-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"

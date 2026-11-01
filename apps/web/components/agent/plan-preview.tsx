@@ -22,7 +22,7 @@ import {
   CheckCircle2Icon,
   CircleDashedIcon,
   Layers,
-  Sparkles,
+  Brain,
   Clock,
   Target,
   Award,
@@ -63,7 +63,7 @@ interface PlanPreviewProps {
 const PHASE_ICONS: Record<string, LucideIcon> = {
   "Foundations": Layers,
   "Trees": Target,
-  "Dynamic": Sparkles,
+  "Dynamic": Brain,
   "Advanced": Award,
   "Default": Layers,
 };
@@ -217,7 +217,12 @@ function PhaseSection({ phase, phaseIndex, plan, isCompleted, phaseStatus, phase
   const expanded = reveal.kind === "complete" ? isOpen : true;
 
   return (
-    <Card ref={sectionRef} key={phase.id} data-assembly={reveal.kind} className="group w-full overflow-hidden transition-all duration-300 hover:border-primary/50 hover:shadow-lg">
+    <Card
+      ref={sectionRef}
+      key={phase.id}
+      data-assembly={reveal.kind}
+      className="group w-full overflow-hidden shadow-none transition-colors duration-200 hover:scale-100 hover:border-border hover:shadow-none"
+    >
       <CardHeader className="px-5 py-4">
         <div className="w-full">
           <button
@@ -502,7 +507,7 @@ export function PlanPreview({ plan, isPreview, compact = false, assembly }: Plan
 
   if (compact) {
     return (
-      <Card className="border-border/50 bg-card/50">
+      <Card className="border-border/50 bg-card/50 shadow-none transition-colors duration-200 hover:scale-100 hover:shadow-none">
         <CardHeader className="pb-2">
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="text-[10px] px-2 py-0 font-medium">
@@ -528,7 +533,7 @@ export function PlanPreview({ plan, isPreview, compact = false, assembly }: Plan
               const PhaseIcon = getPhaseIcon(phase.title);
 
               return (
-                <div key={phase.id} className="group relative overflow-hidden rounded-xl border border-border/70 bg-card/40 p-3 transition-colors hover:border-primary/50">
+                <div key={phase.id} className="group relative overflow-hidden rounded-xl border border-border/70 bg-card/40 p-3 transition-colors duration-200 hover:border-border">
                   <div className="flex items-center gap-2">
                     <div className="size-7 rounded-lg border border-primary/20 bg-primary/5 flex items-center justify-center shrink-0">
                       <PhaseIcon className="size-3.5 text-primary" strokeWidth={2} />
@@ -591,13 +596,13 @@ export function PlanPreview({ plan, isPreview, compact = false, assembly }: Plan
       <Card
         ref={staged?.index === 0 ? activeSectionRef : undefined}
         data-assembly={header.kind}
-        className="w-full overflow-hidden border-border/50 bg-gradient-to-br from-card via-card to-muted/30"
+        className="w-full overflow-hidden border-border/50 bg-gradient-to-br from-card via-card to-muted/30 shadow-none transition-colors duration-200 hover:scale-100 hover:shadow-none"
       >
         <CardHeader className="pb-3">
           <div className="flex items-start gap-4">
             {showHeaderDetails ? (
               <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/70 animate-in fade-in duration-300">
-                <Sparkles className="size-6 text-primary-foreground" />
+                <Layers className="size-6 text-primary-foreground" />
               </div>
             ) : (
               <Skeleton className="size-12 shrink-0 rounded-2xl" />
@@ -708,7 +713,7 @@ export function PlanPreview({ plan, isPreview, compact = false, assembly }: Plan
       </div>
 
       {assemblyFinished ? (
-      <Card className="w-full animate-in border-border/50 bg-muted/30 fade-in duration-300">
+      <Card className="w-full animate-in border-border/50 bg-muted/30 shadow-none fade-in duration-300 hover:scale-100 hover:shadow-none">
         <CardContent className="pt-4 pb-6">
           <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
             <div className="flex items-center gap-1.5">

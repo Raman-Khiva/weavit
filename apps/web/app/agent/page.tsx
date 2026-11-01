@@ -11,11 +11,12 @@ import { PlanPreview } from "@/components/agent/plan-preview";
 import { GenerationStatus } from "@/components/agent/generation-status";
 import { PromptInputBody, PromptInputActionMenu, PromptInputActionMenuTrigger, PromptInputActionMenuContent, PromptInputActionMenuItem } from "@workspace/ui/components/ai-elements/prompt-input";
 import { SequencedAchievementList, type SequencedAchievementItem, type SequencedAchievementProgress } from "@workspace/ui/components/achievement-list";
-import { CheckIcon, BotIcon, SparklesIcon, Loader2Icon, ChevronRightIcon, DownloadIcon, PlusIcon, Lightbulb, Cpu, Layers, GitBranch, Zap, ArrowRight } from "lucide-react";
+import { CheckIcon, BotIcon, Loader2Icon, ChevronRightIcon, DownloadIcon, PlusIcon, Target, Layers, CalendarClock, ClipboardCheck, ArrowRight, LayoutDashboard } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { cn } from "@workspace/ui/lib/utils";
 import { v4 as uuidv4 } from "uuid";
+import { useSearchParams } from "next/navigation";
 
 // ============================================================================
 // Types
@@ -609,7 +610,7 @@ function AgentSidebar({
             <PromptInputTextarea
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              placeholder={isLoading ? "Agent is thinking..." : "Describe what you want to plan..."}
+              placeholder={isLoading ? "Agent is thinking..." : "Ask about roadmaps, habits, todos, or deadlines…"}
               disabled={isLoading}
             />
           </PromptInputBody>
@@ -639,37 +640,46 @@ const INITIAL_STEPS: ExecutionStep[] = [
 
 const FEATURE_HIGHLIGHTS = [
   {
-    icon: Cpu,
-    title: "AI-Powered Planning",
-    description: "Intelligent project structure generation from a single prompt",
-  },
-  {
     icon: Layers,
-    title: "Full Stack Support",
-    description: "Supports any tech stack — frontend, backend, mobile, or cloud",
+    title: "Roadmaps & Plans",
+    description: "Turn goals into phased roadmaps with executable tasks",
   },
   {
-    icon: GitBranch,
-    title: "Phase Breakdown",
-    description: "Automatically splits work into milestones and actionable tasks",
+    icon: Target,
+    title: "Habits & Streaks",
+    description: "Log rituals, keep streaks, and stay consistent daily",
   },
   {
-    icon: Zap,
-    title: "Instant Scaffolding",
-    description: "Ready-to-run commands for every setup step",
+    icon: ClipboardCheck,
+    title: "Todos & Tasks",
+    description: "Capture work, prioritize it, and clear it from the board",
+  },
+  {
+    icon: CalendarClock,
+    title: "Deadlines",
+    description: "Keep due dates visible so nothing slips past you",
   },
 ] as const;
 
 const EXAMPLE_PROMPTS = [
-  "A Python learning platform",
-  "E-commerce store with React",
-  "REST API with Node.js",
-  "Mobile fitness tracker app",
+  "Build a 2-month DSA interview prep roadmap",
+  "Create a daily reading and exercise habit plan",
+  "Break my system design project into phases",
+  "Set deadlines for this week's assignments",
 ];
 
 function AgentEmptyState({ onSubmit }: { onSubmit: (text: string) => void }) {
   const [input, setInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const searchParams = useSearchParams();
+  const seeded = useRef(false);
+
+  useEffect(() => {
+    const fromQuery = searchParams.get("prompt")?.trim();
+    if (!fromQuery || seeded.current) return;
+    seeded.current = true;
+    setInput(fromQuery);
+  }, [searchParams]);
 
   const submit = () => {
     const text = input.trim();
@@ -686,26 +696,43 @@ function AgentEmptyState({ onSubmit }: { onSubmit: (text: string) => void }) {
             alt="Weavit"
             className="size-7 rounded-lg object-contain"
           />
-          <span className="text-sm font-semibold">weavit agent</span>
+          <div>
+            <span className="text-sm font-semibold">weavit agent</span>
+            <p className="text-[11px] text-muted-foreground">
+              Full agent · live workspace preview
+            </p>
+          </div>
         </div>
+        <Button asChild variant="ghost" size="sm" className="gap-1.5 text-xs text-muted-foreground">
+          <a href="/dashboard">
+            <LayoutDashboard className="size-3.5" />
+            Dashboard drawer
+          </a>
+        </Button>
       </header>
 
       <div className="flex flex-1 flex-col items-center justify-center overflow-y-auto px-6 py-8">
         <div className="mb-8 flex flex-col items-center gap-3 text-center">
           <div className="relative">
             <div className="absolute -inset-4 rounded-full bg-gradient-to-b from-primary/10 to-transparent blur-xl" />
-            <div className="relative flex size-16 items-center justify-center rounded-2xl border bg-card shadow-lg">
-              <Lightbulb className="size-8 text-primary" />
+            <div className="relative flex size-16 items-center justify-center rounded-2xl border bg-card shadow-xs">
+              <BotIcon className="size-8 text-primary" />
             </div>
           </div>
-          <h1 className="mt-2 text-2xl font-bold tracking-tight">Hi! How can I help you today?</h1>
+          <p className="rounded-full border border-border/70 bg-card/50 px-3 py-1 text-[11px] font-medium text-muted-foreground">
+            Same agent as the dashboard drawer · plus live preview
+          </p>
+          <h1 className="mt-2 text-2xl font-bold tracking-tight">
+            What should we work on?
+          </h1>
           <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
-            Describe any project — a SaaS app, API service, mobile app, or data pipeline — and I&apos;ll generate a full structured plan instantly.
+            Build roadmaps with a live preview, scaffold habits and deadlines,
+            then keep chatting. Quick check-ins can stay on the dashboard drawer.
           </p>
         </div>
 
         <div className="mb-8 w-full max-w-3xl">
-          <div className="relative rounded-2xl border bg-card shadow-sm focus-within:ring-2 focus-within:ring-ring/50">
+          <div className="relative rounded-2xl border bg-card shadow-xs focus-within:ring-1 focus-within:ring-ring/40">
             <Textarea
               ref={textareaRef}
               value={input}
@@ -716,7 +743,7 @@ function AgentEmptyState({ onSubmit }: { onSubmit: (text: string) => void }) {
                   submit();
                 }
               }}
-              placeholder="Describe your project idea…"
+              placeholder="e.g. Plan a 6-week system design roadmap with weekly milestones…"
               rows={4}
               className="min-h-[140px] resize-none rounded-2xl border-0 bg-transparent px-5 py-4 pr-16 text-base shadow-none focus-visible:ring-0 dark:bg-transparent"
             />
@@ -730,7 +757,7 @@ function AgentEmptyState({ onSubmit }: { onSubmit: (text: string) => void }) {
             </Button>
           </div>
           <p className="mt-2 text-center text-xs text-muted-foreground">
-            Press <kbd className="rounded bg-muted px-1 py-0.5 font-mono text-[10px]">Enter</kbd> to generate · <kbd className="rounded bg-muted px-1 py-0.5 font-mono text-[10px]">Shift+Enter</kbd> for a new line
+            Press <kbd className="rounded bg-muted px-1 py-0.5 font-mono text-[10px]">Enter</kbd> to send · <kbd className="rounded bg-muted px-1 py-0.5 font-mono text-[10px]">Shift+Enter</kbd> for a new line
           </p>
         </div>
 
@@ -738,9 +765,9 @@ function AgentEmptyState({ onSubmit }: { onSubmit: (text: string) => void }) {
           {FEATURE_HIGHLIGHTS.map(({ icon: Icon, title, description }) => (
             <div
               key={title}
-              className="flex flex-col gap-2.5 rounded-xl border bg-card p-4 shadow-xs"
+              className="flex flex-col gap-2.5 rounded-xl border bg-card p-4 transition-colors duration-200 hover:bg-card/80"
             >
-              <div className="flex size-8 items-center justify-center rounded-lg border bg-background shadow-xs">
+              <div className="flex size-8 items-center justify-center rounded-lg border bg-background">
                 <Icon className="size-4 text-foreground" />
               </div>
               <div>
@@ -762,7 +789,7 @@ function AgentEmptyState({ onSubmit }: { onSubmit: (text: string) => void }) {
                   setInput(prompt);
                   textareaRef.current?.focus();
                 }}
-                className="flex items-center gap-1.5 rounded-full border bg-card px-3 py-1.5 text-xs text-foreground shadow-xs transition-colors hover:bg-accent"
+                className="flex items-center gap-1.5 rounded-full border bg-card px-3 py-1.5 text-xs text-foreground transition-colors duration-150 hover:bg-muted/50"
               >
                 <ChevronRightIcon className="size-3 text-muted-foreground" />
                 {prompt}
@@ -805,7 +832,11 @@ export default function AgentPage(): JSX.Element {
   }, []);
 
   if (messages.length === 0 && !isLoading) {
-    return <AgentEmptyState onSubmit={handleSubmit} />;
+    return (
+      <React.Suspense fallback={null}>
+        <AgentEmptyState onSubmit={handleSubmit} />
+      </React.Suspense>
+    );
   }
 
   return (
@@ -865,9 +896,9 @@ function PlanPreviewPanel({
             <CheckIcon className="size-5 text-white" />
           </div>
           <div>
-            <h1 className="font-semibold text-foreground">Plan Preview</h1>
+            <h1 className="font-semibold text-foreground">Live preview</h1>
             <p className="text-xs text-muted-foreground">
-              {planData ? `${planData.phases.length} phases · ${planData.phases.reduce((acc, p) => acc + p.tasks.length, 0)} tasks` : "Waiting for plan generation..."}
+              {planData ? `${planData.phases.length} phases · ${planData.phases.reduce((acc, p) => acc + p.tasks.length, 0)} tasks` : "Waiting for plan generation…"}
             </p>
           </div>
         </div>
@@ -907,16 +938,16 @@ function PlanPreviewPanel({
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <div className="size-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-4">
-              <SparklesIcon className="size-8 text-primary" />
+              <Layers className="size-8 text-primary" />
             </div>
-            <h2 className="text-xl font-semibold text-foreground mb-2">No plan generated yet</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-2">Nothing in preview yet</h2>
             <p className="text-muted-foreground max-w-xs">
-              Start a conversation on the left to generate a learning plan, project roadmap, or study schedule.
+              Start a conversation on the left to build a roadmap, habit plan, or deadline schedule for your workspace.
             </p>
             <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs text-muted-foreground">
-              <kbd className="px-2 py-1 bg-muted rounded border">Try: "Create a 2-month DSA plan"</kbd>
-              <kbd className="px-2 py-1 bg-muted rounded border">Try: "Plan a React project from scratch"</kbd>
-              <kbd className="px-2 py-1 bg-muted rounded border">Try: "Design a system design study roadmap"</kbd>
+              <kbd className="px-2 py-1 bg-muted rounded border">Try: &quot;Create a 2-month DSA plan&quot;</kbd>
+              <kbd className="px-2 py-1 bg-muted rounded border">Try: &quot;Add a daily reading habit&quot;</kbd>
+              <kbd className="px-2 py-1 bg-muted rounded border">Try: &quot;Break my project into phases&quot;</kbd>
             </div>
           </div>
         )}

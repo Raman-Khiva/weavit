@@ -20,7 +20,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@workspace/ui/components/sidebar"
-import { ChevronsUpDownIcon, SparklesIcon, BadgeCheckIcon, CreditCardIcon, BellIcon, LogOutIcon } from "lucide-react"
+import { ChevronsUpDownIcon, BadgeCheckIcon, CreditCardIcon, BellIcon, LogOutIcon } from "lucide-react"
 
 export function NavUser({
   user,
@@ -86,7 +86,6 @@ export function NavUser({
             <DropdownMenuSeparator className="my-1" />
             <DropdownMenuGroup>
               <DropdownMenuItem className="text-xs font-medium cursor-pointer rounded-lg">
-                <SparklesIcon className="size-3.5 text-amber-500 mr-2" />
                 <span>Workspace Pro</span>
                 <span className="ml-auto text-[9px] font-bold px-1.5 py-0.2 rounded-sm bg-amber-500/15 text-amber-500 font-mono">
                   ACTIVE

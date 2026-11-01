@@ -19,7 +19,7 @@ import {
 } from "@workspace/ui/components/sidebar"
 
 const ROUTE_LABELS: Record<string, string> = {
-  "/workspace": "Dashboard",
+  "/workspace": "Home",
   "/workspace/habits": "Daily Habits",
   "/workspace/todos": "Tasks & Todos",
   "/workspace/projects": "Roadmaps & Plans",

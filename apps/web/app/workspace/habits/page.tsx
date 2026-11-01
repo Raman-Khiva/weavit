@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { useAuth } from "@clerk/nextjs"
+import { useAuth, useUser } from "@clerk/nextjs"
 import type { components } from "@weavit/api-types"
 import { useGetHabitsQuery, usePostHabitMutation } from "@/features/habits/habits.api"
 import {
@@ -10,7 +10,6 @@ import {
   Circle,
   Flame,
   Plus,
-  Sparkles,
   Play,
 } from "lucide-react"
 
@@ -147,8 +146,8 @@ function HabitCard({ ritual }: { ritual: Ritual }) {
       </div>
 
       <div className="mt-5 flex items-center justify-between">
-        <div className="inline-flex items-center gap-1 text-[12px] font-semibold text-warning">
-          <Flame className="size-3.5" />
+        <div className="inline-flex items-center gap-1 text-[12px] font-semibold text-foreground">
+          <Flame className="size-3.5 text-muted-foreground" />
           <span>{ritual.streak}D</span>
         </div>
 
@@ -158,7 +157,7 @@ function HabitCard({ ritual }: { ritual: Ritual }) {
             return (
               <span
                 key={`${ritual.id}-dot-${idx}`}
-                className={`h-1.5 w-1.5 rounded-full ${active ? "bg-success" : "bg-muted"}`}
+                className={`h-1.5 w-1.5 rounded-full ${active ? "bg-primary" : "bg-muted"}`}
               />
             )
           })}
@@ -190,9 +189,9 @@ function CompletedRitualCard({ ritual }: { ritual: Ritual }) {
 
       <div className="mt-3 flex items-center justify-between text-[12px]">
         <span className="inline-flex items-center gap-1 font-medium text-muted-foreground">
-          <Flame className="size-3.5 text-warning" /> {ritual.streak}D
+          <Flame className="size-3.5" /> {ritual.streak}D
         </span>
-        <span className="text-success">Locked in</span>
+        <span className="text-muted-foreground">Locked in</span>
       </div>
     </a>
   )
@@ -200,6 +199,7 @@ function CompletedRitualCard({ ritual }: { ritual: Ritual }) {
 
 function Page(): JSX.Element {
   const { isSignedIn, isLoaded } = useAuth()
+  const { user } = useUser()
   const [postHabit, { isLoading: isPostingHabit }] = usePostHabitMutation()
   const { data, isLoading, isError } = useGetHabitsQuery(undefined, {
     skip: !isSignedIn || !isLoaded,
@@ -208,6 +208,17 @@ function Page(): JSX.Element {
   const [isOpen, setIsOpen] = useState(false)
   const [createHabitForm, setCreateHabitForm] = useState<CreateHabitInput>(INITIAL_FORM)
 
+  const firstName =
+    user?.firstName ||
+    user?.username ||
+    user?.primaryEmailAddress?.emailAddress?.split("@")[0] ||
+    "Raman"
+
+  const todayLabel = new Date().toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+  })
 
   const rituals = useMemo(() => {
     const apiRituals = (data ?? []).map(mapApiHabit);
@@ -255,10 +266,10 @@ function Page(): JSX.Element {
 
   return (
     <SkeletonWrapper skeleton={<HabitsPageSkeleton />} delay={2000}>
-      <div className="min-h-full bg-background px-6 py-5 text-foreground  md:px-8 md:pl-16">
+      <div className="min-h-full bg-background p-6 text-foreground md:p-10">
         <div className="mx-auto w-full max-w-7xl">
-          <div className="mb-4 flex items-center justify-end gap-3">
-            <span className="inline-flex items-center gap-2 rounded-full border border-warning/25 bg-warning/10 px-3 py-1 text-xs font-semibold text-warning">
+          <div className="mb-6 flex items-center justify-end gap-3">
+            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-xs font-semibold text-muted-foreground">
               <Flame className="size-3.5" /> Overall Consistency: {consistency}%
             </span>
 
@@ -330,38 +341,45 @@ function Page(): JSX.Element {
             </Dialog>
           </div>
 
-          <section className="rounded-2xl border border-border bg-card p-6">
+          <section className="rounded-2xl border border-border/80 bg-card/40 p-6">
             <div className="grid gap-4 lg:grid-cols-[1fr_290px] lg:items-start">
               <div>
-                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-warning">
-                  Wednesday, Oct 14 · Deep Focus Day
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">
+                  {todayLabel}
                 </p>
-                <h1 className="text-4xl font-bold tracking-tight">Good morning, Alex.</h1>
+                <h1 className="text-4xl font-bold tracking-tight text-foreground">
+                  Good morning, {firstName}.
+                </h1>
                 <p className="mt-2 text-sm text-muted-foreground">
                   You&apos;re maintaining momentum. {todoCount} habits remaining to close today&apos;s ring.
                 </p>
               </div>
 
-              <div className="rounded-xl border border-border bg-muted/35 p-3">
+              <div className="rounded-xl border border-border/80 bg-background/40 p-3">
                 <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
                   <span>Daily Momentum</span>
-                  <span className="font-semibold text-success">
+                  <span className="font-semibold tabular-nums text-foreground">
                     {doneCount} of {total} ({consistency}%)
                   </span>
                 </div>
                 <div className="h-1.5 w-full rounded-full bg-muted">
-                  <div className="h-1.5 rounded-full bg-success" style={{ width: `${consistency}%` }} />
+                  <div
+                    className="h-1.5 rounded-full bg-primary"
+                    style={{ width: `${consistency}%` }}
+                  />
                 </div>
                 <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
                   <span>Goal: 100% daily</span>
-                  <span className="text-success">Active streak intact</span>
+                  <span>Active streak intact</span>
                 </div>
               </div>
             </div>
 
             <div className="mt-5 flex flex-wrap items-center gap-2 text-xs">
-              <span className="rounded-lg border border-warning/30 bg-warning/10 px-3 py-1 text-warning">To Do Today {todoCount}</span>
-              <span className="px-2 text-success">Completed {doneCount}</span>
+              <span className="rounded-lg border border-border bg-background/50 px-3 py-1 font-medium text-foreground">
+                To Do Today {todoCount}
+              </span>
+              <span className="px-2 text-muted-foreground">Completed {doneCount}</span>
               <span className="px-2 text-muted-foreground">All Rituals {total}</span>
               <span className="px-2 text-muted-foreground">Morning Routine</span>
             </div>
@@ -369,26 +387,30 @@ function Page(): JSX.Element {
 
           <section className="mt-6">
             <div className="mb-2 flex items-center justify-between text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-              <p className="flex items-center gap-2 text-warning">
-                <Sparkles className="size-3.5" /> Recommended Next
-              </p>
+              <p className="font-semibold text-foreground">Recommended Next</p>
               <p>Estimated 10 mins</p>
             </div>
 
             {recommended ? (
-              <div className="rounded-2xl border border-border bg-card p-5">
+              <div className="rounded-2xl border border-border/80 bg-card/40 p-5">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3">
                     <Circle className="mt-0.5 size-6 text-muted-foreground" />
                     <div>
-                      <p className="text-2xl font-semibold tracking-tight">{recommended.title}</p>
-                      <p className="mt-1 text-sm text-muted-foreground">{recommended.description}</p>
+                      <p className="text-2xl font-semibold tracking-tight text-foreground">
+                        {recommended.title}
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {recommended.description}
+                      </p>
                       <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                        <span className="inline-flex items-center gap-1 text-warning">
-                          <Flame className="size-3.5" /> {recommended.streak}D Streak
+                        <span className="inline-flex items-center gap-1 font-medium text-foreground">
+                          <Flame className="size-3.5 text-muted-foreground" />{" "}
+                          {recommended.streak}D Streak
                         </span>
-                        <span className="rounded-full border border-warning/30 bg-warning/10 px-2 py-0.5 text-warning">
-                          <Bolt className="mr-1 inline size-3" /> Morning Anchor
+                        <span className="rounded-full border border-border bg-background/50 px-2 py-0.5 text-foreground">
+                          <Bolt className="mr-1 inline size-3 text-muted-foreground" /> Morning
+                          Anchor
                         </span>
                         <span>Time window: 08:00 - 10:00</span>
                       </div>
@@ -405,9 +427,9 @@ function Page(): JSX.Element {
 
           <section className="mt-6">
             <div className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-              <p className="flex items-center gap-2 text-warning">
+              <p className="flex items-center gap-2 font-semibold text-foreground">
                 Remaining Today
-                <span className="rounded-full border border-warning/30 bg-warning/10 px-2 py-0.5 text-[10px]">
+                <span className="rounded-full border border-border bg-background/50 px-2 py-0.5 text-[10px] font-medium normal-case tracking-normal text-muted-foreground">
                   {todoCount} to complete
                 </span>
               </p>
@@ -431,11 +453,11 @@ function Page(): JSX.Element {
             )}
           </section>
 
-          <section className="mt-7 border-t border-border pt-5">
+          <section className="mt-7 border-t border-border/80 pt-5">
             <div className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-              <p className="flex items-center gap-2 text-success">
+              <p className="flex items-center gap-2 font-semibold text-foreground">
                 Completed Today
-                <span className="rounded-full border border-success/25 bg-success/10 px-2 py-0.5 text-[10px]">
+                <span className="rounded-full border border-border bg-background/50 px-2 py-0.5 text-[10px] font-medium normal-case tracking-normal text-muted-foreground">
                   {doneCount} rituals locked in
                 </span>
               </p>

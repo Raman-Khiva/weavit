@@ -13,7 +13,7 @@ import {
   FolderKanban,
   Layers3,
   MoveUpRight,
-  Sparkles,
+  Star,
   Zap,
 } from "lucide-react"
 
@@ -164,7 +164,7 @@ export default function LandingPage() {
 
       <section id="about" className="mx-auto grid max-w-[1440px] gap-10 px-5 py-24 sm:px-10 sm:py-32 lg:grid-cols-[1.1fr_0.9fr] lg:items-end lg:px-16 lg:py-40">
         <div><p className="mb-6 flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#aaaaff]"><span className="h-px w-8 bg-[#2F2FE4]" /> Built for the long game</p><h2 className="max-w-3xl text-[clamp(3.5rem,8vw,7.5rem)] font-black leading-[0.84] tracking-[-0.075em]">Your goals<br />deserve more<br />than another<br /><span className="text-[#aaaaff]">to-do list.</span></h2></div>
-        <div className="lg:pb-2 lg:pl-12"><div className="mb-8 flex items-center gap-1 text-[#aaaaff]">{Array.from({ length: 5 }, (_, i) => <Sparkles key={i} className="h-4 w-4 fill-current" />)}</div><blockquote className="text-2xl font-medium leading-snug tracking-[-0.03em] text-white/85 sm:text-3xl">“Everything is in one place now—roadmaps, daily habits, deadlines. I actually finish what I start.”</blockquote><div className="mt-7 flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-full bg-[#2F2FE4] text-sm font-black text-white">RK</span><div><p className="text-sm font-bold">Raman Khiva</p><p className="mt-0.5 text-xs text-white/40">Full-stack developer</p></div></div></div>
+        <div className="lg:pb-2 lg:pl-12"><div className="mb-8 flex items-center gap-1 text-[#aaaaff]">{Array.from({ length: 5 }, (_, i) => <Star key={i} className="h-4 w-4 fill-current" />)}</div><blockquote className="text-2xl font-medium leading-snug tracking-[-0.03em] text-white/85 sm:text-3xl">“Everything is in one place now—roadmaps, daily habits, deadlines. I actually finish what I start.”</blockquote><div className="mt-7 flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-full bg-[#2F2FE4] text-sm font-black text-white">RK</span><div><p className="text-sm font-bold">Raman Khiva</p><p className="mt-0.5 text-xs text-white/40">Full-stack developer</p></div></div></div>
       </section>
 
       <section className="px-5 pb-20 sm:px-10 sm:pb-28 lg:px-16">

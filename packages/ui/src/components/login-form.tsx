@@ -73,11 +73,11 @@ export function LoginForm({
   }
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div className={cn("flex flex-col gap-8", className)} {...props}>
       <form onSubmit={onSubmit}>
-        <FieldGroup>
+        <FieldGroup className="gap-5">
           {/* Header & Logo */}
-          <div className="flex flex-col items-center gap-2 text-center">
+          <div className="flex flex-col items-center gap-3 text-center">
             <a
               href="/"
               className="flex flex-col items-center gap-2 font-medium transition-opacity hover:opacity-90"
@@ -86,15 +86,15 @@ export function LoginForm({
                 <img
                   src="/logo-weavit.png"
                   alt="Weavit Logo"
-                  className="h-11 w-auto object-contain rounded-md"
+                  className="h-16 w-auto object-contain rounded-md"
                 />
               </div>
               <span className="sr-only">Weavit</span>
             </a>
-            <h1 className="text-xl font-bold tracking-tight">
+            <h1 className="text-3xl font-bold tracking-tight">
               {isSignUp ? "Create your Weavit account" : "Welcome to Weavit"}
             </h1>
-            <FieldDescription>
+            <FieldDescription className="text-base">
               {isSignUp ? (
                 <>
                   Already have an account?{" "}
@@ -123,7 +123,7 @@ export function LoginForm({
 
           {/* Error Message Alert */}
           {error && (
-            <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive text-center font-medium leading-relaxed">
+            <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-3.5 text-sm text-destructive text-center font-medium leading-relaxed">
               {error}
             </div>
           )}
@@ -132,7 +132,9 @@ export function LoginForm({
           {step === "email" && (
             <>
               <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
+                <FieldLabel htmlFor="email" className="text-base">
+                  Email
+                </FieldLabel>
                 <Input
                   id="email"
                   type="email"
@@ -142,14 +144,19 @@ export function LoginForm({
                   required
                   disabled={isLoading}
                   autoComplete="email"
+                  className="h-12 px-3.5 text-base md:text-base"
                 />
               </Field>
 
               <Field>
-                <Button type="submit" disabled={isLoading} className="w-full">
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="h-12 w-full text-base"
+                >
                   {isLoading ? (
                     <span className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-5 w-5 animate-spin" />
                       Continuing...
                     </span>
                   ) : (
@@ -158,7 +165,7 @@ export function LoginForm({
                 </Button>
               </Field>
 
-              <FieldSeparator>Or</FieldSeparator>
+              <FieldSeparator className="text-base">Or</FieldSeparator>
 
               {/* OAuth Buttons */}
               <Field className="grid gap-3 sm:grid-cols-2">
@@ -167,15 +174,15 @@ export function LoginForm({
                   type="button"
                   onClick={onAppleSignIn}
                   disabled={isLoading}
-                  className="flex items-center justify-center gap-2"
+                  className="flex h-12 items-center justify-center gap-2 text-base"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-4 w-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-5 w-5">
                     <path
                       d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"
                       fill="currentColor"
                     />
                   </svg>
-                  <span className="text-xs">Apple</span>
+                  <span>Apple</span>
                 </Button>
 
                 <Button
@@ -183,9 +190,9 @@ export function LoginForm({
                   type="button"
                   onClick={onGoogleSignIn}
                   disabled={isLoading}
-                  className="flex items-center justify-center gap-2"
+                  className="flex h-12 items-center justify-center gap-2 text-base"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-4 w-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-5 w-5">
                     <path
                       d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                       fill="#4285F4"
@@ -203,7 +210,7 @@ export function LoginForm({
                       fill="#EA4335"
                     />
                   </svg>
-                  <span className="text-xs">Google</span>
+                  <span>Google</span>
                 </Button>
               </Field>
             </>
@@ -212,21 +219,23 @@ export function LoginForm({
           {/* STEP 2: PASSWORD */}
           {step === "password" && (
             <>
-              <div className="flex items-center justify-between text-xs text-muted-foreground pb-1">
-                <span className="truncate max-w-[200px] font-mono">{email}</span>
+              <div className="flex items-center justify-between text-sm text-muted-foreground pb-1">
+                <span className="truncate max-w-[240px] font-mono">{email}</span>
                 {onBackToEmail && (
                   <button
                     type="button"
                     onClick={onBackToEmail}
                     className="flex items-center gap-1 text-primary hover:underline cursor-pointer"
                   >
-                    <ArrowLeft className="h-3 w-3" /> Change
+                    <ArrowLeft className="h-3.5 w-3.5" /> Change
                   </button>
                 )}
               </div>
 
               <Field>
-                <FieldLabel htmlFor="password">Password</FieldLabel>
+                <FieldLabel htmlFor="password" className="text-base">
+                  Password
+                </FieldLabel>
                 <Input
                   id="password"
                   type="password"
@@ -237,14 +246,19 @@ export function LoginForm({
                   disabled={isLoading}
                   autoComplete={isSignUp ? "new-password" : "current-password"}
                   autoFocus
+                  className="h-12 px-3.5 text-base md:text-base"
                 />
               </Field>
 
               <Field>
-                <Button type="submit" disabled={isLoading} className="w-full">
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="h-12 w-full text-base"
+                >
                   {isLoading ? (
                     <span className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-5 w-5 animate-spin" />
                       {isSignUp ? "Creating account..." : "Signing in..."}
                     </span>
                   ) : (
@@ -258,21 +272,26 @@ export function LoginForm({
           {/* STEP 3: VERIFICATION CODE (OTP) */}
           {step === "code" && (
             <>
-              <div className="flex items-center justify-between text-xs text-muted-foreground pb-1">
-                <span>Code sent to <span className="font-mono text-foreground">{email}</span></span>
+              <div className="flex items-center justify-between text-sm text-muted-foreground pb-1">
+                <span>
+                  Code sent to{" "}
+                  <span className="font-mono text-foreground">{email}</span>
+                </span>
                 {onBackToEmail && (
                   <button
                     type="button"
                     onClick={onBackToEmail}
                     className="flex items-center gap-1 text-primary hover:underline cursor-pointer"
                   >
-                    <ArrowLeft className="h-3 w-3" /> Change
+                    <ArrowLeft className="h-3.5 w-3.5" /> Change
                   </button>
                 )}
               </div>
 
               <Field>
-                <FieldLabel htmlFor="code">Verification Code</FieldLabel>
+                <FieldLabel htmlFor="code" className="text-base">
+                  Verification Code
+                </FieldLabel>
                 <Input
                   id="code"
                   type="text"
@@ -283,15 +302,19 @@ export function LoginForm({
                   disabled={isLoading}
                   autoComplete="one-time-code"
                   autoFocus
-                  className="font-mono text-center tracking-widest text-lg"
+                  className="h-12 px-3.5 font-mono text-center tracking-widest text-xl md:text-xl"
                 />
               </Field>
 
               <Field>
-                <Button type="submit" disabled={isLoading} className="w-full">
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="h-12 w-full text-base"
+                >
                   {isLoading ? (
                     <span className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-5 w-5 animate-spin" />
                       Verifying...
                     </span>
                   ) : (
@@ -304,9 +327,16 @@ export function LoginForm({
         </FieldGroup>
       </form>
 
-      <FieldDescription className="px-6 text-center text-[11px]">
-        By clicking continue, you agree to our <a href="#" className="underline hover:text-foreground">Terms of Service</a>{" "}
-        and <a href="#" className="underline hover:text-foreground">Privacy Policy</a>.
+      <FieldDescription className="px-6 text-center text-sm">
+        By clicking continue, you agree to our{" "}
+        <a href="#" className="underline hover:text-foreground">
+          Terms of Service
+        </a>{" "}
+        and{" "}
+        <a href="#" className="underline hover:text-foreground">
+          Privacy Policy
+        </a>
+        .
       </FieldDescription>
     </div>
   )

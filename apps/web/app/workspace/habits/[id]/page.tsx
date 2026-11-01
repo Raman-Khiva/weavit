@@ -242,7 +242,7 @@ function Page(): JSX.Element {
           <div className="rounded-xl border border-border bg-card p-4">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-start gap-3">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-warning/30 bg-warning/10 text-warning">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-background/50 text-foreground">
                   <LeetCodeMark className="size-5" />
                 </span>
                 <div className="min-w-0">
