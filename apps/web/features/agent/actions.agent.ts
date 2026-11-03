@@ -753,6 +753,13 @@ export async function executeAgentAction(
  *
  * Continues after individual failures so one bad action doesn't block the rest.
  */
+/** New roadmaps persist via nested POST /projects from the preview Save button — not these. */
+const PLAN_SEED_ACTIONS = new Set<ActionItem["actionType"]>([
+  "create_project",
+  "create_phase",
+  "create_task",
+])
+
 export async function extractAndExecuteActions(
   response: { actions?: ActionItem[] } | null | undefined,
   deps: AgentActionDeps
@@ -760,12 +767,18 @@ export async function extractAndExecuteActions(
   actions: ActionItem[]
   ok: ActionItem[]
   failed: { action: ActionItem; error: unknown; message: string }[]
+  skipped: ActionItem[]
 }> {
   const actions = response?.actions ?? []
   const ok: ActionItem[] = []
   const failed: { action: ActionItem; error: unknown; message: string }[] = []
+  const skipped: ActionItem[] = []
 
   for (const action of actions) {
+    if (PLAN_SEED_ACTIONS.has(action.actionType)) {
+      skipped.push(action)
+      continue
+    }
     try {
       await executeAgentAction(action, deps)
       ok.push(action)
@@ -776,7 +789,7 @@ export async function extractAndExecuteActions(
     }
   }
 
-  return { actions, ok, failed }
+  return { actions, ok, failed, skipped }
 }
 
 /** @deprecated Prefer extractAndExecuteActions(response, deps) */

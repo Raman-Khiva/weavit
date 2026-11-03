@@ -41,6 +41,7 @@ import {
   type AgentActionMutations,
   type AgentWorkspaceState,
 } from "./actions.agent"
+import { previewToCreateProjectInput } from "./plan-from-preview"
 import type { ActionItem, PlanPreview } from "./schema.agent"
 
 export type AgentRunResult = {
@@ -48,6 +49,7 @@ export type AgentRunResult = {
   actions: ActionItem[]
   preview: PlanPreview | null
   failed: { action: ActionItem; message: string }[]
+  skippedPlanSeeds: number
 }
 
 export function useAgentRuntime() {
@@ -154,7 +156,7 @@ export function useAgentRuntime() {
       buildAgentStateSnapshot(workspaceState)
     )
 
-    const { actions, failed } = await extractAndExecuteActions(result, {
+    const { actions, failed, skipped } = await extractAndExecuteActions(result, {
       ...workspaceState,
       mutations,
     })
@@ -164,7 +166,13 @@ export function useAgentRuntime() {
       actions,
       preview: result?.preview ?? null,
       failed: failed.map((f) => ({ action: f.action, message: f.message })),
+      skippedPlanSeeds: skipped.length,
     }
+  }
+
+  async function savePreviewToWorkspace(preview: PlanPreview) {
+    const body = previewToCreateProjectInput(preview)
+    return postProject(body).unwrap()
   }
 
   return {
@@ -172,6 +180,7 @@ export function useAgentRuntime() {
     signedIn: Boolean(isSignedIn),
     workspaceState,
     run,
+    savePreviewToWorkspace,
     isLoading: agentMeta.isLoading,
     error: agentMeta.error,
   }

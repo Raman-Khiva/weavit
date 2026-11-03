@@ -3,13 +3,22 @@
 import React from "react";
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@workspace/ui/components/resizable";
-import { PromptInput, PromptInputTextarea, PromptInputSubmit, PromptInputFooter, PromptInputHeader } from "@workspace/ui/components/ai-elements/prompt-input";
+import {
+  PromptInput,
+  PromptInputTextarea,
+  PromptInputSubmit,
+  PromptInputFooter,
+  PromptInputBody,
+  PromptInputTools,
+  PromptInputActionMenu,
+  PromptInputActionMenuTrigger,
+  PromptInputActionMenuContent,
+  PromptInputActionMenuItem,
+} from "@workspace/ui/components/ai-elements/prompt-input";
 import { Conversation, ConversationContent } from "@workspace/ui/components/ai-elements/conversation";
 import { Message, MessageContent, MessageResponse } from "@workspace/ui/components/ai-elements/message";
 import { ChainOfThought, ChainOfThoughtHeader, ChainOfThoughtContent, ChainOfThoughtStep } from "@workspace/ui/components/ai-elements/chain-of-thought";
 import { PlanPreview as PlanPreviewView } from "@/components/agent/plan-preview";
-import { GenerationStatus } from "@/components/agent/generation-status";
-import { PromptInputBody, PromptInputActionMenu, PromptInputActionMenuTrigger, PromptInputActionMenuContent, PromptInputActionMenuItem } from "@workspace/ui/components/ai-elements/prompt-input";
 import { SequencedAchievementList, type SequencedAchievementItem, type SequencedAchievementProgress } from "@workspace/ui/components/achievement-list";
 import { CheckIcon, BotIcon, Loader2Icon, ChevronRightIcon, DownloadIcon, PlusIcon, Target, Layers, CalendarClock, ClipboardCheck, ArrowRight, LayoutDashboard } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
@@ -269,63 +278,6 @@ function TypingIndicator() {
 }
 
 // ============================================================================
-// Task Execution Steps (Premium Indicators)
-// ============================================================================
-
-function TaskExecutionSteps({ steps }: { steps: Array<{ label: string; status: "pending" | "active" | "complete"; description?: string }> }) {
-  return (
-    <div className="space-y-3">
-      {steps.map((step, index) => (
-        <div
-          key={step.label}
-          className={cn(
-            "flex items-start gap-3 transition-all duration-300",
-            step.status === "complete" && "opacity-70"
-          )}
-        >
-          <div className="relative flex-shrink-0">
-            <div
-              className={cn(
-                "size-6 rounded-full border-2 flex items-center justify-center transition-all duration-300",
-                step.status === "complete"
-                  ? "bg-emerald-500 border-emerald-500 text-white"
-                  : step.status === "active"
-                  ? "bg-primary border-primary text-primary-foreground animate-pulse"
-                  : "bg-muted border-border"
-              )}
-            >
-              {step.status === "complete" && <CheckIcon className="size-3.5 stroke-[3]" />}
-              {step.status === "active" && <Loader2Icon className="size-3.5 animate-spin" />}
-            </div>
-            {index < steps.length - 1 && (
-              <div
-                className={cn(
-                  "absolute left-1/2 top-6 bottom-0 w-px -translate-x-1/2",
-                  step.status === "complete" ? "bg-emerald-500" : "bg-border"
-                )}
-              />
-            )}
-          </div>
-          <div className="flex-1 min-w-0 pt-0.5">
-            <p
-              className={cn(
-                "font-medium text-sm transition-colors",
-                step.status === "complete" ? "text-muted-foreground line-through" : "text-foreground"
-              )}
-            >
-              {step.label}
-            </p>
-            {step.description && (
-              <p className="text-xs text-muted-foreground mt-0.5">{step.description}</p>
-            )}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ============================================================================
 // Agent Sidebar (Conversation)
 // ============================================================================
 
@@ -333,16 +285,18 @@ function AgentSidebar({
   messages,
   onSubmit,
   isLoading,
-  planData,
   onAssembly,
+  layout = "split",
 }: {
   messages: AgentMessage[];
   onSubmit: (text: string) => void;
   isLoading: boolean;
-  planData?: AgentMessage["parts"][number]["plan"] | null;
   onAssembly?: (state: SequencedAchievementProgress) => void;
+  /** full = no preview panel; chat owns the whole viewport */
+  layout?: "full" | "split";
 }) {
   const [inputValue, setInputValue] = useState("");
+  const isFull = layout === "full";
 
   const handleSubmit = useCallback(
     (message: { text: string; files: any[] }, e: React.FormEvent<HTMLFormElement>) => {
@@ -356,9 +310,13 @@ function AgentSidebar({
   );
 
   return (
-    <div className="flex flex-col h-full bg-background border-r border-border">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-border px-4 py-3 bg-background/95 backdrop-blur sticky top-0 z-10">
+    <div
+      className={cn(
+        "flex h-full w-full min-w-0 flex-col bg-background",
+        !isFull && "border-r border-border"
+      )}
+    >
+      <div className="sticky top-0 z-10 border-b border-border bg-background/95 px-4 py-3 backdrop-blur">
         <div className="flex items-center gap-3">
           <img
             src="/logo-weavit.png"
@@ -372,9 +330,10 @@ function AgentSidebar({
         </div>
       </div>
 
-      {/* Conversation */}
-      <Conversation className="flex-1">
-        <ConversationContent>
+      <Conversation className="min-h-0 flex-1">
+        <ConversationContent
+          className={cn(isFull && "mx-auto w-full max-w-3xl px-4 sm:px-6")}
+        >
           {messages.length === 0 ? null : (
             <>
               {messages.map((message) =>
@@ -384,7 +343,11 @@ function AgentSidebar({
                   <AgentMessageBubble
                     key={message.id}
                     message={message}
-                    onAssembly={message.id === messages[messages.length - 1]?.id ? onAssembly : undefined}
+                    onAssembly={
+                      message.id === messages[messages.length - 1]?.id
+                        ? onAssembly
+                        : undefined
+                    }
                   />
                 )
               )}
@@ -394,34 +357,46 @@ function AgentSidebar({
         </ConversationContent>
       </Conversation>
 
-      {/* Input */}
-      <div className="border-t border-border p-3 bg-background/95 backdrop-blur">
-        <PromptInput onSubmit={handleSubmit}>
-          <PromptInputHeader>
-            <PromptInputActionMenu>
-              <PromptInputActionMenuTrigger>
-                <PlusIcon className="size-4" />
-              </PromptInputActionMenuTrigger>
-              <PromptInputActionMenuContent>
-                <PromptInputActionMenuItem>Attach File</PromptInputActionMenuItem>
-                <PromptInputActionMenuItem>Take Screenshot</PromptInputActionMenuItem>
-              </PromptInputActionMenuContent>
-            </PromptInputActionMenu>
-          </PromptInputHeader>
-          <PromptInputBody>
-            <PromptInputTextarea
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder={isLoading ? "Agent is thinking..." : "Ask about roadmaps, habits, todos, or deadlines…"}
-              disabled={isLoading}
-            />
-          </PromptInputBody>
-          <PromptInputFooter>
-            <PromptInputSubmit status={isLoading ? "streaming" : "ready"} variant="default" size="icon-sm">
-              <ChevronRightIcon className="size-4" />
-            </PromptInputSubmit>
-          </PromptInputFooter>
-        </PromptInput>
+      <div className="bg-background/95 px-4 pb-4 pt-2 backdrop-blur">
+        <div className={cn(isFull && "mx-auto w-full max-w-3xl")}>
+          <PromptInput
+            onSubmit={handleSubmit}
+            className="[&_[data-slot=input-group]]:rounded-2xl"
+          >
+            <PromptInputBody>
+              <PromptInputTextarea
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder={
+                  isLoading
+                    ? "Agent is thinking..."
+                    : "Ask about roadmaps, habits, todos, or deadlines…"
+                }
+                disabled={isLoading}
+              />
+            </PromptInputBody>
+            <PromptInputFooter className="justify-between">
+              <PromptInputTools>
+                <PromptInputActionMenu>
+                  <PromptInputActionMenuTrigger>
+                    <PlusIcon className="size-4" />
+                  </PromptInputActionMenuTrigger>
+                  <PromptInputActionMenuContent>
+                    <PromptInputActionMenuItem>Attach File</PromptInputActionMenuItem>
+                    <PromptInputActionMenuItem>Take Screenshot</PromptInputActionMenuItem>
+                  </PromptInputActionMenuContent>
+                </PromptInputActionMenu>
+              </PromptInputTools>
+              <PromptInputSubmit
+                status={isLoading ? "streaming" : "ready"}
+                variant="default"
+                size="icon-sm"
+              >
+                <ChevronRightIcon className="size-4" />
+              </PromptInputSubmit>
+            </PromptInputFooter>
+          </PromptInput>
+        </div>
       </div>
     </div>
   );
@@ -430,15 +405,6 @@ function AgentSidebar({
 // ============================================================================
 // Main Agent Page
 // ============================================================================
-
-type ExecutionStep = { label: string; status: "pending" | "active" | "complete"; description?: string };
-
-const INITIAL_STEPS: ExecutionStep[] = [
-  { label: "Understanding your request", status: "active", description: "Reading goals against your workspace" },
-  { label: "Planning actions", status: "pending", description: "Choosing allowlisted mutations" },
-  { label: "Generating preview", status: "pending", description: "Building the live right-hand panel" },
-  { label: "Applying to workspace", status: "pending", description: "Persisting habits, todos, deadlines, plans" },
-];
 
 function toUiPlan(
   preview: AgentPlanPreview
@@ -631,16 +597,24 @@ function AgentEmptyState({ onSubmit }: { onSubmit: (text: string) => void }) {
 }
 
 export default function AgentPage(): JSX.Element {
-  const { ready, signedIn, run, isLoading: agentLoading } = useAgentRuntime();
+  const {
+    ready,
+    signedIn,
+    run,
+    savePreviewToWorkspace,
+    isLoading: agentLoading,
+  } = useAgentRuntime();
   const [messages, setMessages] = useState<AgentMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [planData, setPlanData] = useState<AgentMessage["parts"][number]["plan"] | null>(null);
+  const [rawPreview, setRawPreview] = useState<AgentPlanPreview | null>(null);
   const [assembly, setAssembly] = useState<SequencedAchievementProgress | null>(null);
-  const [executionSteps, setExecutionSteps] = useState<ExecutionStep[]>(INITIAL_STEPS);
-  const [showExecutionSteps, setShowExecutionSteps] = useState(false);
-  const [lastFailed, setLastFailed] = useState(0);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const busy = isLoading || agentLoading;
+  const showPreview = Boolean(planData);
 
   const handleSubmit = useCallback(
     async (text: string) => {
@@ -677,59 +651,40 @@ export default function AgentPage(): JSX.Element {
       setMessages((prev) => [...prev, userMessage]);
       setIsLoading(true);
       setAssembly(null);
-      setShowExecutionSteps(true);
-      setExecutionSteps(
-        INITIAL_STEPS.map((step, i) => ({
-          ...step,
-          status: i === 0 ? "active" : "pending",
-        }))
-      );
-      setLastFailed(0);
+      // Hide artifact until a new preview arrives (Claude-style)
+      setPlanData(null);
+      setRawPreview(null);
+      setSaved(false);
+      setSaveError(null);
 
       try {
-        setExecutionSteps((prev) =>
-          prev.map((step, i) =>
-            i === 0
-              ? { ...step, status: "complete" }
-              : i === 1
-                ? { ...step, status: "active" }
-                : step
-          )
-        );
-
         const result = await run(prompt);
 
-        setExecutionSteps((prev) =>
-          prev.map((step, i) =>
-            i <= 2
-              ? { ...step, status: "complete" }
-              : i === 3
-                ? { ...step, status: "active" }
-                : step
-          )
-        );
-
         const uiPlan = result.preview ? toUiPlan(result.preview) : null;
-        if (uiPlan) setPlanData(uiPlan);
+        if (uiPlan && result.preview) {
+          setPlanData(uiPlan);
+          setRawPreview(result.preview);
+          setSaved(false);
+        }
 
         const failNote =
           result.failed.length > 0
-            ? `\n\n_${result.failed.length} action(s) failed — check details in the response._`
+            ? `\n\n_${result.failed.length} action(s) failed._`
+            : "";
+        const previewHint =
+          uiPlan && !failNote
+            ? "\n\n_Preview ready on the right — click **Add to workspace** when you want it saved._"
             : "";
 
         const assistantMessage: AgentMessage = {
           id: uuidv4(),
           role: "assistant",
           parts: [
-            { type: "text", text: `${result.message}${failNote}` },
+            { type: "text", text: `${result.message}${failNote}${previewHint}` },
             ...(uiPlan ? [{ type: "plan" as const, plan: uiPlan }] : []),
           ],
         };
         setMessages((prev) => [...prev, assistantMessage]);
-        setLastFailed(result.failed.length);
-        setExecutionSteps((prev) =>
-          prev.map((step) => ({ ...step, status: "complete" as const }))
-        );
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "Something went wrong.";
@@ -743,11 +698,39 @@ export default function AgentPage(): JSX.Element {
         ]);
       } finally {
         setIsLoading(false);
-        setShowExecutionSteps(false);
       }
     },
     [busy, ready, run, signedIn]
   );
+
+  const handleSave = useCallback(async () => {
+    if (!rawPreview || saving || saved) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      await savePreviewToWorkspace(rawPreview);
+      setSaved(true);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: uuidv4(),
+          role: "assistant",
+          parts: [
+            {
+              type: "text",
+              text: `Saved **${rawPreview.title}** to your workspace with ${rawPreview.phases.length} phase(s).`,
+            },
+          ],
+        },
+      ]);
+    } catch (err) {
+      setSaveError(
+        err instanceof Error ? err.message : "Could not save plan"
+      );
+    } finally {
+      setSaving(false);
+    }
+  }, [rawPreview, savePreviewToWorkspace, saved, saving]);
 
   if (messages.length === 0 && !busy) {
     return (
@@ -757,33 +740,45 @@ export default function AgentPage(): JSX.Element {
     );
   }
 
+  // No preview at all → do not mount a right pane / resizer (no reserved empty space)
+  if (!showPreview) {
+    return (
+      <div className="h-screen w-full overflow-hidden">
+        <AgentSidebar
+          messages={messages}
+          onSubmit={handleSubmit}
+          isLoading={busy}
+          onAssembly={setAssembly}
+          layout="full"
+        />
+      </div>
+    );
+  }
+
+  // Preview present → 50/50, chat shrinkable down to 30%
   return (
     <div className="flex h-screen w-full overflow-hidden">
-      <ResizablePanelGroup orientation="horizontal" className="h-full">
-        <ResizablePanel defaultSize="30%" minSize="20%" maxSize="40%" className="min-w-0">
+      <ResizablePanelGroup orientation="horizontal" className="h-full w-full">
+        <ResizablePanel defaultSize="50%" minSize="30%" maxSize="70%" className="min-w-0">
           <AgentSidebar
             messages={messages}
             onSubmit={handleSubmit}
             isLoading={busy}
-            planData={planData}
             onAssembly={setAssembly}
+            layout="split"
           />
         </ResizablePanel>
 
-        <ResizableHandle withHandle className="bg-gradient-to-b from-transparent via-border to-transparent" />
+        <ResizableHandle withHandle className="bg-border" />
 
-        <ResizablePanel minSize="60%" className="min-w-0 flex flex-col">
+        <ResizablePanel defaultSize="50%" minSize="30%" className="min-w-0">
           <PlanPreviewPanel
             planData={planData}
             assembly={assembly}
-            executionSteps={executionSteps}
-            showExecutionSteps={showExecutionSteps && busy}
-            isGenerating={busy}
-            appliedNote={
-              lastFailed > 0
-                ? `${lastFailed} action(s) failed`
-                : "Workspace updated"
-            }
+            onSave={() => void handleSave()}
+            saving={saving}
+            saved={saved}
+            saveError={saveError}
           />
         </ResizablePanel>
       </ResizablePanelGroup>
@@ -798,122 +793,81 @@ export default function AgentPage(): JSX.Element {
 function PlanPreviewPanel({
   planData,
   assembly,
-  executionSteps,
-  showExecutionSteps,
-  isGenerating,
-  appliedNote,
+  onSave,
+  saving,
+  saved,
+  saveError,
 }: {
   planData: AgentMessage["parts"][number]["plan"] | null;
   assembly: SequencedAchievementProgress | null;
-  executionSteps: Array<{ label: string; status: "pending" | "active" | "complete"; description?: string }>;
-  showExecutionSteps: boolean;
-  isGenerating: boolean;
-  appliedNote?: string;
+  onSave: () => void;
+  saving: boolean;
+  saved: boolean;
+  saveError: string | null;
 }) {
+  if (!planData) return null;
+
+  const taskCount = planData.phases.reduce((acc, p) => acc + p.tasks.length, 0);
+
   return (
-    <div className="flex flex-col h-full bg-background">
-      {/* Preview Header */}
-      <div className="flex items-center justify-between border-b border-border px-4 py-3 bg-background/95 backdrop-blur sticky top-0 z-10">
-        <div className="flex items-center gap-3">
-          <div className="size-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-            <CheckIcon className="size-5 text-white" />
-          </div>
-          <div>
-            <h1 className="font-semibold text-foreground">Live preview</h1>
-            <p className="text-xs text-muted-foreground">
-              {planData
-                ? `${planData.phases.length} phases · ${planData.phases.reduce((acc, p) => acc + p.tasks.length, 0)} tasks`
-                : "Waiting for plan generation…"}
-              {appliedNote && planData ? ` · ${appliedNote}` : ""}
-            </p>
-          </div>
+    <div className="flex h-full flex-col bg-background">
+      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background/95 px-4 py-3 backdrop-blur">
+        <div className="min-w-0">
+          <h1 className="truncate text-sm font-semibold text-foreground">
+            {planData.title}
+          </h1>
+          <p className="text-xs text-muted-foreground">
+            {planData.phases.length} phases · {taskCount} tasks
+            {saved ? " · saved" : " · draft preview"}
+          </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <Button variant="ghost" size="sm" className="gap-1.5" asChild>
             <a href="/workspace/projects">
               <DownloadIcon className="size-3.5" />
-              <span className="hidden sm:inline">Open projects</span>
+              <span className="hidden sm:inline">Projects</span>
             </a>
           </Button>
-          <Button variant="default" size="sm" className="gap-1.5" disabled>
-            <PlusIcon className="size-3.5" />
+          <Button
+            variant="default"
+            size="sm"
+            className="gap-1.5"
+            disabled={saving || saved}
+            onClick={onSave}
+          >
+            {saving ? (
+              <Loader2Icon className="size-3.5 animate-spin" />
+            ) : saved ? (
+              <CheckIcon className="size-3.5" />
+            ) : (
+              <PlusIcon className="size-3.5" />
+            )}
             <span className="hidden sm:inline">
-              {planData ? "Saved via agent" : "Save to Workspace"}
+              {saved ? "Added" : saving ? "Adding…" : "Add to workspace"}
             </span>
           </Button>
         </div>
       </div>
 
-      {/* Execution Steps During Generation */}
-      {showExecutionSteps && (
-        <div className="border-b border-border p-4 bg-muted/30">
-          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-3">
-            <Loader2Icon className="size-4 animate-spin text-primary" />
-            <span>Generating your plan...</span>
-          </div>
-          <TaskExecutionSteps steps={executionSteps} />
-        </div>
-      )}
+      {saveError ? (
+        <p className="border-b border-destructive/30 bg-destructive/5 px-4 py-2 text-xs text-destructive">
+          {saveError}
+        </p>
+      ) : null}
 
-      {/* Plan Preview Content */}
-      <div className="flex-1 overflow-auto px-6 py-6 sm:px-10">
-        {planData && assembly ? (
-          <PlanPreviewView plan={planData} isPreview assembly={assembly} />
-        ) : planData ? (
-          <div className="flex h-full items-center justify-center">
-            <GenerationStatus />
-          </div>
-        ) : isGenerating ? (
-          <PlanPreviewSkeleton />
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className="size-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-4">
-              <Layers className="size-8 text-primary" />
-            </div>
-            <h2 className="text-xl font-semibold text-foreground mb-2">Nothing in preview yet</h2>
-            <p className="text-muted-foreground max-w-xs">
-              Start a conversation on the left to build a roadmap, habit plan, or deadline schedule for your workspace.
-            </p>
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs text-muted-foreground">
-              <kbd className="px-2 py-1 bg-muted rounded border">Try: &quot;Create a 2-month DSA plan&quot;</kbd>
-              <kbd className="px-2 py-1 bg-muted rounded border">Try: &quot;Add a daily reading habit&quot;</kbd>
-              <kbd className="px-2 py-1 bg-muted rounded border">Try: &quot;Break my project into phases&quot;</kbd>
-            </div>
-          </div>
-        )}
+      <div className="flex-1 overflow-auto px-5 py-5 sm:px-8">
+        <PlanPreviewView
+          plan={planData}
+          isPreview
+          assembly={
+            assembly ?? {
+              index: planData.phases.length,
+              progress: 100,
+              settledCount: planData.phases.length + 1,
+            }
+          }
+        />
       </div>
-    </div>
-  );
-}
-
-// ============================================================================
-// Plan Preview Skeleton
-// ============================================================================
-
-function PlanPreviewSkeleton() {
-  return (
-    <div className="w-full space-y-4">
-      <div className="rounded-2xl border border-border/80 bg-card/40 p-6 animate-pulse">
-        <div className="h-4 w-3/4 bg-muted rounded mb-4" />
-        <div className="h-4 w-1/2 bg-muted rounded mb-2" />
-        <div className="h-4 w-2/3 bg-muted rounded" />
-      </div>
-      {[1, 2, 3, 4].map((i) => (
-        <div key={i} className="rounded-2xl border border-border/80 bg-card/40 p-6 animate-pulse">
-          <div className="h-5 w-1/3 bg-muted rounded mb-4" />
-          <div className="space-y-3">
-            {[1, 2, 3, 4, 5, 6].map((j) => (
-              <div key={j} className="flex items-center gap-3">
-                <div className="size-5 rounded-md bg-muted" />
-                <div className="flex-1">
-                  <div className="h-4 w-3/4 bg-muted rounded mb-1" />
-                  <div className="h-3 w-1/2 bg-muted rounded" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
     </div>
   );
 }

@@ -34,8 +34,10 @@ If a slice is missing, say so briefly — do not invent rows.
 - message: short confirmation, then markdown of what remains from state
 
 ## When generating a ROADMAP / multi-phase plan
-- actions: create_project (+ create_phase / create_task as needed) so it persists
-- preview: REQUIRED for the live right-hand panel. Shape:
+- preview: REQUIRED for the live right-hand panel — this is how plans are shown
+- actions: [] for the plan itself — NEVER emit create_project, create_phase, or create_task
+  The user saves the preview with "Add to workspace" (one nested API create).
+- Shape of preview:
   {
     "title": string,
     "description": string,
@@ -72,13 +74,11 @@ If a slice is missing, say so briefly — do not invent rows.
   Put clock time ONLY in time (e.g. "5pm" → "17:00"). Never put date/time in title.
 - patch_deadline — data: { deadlineId, title?, course?, time? (HH:mm), dueDate? (YYYY-MM-DD), priority?, isCompleted? }
 
-### Roadmaps / plans
-- create_project — data: { title, description?, category?, icon?, startDate?, endDate? }
+### Roadmaps / plans (existing projects only)
+- Do NOT create new projects/phases/tasks via actions — use preview instead (see above)
 - patch_project — data: { projectId, title?, description?, category?, status?: DRAFT|ACTIVE|COMPLETED|ARCHIVED }
-- create_phase — data: { projectId, title, description?, category?, order? }
-- create_task — data: { projectId, phaseId, title, description?, category?, priority?, dueDate? }
-- patch_task — change a plan task. Use status COMPLETED when finished. data: { taskId, status?, title?, note?, projectId?, phaseId? }
-- create_task_log — progress note. data: { taskId, text, projectId?, phaseId? }
+- patch_task — change an existing plan task. Use status COMPLETED when finished. data: { taskId, status?, title?, note?, projectId?, phaseId? }
+- create_task_log — progress note on an existing task. data: { taskId, text, projectId?, phaseId? }
 
 ### Timeline
 - create_calendar_event — data: { title, calendar (calendarId), date (YYYY-MM-DD), start (minutes), end (minutes), allDay?, location?, video? }
@@ -93,7 +93,8 @@ If a slice is missing, say so briefly — do not invent rows.
 - Completing a todo → patch_todo with status COMPLETED
 - No duplicate actions for the same entity unless clearly asked twice
 - If they ask to mutate something not in state → actions: [], explain and suggest closest titles from state
-- For creates (habit/todo/deadline/project/phase/task/event), titles come from the user — no prior id required
+- For creates (habit/todo/deadline/event), titles come from the user — no prior id required
+- Never emit create_project / create_phase / create_task — new roadmaps use preview + Add to workspace
 - For calendar creates, set data.calendar to a calendarId from state.calendars (never invent ids)
 
 ## Message style
