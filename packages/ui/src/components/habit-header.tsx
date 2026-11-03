@@ -203,7 +203,7 @@ export function HabitHeader({
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 space-y-2">
-          <h1 className="truncate text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+          <h1 className="line-clamp-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
             {title}
           </h1>
           {description && (

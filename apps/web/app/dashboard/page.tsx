@@ -8,7 +8,7 @@ import { ProductivityBoard } from "@workspace/ui/components/productivity-board"
 import { PlansOverview } from "@workspace/ui/components/plans-overview"
 import { HeaderIslands, type ScheduleEvent } from "@workspace/ui/components/header-islands"
 import { Bot } from "lucide-react"
-import { useAuth } from "@clerk/nextjs"
+import { useAuth, useUser } from "@clerk/nextjs"
 import { useGetProjectsQuery } from "@/features/projects/projects.api"
 import { useGetHabitsQuery, useToggleHabitMutation } from "@/features/habits/habits.api"
 import { useGetDeadlinesQuery, usePatchDeadlineMutation } from "@/features/deadlines/deadlines.api"
@@ -57,7 +57,17 @@ const FALLBACK_PLANS = [
 ]
 
 function AssistantGreeting() {
+  const { isSignedIn } = useAuth()
+  const { user } = useUser()
   const [index, setIndex] = useState(0)
+
+  const name =
+    isSignedIn
+      ? user?.firstName ||
+        user?.username ||
+        user?.primaryEmailAddress?.emailAddress?.split("@")[0] ||
+        "user"
+      : "user"
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -72,7 +82,7 @@ function AssistantGreeting() {
       className="@container flex min-h-0 flex-1 flex-col overflow-y-auto px-8 pt-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
       <p className="text-[clamp(2.5rem,14cqw,4.5rem)] font-semibold leading-none tracking-tight text-foreground">
-        hi, raman.
+        hi, {name}.
       </p>
       <p className="mt-1 flex items-center gap-2 text-lg text-muted-foreground">
         <Bot className="size-6 shrink-0" strokeWidth={1.75} />

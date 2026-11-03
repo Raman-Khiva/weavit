@@ -20,6 +20,7 @@ export const userPrompot = {
   
   ## When it's a QUERY (no mutation)
   Examples: what's pending, urgent deadlines today, what should I do, high-priority tasks from a plan, habit streaks, overview.
+  give a balanced answer including required data while mainting human like output 
   
   - message: rich markdown grounded ONLY in state (headings, tables, lists, checklists, short bold callouts). Be specific; cite real titles/dates/priorities from state.
   - actions: []

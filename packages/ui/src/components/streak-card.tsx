@@ -340,7 +340,7 @@ interface StreakPeriod {
           )}
   
           {view === "week" && (
-            <div role="rowgroup" className="grid grid-cols-7 gap-2">
+            <div role="rowgroup" className="grid w-full grid-cols-7 gap-1.5">
               {weekDates.map((date) => {
                 const { isToday, isFuture, isActive, usedFreeze } =
                   getCellState(date)
@@ -350,7 +350,7 @@ interface StreakPeriod {
                 return (
                   <div
                     key={getDateKey(date)}
-                    className="flex flex-col items-center gap-2"
+                    className="flex min-w-0 flex-col items-center gap-1.5"
                   >
                     <button
                       type="button"
@@ -364,45 +364,36 @@ interface StreakPeriod {
                       onClick={() => onDayClick?.(date, isActive)}
                       disabled={isFuture}
                       className={cn(
-                        "relative flex h-12 w-12 items-center justify-center rounded-full border border-2 transition-colors",
+                        "relative flex aspect-square w-full max-w-10 items-center justify-center rounded-full border-2 transition-colors",
                         "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
                         !isFuture && "hover:opacity-90",
-                        isToday && "!bg-primary-foreground !text-primary",
                         isFuture &&
                           "border-border/40 bg-muted/20 text-muted-foreground/40 cursor-not-allowed",
                         isActive &&
                           !usedFreeze &&
-                          "border-primary bg-primary text-primary-foreground",
+                          "border-white bg-white text-black",
                         usedFreeze &&
                           "border-[var(--freeze-color)] bg-[var(--freeze-color)] text-[var(--freeze-foreground-color)]",
                         !isActive &&
                           !usedFreeze &&
                           !isFuture &&
-                          "border-border/60 bg-muted/30"
+                          "border-border/60 bg-transparent",
+                        isToday &&
+                          !isActive &&
+                          !usedFreeze &&
+                          "ring-1 ring-white/50 ring-offset-1 ring-offset-background"
                       )}
                       style={usedFreeze ? freezeColorStyles : undefined}
                     >
                       {usedFreeze ? (
-                        <Snowflake
-                          className={cn(
-                            "h-5 w-5",
-                            isToday && "!text-muted-foreground/20"
-                          )}
-                        />
+                        <Snowflake className="size-3.5 shrink-0" />
                       ) : (
-                        isActive && (
-                          <Check
-                            className={cn(
-                              "h-5 w-5",
-                              isToday && "!text-muted-foreground/20"
-                            )}
-                          />
-                        )
+                        isActive && <Check className="size-3.5 shrink-0 text-black" />
                       )}
                     </button>
                     <span
                       className={cn(
-                        "text-sm",
+                        "truncate text-[11px] leading-none",
                         isFuture ? "text-muted-foreground/50" : "text-foreground"
                       )}
                     >
@@ -564,7 +555,7 @@ const StreakCard = React.forwardRef<HTMLDivElement, StreakCardProps>(
       <section
         ref={ref}
         aria-label="Streak summary card"
-        className={cn("bg-card rounded-2xl border p-6 shadow-sm", className)}
+        className={cn("bg-card w-full rounded-2xl border p-6 shadow-sm", className)}
         {...props}
       >
         <header className="mb-3 flex items-center justify-between gap-3">

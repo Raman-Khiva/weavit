@@ -58,10 +58,11 @@ export interface CalendarWeekProps {
   events?: CalendarEvent[];
   now?: string;
   className?: string;
-  onCreateEvent?: (ev: CalendarEvent) => void;
-  onUpdateEvent?: (id: string, patch: Partial<CalendarEvent>) => void;
-  onDeleteEvent?: (id: string) => void;
-  onUpdateCalendar?: (id: string, patch: Partial<CalendarSource>) => void;
+  /** Return the persisted event so the local `new-*` draft can be replaced. */
+  onCreateEvent?: (ev: CalendarEvent) => void | Promise<CalendarEvent | void>;
+  onUpdateEvent?: (id: string, patch: Partial<CalendarEvent>) => void | Promise<void>;
+  onDeleteEvent?: (id: string) => void | Promise<void>;
+  onUpdateCalendar?: (id: string, patch: Partial<CalendarSource>) => void | Promise<void>;
 }
 
 const toneDot: Record<CalendarTone, string> = {
@@ -331,7 +332,13 @@ export function CalendarWeek({
   }, [initialCalendars]);
 
   useEffect(() => {
-    if (initialEvents) setEvents(initialEvents);
+    if (!initialEvents) return;
+    // Keep in-progress drafts (`new-*`) so a refetch doesn't wipe the editor.
+    setEvents((prev) => {
+      const drafts = prev.filter((e) => e.id.startsWith("new-"));
+      const draftIds = new Set(drafts.map((e) => e.id));
+      return [...initialEvents.filter((e) => !draftIds.has(e.id)), ...drafts];
+    });
   }, [initialEvents]);
   const [view, setView] = useState<ViewMode>("week");
   const [focusDay, setFocusDay] = useState(today);
@@ -442,11 +449,23 @@ export function CalendarWeek({
     setDrag({ id: ev.id, mode: m, x: e.clientX, y: e.clientY, start: ev.start, end: ev.end, date: ev.date, moved: false, anchorMin: 0 });
   };
 
+  const defaultCalendarId = () =>
+    calendars.find((c) => !c.id.startsWith("demo-"))?.id ??
+    calendars[0]?.id ??
+    "me";
+
   const beginCreate = (e: ReactPointerEvent, date: string) => {
     if (e.button !== 0) return;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     const at = Math.floor(minuteAt(e.clientY) / SNAP) * SNAP;
-    const ev: CalendarEvent = { id: `new-${Date.now()}`, title: "", calendar: calendars[0]?.id ?? "me", date, start: at, end: at + 30 };
+    const ev: CalendarEvent = {
+      id: `new-${Date.now()}`,
+      title: "",
+      calendar: defaultCalendarId(),
+      date,
+      start: at,
+      end: at + 30,
+    };
     setEvents((es) => [...es, ev]);
     setSelectedId(null);
     setEditing(null);
@@ -534,10 +553,36 @@ export function CalendarWeek({
     rootRef.current?.focus({ preventScroll: true });
   };
 
+  const persistNewEvent = async (draft: CalendarEvent) => {
+    const title = draft.title.trim() || "Busy";
+    const payload = { ...draft, title };
+    if (!draft.title.trim()) patch(draft.id, { title });
+    try {
+      const created = await onCreateEvent?.(payload);
+      if (created?.id) {
+        setEvents((es) => es.map((e) => (e.id === draft.id ? { ...payload, ...created } : e)));
+        setSelectedId(created.id);
+        return created;
+      }
+      // Parent didn't return the saved row — drop the draft and wait for refetch.
+      setEvents((es) => es.filter((e) => e.id !== draft.id));
+      setSelectedId(null);
+    } catch {
+      setToast({ key: Date.now(), text: "Couldn’t save event. Try again." });
+    }
+    return null;
+  };
+
   const closeEditor = () => {
     if (editing) {
       const ev = events.find((e) => e.id === editing);
-      if (ev && !ev.title.trim()) setEvents((es) => es.filter((e) => e.id !== editing));
+      if (ev?.id.startsWith("new-")) {
+        if (ev.title.trim()) {
+          void persistNewEvent(ev);
+        } else {
+          setEvents((es) => es.filter((e) => e.id !== editing));
+        }
+      }
     }
     setEditing(null);
     setSelectedId(null);
@@ -547,7 +592,14 @@ export function CalendarWeek({
   const newEventNow = () => {
     const date = mode === "day" ? focusDay : days.includes(today) ? today : firstDay;
     const start = Math.ceil((date === today ? nowMin : 9 * 60) / 30) * 30;
-    const ev: CalendarEvent = { id: `new-${Date.now()}`, title: "", calendar: calendars[0]?.id ?? "me", date, start, end: start + 30 };
+    const ev: CalendarEvent = {
+      id: `new-${Date.now()}`,
+      title: "",
+      calendar: defaultCalendarId(),
+      date,
+      start,
+      end: start + 30,
+    };
     setEvents((es) => [...es, ev]);
     setSelectedId(ev.id);
     setEditing(ev.id);
@@ -1043,27 +1095,41 @@ export function CalendarWeek({
                         requestAnimationFrame(() => titleRef.current?.focus());
                       }}
                       onSave={() => {
-                        const title = panel.ev.title.trim() || "Busy";
-                        if (!panel.ev.title.trim()) patch(panel.ev.id, { title });
-                        const saved = { ...panel.ev, title };
-                        if (saved.id.startsWith("new-")) {
-                          onCreateEvent?.(saved);
-                        } else if (!saved.id.startsWith("demo-")) {
-                          onUpdateEvent?.(saved.id, {
-                            title: saved.title,
-                            calendar: saved.calendar,
-                            date: saved.date,
-                            start: saved.start,
-                            end: saved.end,
-                            allDay: saved.allDay,
-                            location: saved.location,
-                            video: saved.video,
-                            people: saved.people,
+                        void (async () => {
+                          const saved = panel.ev;
+                          if (saved.id.startsWith("new-")) {
+                            const created = await persistNewEvent(saved);
+                            if (!created) return;
+                            setEditing(null);
+                            setToast({
+                              key: Date.now(),
+                              text: `Saved for ${DOW[weekday(created.date)]} ${fmtRange(created.start, created.end)}`,
+                            });
+                            rootRef.current?.focus({ preventScroll: true });
+                            return;
+                          }
+                          if (!saved.id.startsWith("demo-")) {
+                            const title = saved.title.trim() || "Busy";
+                            if (!saved.title.trim()) patch(saved.id, { title });
+                            await onUpdateEvent?.(saved.id, {
+                              title,
+                              calendar: saved.calendar,
+                              date: saved.date,
+                              start: saved.start,
+                              end: saved.end,
+                              allDay: saved.allDay,
+                              location: saved.location,
+                              video: saved.video,
+                              people: saved.people,
+                            });
+                          }
+                          setEditing(null);
+                          setToast({
+                            key: Date.now(),
+                            text: `Saved for ${DOW[weekday(saved.date)]} ${fmtRange(saved.start, saved.end)}`,
                           });
-                        }
-                        setEditing(null);
-                        setToast({ key: Date.now(), text: `Saved for ${DOW[weekday(panel.ev.date)]} ${fmtRange(panel.ev.start, panel.ev.end)}` });
-                        rootRef.current?.focus({ preventScroll: true });
+                          rootRef.current?.focus({ preventScroll: true });
+                        })();
                       }}
                       onTitle={(title) => patch(panel.ev.id, { title })}
                       scrollRef={scrollRef}

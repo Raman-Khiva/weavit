@@ -39,7 +39,7 @@ export function NavProjects({
   const { isMobile } = useSidebar()
 
   return (
-    <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+    <SidebarGroup className=" max-w-60 group-data-[collapsible=icon]:hidden">
       <div className="flex items-center justify-between px-2">
         <SidebarGroupLabel className="p-0 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
           Roadmaps & Plans
@@ -59,7 +59,7 @@ export function NavProjects({
             : false
 
           return (
-            <Collapsible key={item.name} asChild defaultOpen={isItemActive}>
+            <Collapsible key={item.url} asChild defaultOpen={isItemActive}>
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild

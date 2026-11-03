@@ -83,6 +83,29 @@ function bestStreakFromDates(completedDates: string[]): number {
   return best
 }
 
+/** Collapse consecutive completed days into streak periods for StreakCalendar. */
+function periodsFromCompletedDates(completedDates: string[]) {
+  const sorted = [...new Set(completedDates)].sort()
+  if (sorted.length === 0) return []
+
+  const periods: { periodStart: string; periodEnd: string }[] = []
+  let start = sorted[0]!
+  let end = sorted[0]!
+
+  for (let i = 1; i < sorted.length; i++) {
+    const cur = sorted[i]!
+    if (shiftUtcDate(end, 1) === cur) {
+      end = cur
+    } else {
+      periods.push({ periodStart: start, periodEnd: end })
+      start = cur
+      end = cur
+    }
+  }
+  periods.push({ periodStart: start, periodEnd: end })
+  return periods
+}
+
 function LeetCodeMark({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
@@ -141,12 +164,7 @@ function Page(): JSX.Element {
   const isDoneToday = completedDates.includes(utcToday())
 
   const streak = useMemo(
-    () =>
-      [...completedDates]
-        .sort()
-        .slice(-3)
-        .reverse()
-        .map((day) => ({ periodStart: day, periodEnd: day })),
+    () => periodsFromCompletedDates(completedDates),
     [completedDates]
   )
 
@@ -358,11 +376,8 @@ function Page(): JSX.Element {
           </div>
 
           <HabitHeatmap
-            activeDays={stats.totalActiveDays}
-            totalDays={stats.totalDays}
+            completedDates={completedDates}
             currentStreak={stats.currentStreak}
-            longestStreak={stats.maxStreak}
-            doneToday={isDoneToday}
           />
 
           <LogStream
@@ -375,12 +390,12 @@ function Page(): JSX.Element {
         </div>
       </div>
 
-      <div className="flex w-full flex-col xl:max-w-[30%] xl:items-end">
+      <div className="flex w-full min-w-0 flex-col xl:max-w-[30%]">
         <StreakCard
           streak={streak}
           currentStreak={stats.currentStreak}
           longestStreak={stats.maxStreak}
-          total={stats.totalDays}
+          total={stats.totalActiveDays}
           defaultHowItWorksOpen={true}
         />
       </div>

@@ -31,10 +31,24 @@ import {
   ClipboardCheck,
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils"
-import { useProjectsStore } from "@workspace/ui/lib/projects-store"
+
+export type SidebarProject = {
+  id: string
+  title: string
+  /** e.g. "2/8" completed/total tasks */
+  badge?: string
+}
+
+const DEMO_PROJECT: SidebarProject = {
+  id: "demo-roadmap",
+  title: "Demo: Sample Roadmap",
+  badge: "0/4",
+}
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   currentPath?: string
+  /** Real roadmaps from the API — sidebar shows demo + up to 2 of these (max 3). */
+  projects?: SidebarProject[]
   user?: {
     name: string
     email: string
@@ -44,11 +58,11 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 
 export function AppSidebar({
   currentPath: propCurrentPath,
+  projects: propProjects = [],
   user: propUser,
   ...props
 }: AppSidebarProps) {
   const [mountedPath, setMountedPath] = React.useState("")
-  const { projects } = useProjectsStore()
 
   React.useEffect(() => {
     if (typeof window !== "undefined") {
@@ -96,20 +110,6 @@ export function AppSidebar({
         title: "Daily Habits",
         url: "/workspace/habits",
         icon: navIcon(Target),
-        items: [
-          {
-            title: "Reading",
-            url: "/workspace/habits/reading",
-          },
-          {
-            title: "Meditation",
-            url: "/workspace/habits/meditation",
-          },
-          {
-            title: "Exercise",
-            url: "/workspace/habits/exercise",
-          },
-        ],
       },
       {
         title: "Tasks & Todos",
@@ -120,7 +120,7 @@ export function AppSidebar({
         title: "Roadmaps & Plans",
         url: "/workspace/projects",
         icon: navIcon(Layers),
-        badge: projects?.length ? String(projects.length) : undefined,
+        badge: propProjects.length ? String(propProjects.length) : undefined,
       },
       {
         title: "Deadlines",
@@ -138,7 +138,7 @@ export function AppSidebar({
         icon: navIcon(FileText),
       },
     ],
-    [projects]
+    [propProjects.length]
   )
 
   const navSecondary = React.useMemo(
@@ -158,40 +158,37 @@ export function AppSidebar({
   )
 
   const projectItems = React.useMemo(() => {
-    if (!projects || projects.length === 0) {
-      return [
-        {
-          name: "SDE 2 Interview Prep",
-          url: "/workspace/projects/sde-interview-prep",
-          icon: navIcon(FolderKanban),
-          badge: "1/4",
-        },
-        {
-          name: "Distributed DB Engine",
-          url: "/workspace/projects/distributed-key-value-store",
-          icon: navIcon(FolderKanban),
-          badge: "0/3",
-        },
-      ]
-    }
-
-    return projects.slice(0, 4).map((p) => {
-      const allTasks = p.phases.flatMap((ph) => ph.tasks)
-      const completed = allTasks.filter((t) => t.status === "COMPLETED").length
-      return {
+    const seen = new Set<string>([DEMO_PROJECT.id])
+    const real = propProjects
+      .filter((p) => {
+        if (!p.id || seen.has(p.id)) return false
+        seen.add(p.id)
+        return true
+      })
+      .slice(0, 2)
+      .map((p) => ({
         name: p.title,
         url: `/workspace/projects/${p.id}`,
         icon: navIcon(FolderKanban),
-        badge: `${completed}/${allTasks.length}`,
-      }
-    })
-  }, [projects])
+        badge: p.badge,
+      }))
+
+    return [
+      {
+        name: DEMO_PROJECT.title,
+        url: `/workspace/projects/${DEMO_PROJECT.id}`,
+        icon: navIcon(FolderKanban),
+        badge: DEMO_PROJECT.badge,
+      },
+      ...real,
+    ]
+  }, [propProjects])
 
   return (
 
-    <Sidebar variant="sidebar" {...props}>
+    <Sidebar variant="sidebar" className="" {...props}>
       <SidebarHeader className="flex h-14 justify-center p-0 px-2">
-        <SidebarMenu>
+        <SidebarMenu className="min-w-56">
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild className="rounded-xl transition-all duration-150 hover:bg-sidebar-accent/60">
               <a href="/" className="flex items-center gap-3">
@@ -262,7 +259,7 @@ export function AppSidebar({
         </SidebarGroup>
 
         <NavMain items={navMain} currentPath={currentPath} />
-        <NavProjects projects={projectItems} currentPath={currentPath} />
+        <NavProjects projects={projectItems}  currentPath={currentPath} />
         <NavSecondary items={navSecondary} className="mt-auto pt-2 border-t border-sidebar-border/40" />
       </SidebarContent>
 

@@ -37,9 +37,32 @@ type Ritual = {
   cadence: "DAILY" | "WEEKLY" | "MONTHLY"
   category: string
   done: boolean
+  /** Last 7 UTC days, oldest → today */
+  weekHistory: boolean[]
   gap?: string
   chip?: string
 }
+
+function weekHistoryFromDates(dates: string[]): boolean[] {
+  const set = new Set(dates)
+  const out: boolean[] = []
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date()
+    d.setUTCDate(d.getUTCDate() - i)
+    out.push(set.has(d.toISOString().slice(0, 10)))
+  }
+  return out
+}
+
+const DEMO_WEEK = (() => {
+  const dates: string[] = []
+  for (const offset of [6, 5, 4, 2, 1]) {
+    const d = new Date()
+    d.setUTCDate(d.getUTCDate() - offset)
+    dates.push(d.toISOString().slice(0, 10))
+  }
+  return weekHistoryFromDates(dates)
+})()
 
 const STATIC_RITUALS: Ritual[] = [
   {
@@ -50,6 +73,7 @@ const STATIC_RITUALS: Ritual[] = [
     cadence: "DAILY",
     category: "Learning",
     done: false,
+    weekHistory: DEMO_WEEK,
     gap: "3 days gap",
   },
 ]
@@ -74,7 +98,8 @@ function normalizeCategory(value?: string | null) {
 
 function mapApiHabit(habit: Habit): Ritual {
   const today = new Date().toISOString().slice(0, 10)
-  const done = (habit.completedDates ?? []).includes(today)
+  const dates = habit.completedDates ?? []
+  const done = dates.includes(today)
   return {
     id: habit.id,
     title: habit.title,
@@ -83,6 +108,7 @@ function mapApiHabit(habit: Habit): Ritual {
     cadence: habit.frequency ?? "DAILY",
     category: normalizeCategory(habit.category),
     done,
+    weekHistory: weekHistoryFromDates(dates),
     chip: done ? "Done Today" : undefined,
   }
 }
@@ -133,16 +159,14 @@ function HabitCard({ ritual }: { ritual: Ritual }) {
           <span>{ritual.streak}D</span>
         </div>
 
-        <div className="flex items-center gap-1.5">
-          {Array.from({ length: 7 }).map((_, idx) => {
-            const active = idx < Math.min(ritual.streak % 8, 7)
-            return (
-              <span
-                key={`${ritual.id}-dot-${idx}`}
-                className={`h-1.5 w-1.5 rounded-full ${active ? "bg-primary" : "bg-muted"}`}
-              />
-            )
-          })}
+        <div className="flex items-center gap-1.5" aria-label="Last 7 days">
+          {ritual.weekHistory.map((active, idx) => (
+            <span
+              key={`${ritual.id}-dot-${idx}`}
+              title={active ? "Checked in" : "Missed"}
+              className={`h-1.5 w-1.5 rounded-full ${active ? "bg-primary" : "bg-muted"}`}
+            />
+          ))}
         </div>
       </div>
     </a>
@@ -218,6 +242,9 @@ function Page(): JSX.Element {
     () => rituals.filter((ritual) => ritual.cadence === "DAILY"),
     [rituals]
   )
+
+  const sevenDaysAgo = (new Date()).toISOString().split("T")[0];
+
 
   const doneCount = dailyRituals.filter((ritual) => ritual.done).length
   const remainingRituals = dailyRituals.filter((ritual) => !ritual.done)

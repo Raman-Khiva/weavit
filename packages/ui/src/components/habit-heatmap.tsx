@@ -4,11 +4,10 @@ import { useMemo, useState } from "react"
 import { cn } from "@workspace/ui/lib/utils"
 
 export type HabitHeatmapProps = {
-  activeDays: number
-  totalDays: number
-  currentStreak: number
-  longestStreak: number
-  doneToday?: boolean
+  /** Source of truth: YYYY-MM-DD (UTC) check-in days */
+  completedDates: string[]
+  /** Optional cached streak for the subtitle; recomputed if omitted */
+  currentStreak?: number
   now?: Date
   className?: string
 }
@@ -29,11 +28,8 @@ const WEEKDAY_LABELS = ["", "Mon", "", "Wed", "", "Fri", ""]
 const LEVELS = ["#2d2d2d", "#0e4429", "#006d32", "#26a641", "#39d353"]
 
 export function HabitHeatmap({
-  activeDays,
-  totalDays,
+  completedDates,
   currentStreak,
-  longestStreak,
-  doneToday = false,
   now,
   className,
 }: HabitHeatmapProps) {
@@ -42,14 +38,11 @@ export function HabitHeatmap({
   const model = useMemo(
     () =>
       buildModel({
-        activeDays,
-        totalDays,
+        completedDates,
         currentStreak,
-        longestStreak,
-        doneToday,
         now: now ?? new Date(),
       }),
-    [activeDays, totalDays, currentStreak, longestStreak, doneToday, now]
+    [completedDates, currentStreak, now]
   )
 
   return (
@@ -59,7 +52,7 @@ export function HabitHeatmap({
           Activity
         </h2>
         <p className="text-xs text-white/50">
-          {model.checkins} check-ins in the last {totalDays} days · {currentStreak} day streak
+          {model.checkins} check-ins in the last {model.windowDays} days · {model.streak} day streak
         </p>
       </div>
 
@@ -166,40 +159,45 @@ function Stat({ label, value, sub }: { label: string; value: string; sub: string
 
 function cellLabel(cell: Cell) {
   const date = formatLong(cell.date)
-  if (cell.count === 0) return `No submissions on ${date}`
-  const noun = cell.count === 1 ? "submission" : "submissions"
-  return `${cell.count} ${noun} on ${date}`
+  if (!cell.tracked) return date
+  if (cell.count === 0) return `No check-in on ${date}`
+  return `Checked in on ${date}`
 }
 
 function buildModel({
-  activeDays,
-  totalDays,
+  completedDates,
   currentStreak,
-  longestStreak,
-  doneToday,
   now,
-}: Required<Omit<HabitHeatmapProps, "className">>) {
-  const today = startOfDay(now)
-  const total = Math.max(totalDays, 1)
-  const windowStart = addDays(today, -(total - 1))
-  const flags = buildFlags({ total, activeDays, currentStreak, longestStreak, doneToday })
+}: {
+  completedDates: string[]
+  currentStreak?: number
+  now: Date
+}) {
+  // Match Habit.completedDates (YYYY-MM-DD UTC from the API).
+  const todayIso = utcIso(now)
+  const today = utcDay(todayIso)
+  const done = new Set(completedDates)
 
   const gridEnd = addDays(sundayOnOrBefore(today), 6)
   const gridStart = addDays(gridEnd, -(53 * 7 - 1))
+  const windowStart = addDays(today, -364)
+  const windowDays = daysBetween(windowStart, today) + 1
+
   const weeks: Cell[][] = []
   let week: Cell[] = []
 
   for (let cursor = gridStart; cursor.getTime() <= gridEnd.getTime(); cursor = addDays(cursor, 1)) {
-    const offset = daysBetween(windowStart, cursor)
-    const tracked = offset >= 0 && offset < total && cursor.getTime() <= today.getTime()
-    const active = tracked && Boolean(flags[offset])
-    const count = active ? volume(cursor) : 0
+    const key = utcIso(cursor)
+    const tracked =
+      cursor.getTime() >= windowStart.getTime() && cursor.getTime() <= today.getTime()
+    const active = tracked && done.has(key)
+    const count = active ? 1 : 0
 
     week.push({
-      iso: iso(cursor),
+      iso: key,
       date: cursor,
       count,
-      level: levelFromCount(count),
+      level: active ? 3 : 0,
       tracked,
       active,
     })
@@ -211,9 +209,9 @@ function buildModel({
 
   const months: { label: string; weekIndex: number }[] = []
   weeks.forEach((days, weekIndex) => {
-    const firstOfMonth = days.find((cell) => cell.date.getDate() === 1)
+    const firstOfMonth = days.find((cell) => cell.date.getUTCDate() === 1)
     if (!firstOfMonth) return
-    months.push({ label: MONTHS[firstOfMonth.date.getMonth()] ?? "", weekIndex })
+    months.push({ label: MONTHS[firstOfMonth.date.getUTCMonth()] ?? "", weekIndex })
   })
 
   const tracked = weeks.flat().filter((cell) => cell.tracked)
@@ -243,115 +241,67 @@ function buildModel({
   }
 
   const thisMonth = tracked.filter(
-    (cell) => cell.active && cell.date.getMonth() === today.getMonth()
+    (cell) => cell.active && cell.date.getUTCMonth() === today.getUTCMonth()
   ).length
+
+  const streak =
+    currentStreak ??
+    computeStreakFromSet(done, todayIso)
 
   return {
     weeks,
     months,
     checkins,
+    windowDays,
     thisMonth,
-    monthName: MONTHS[today.getMonth()],
+    monthName: MONTHS[today.getUTCMonth()],
     longestBreak,
     busiestWeek,
+    streak,
   }
 }
 
-function buildFlags({
-  total,
-  activeDays,
-  currentStreak,
-  longestStreak,
-  doneToday,
-}: {
-  total: number
-  activeDays: number
-  currentStreak: number
-  longestStreak: number
-  doneToday: boolean
-}) {
-  const flags = Array.from({ length: total }, () => false)
-  const today = total - 1
-  const streakLen = Math.min(currentStreak, doneToday ? total : Math.max(0, total - 1))
-  const streakEnd = doneToday ? today : today - 1
-  const streakStart = streakEnd - streakLen + 1
-
-  for (let index = Math.max(0, streakStart); index <= streakEnd; index += 1) flags[index] = true
-
-  const gap = streakStart - 1
-  if (gap >= 0) flags[gap] = false
-
-  const longest = Math.min(longestStreak, Math.max(0, gap))
-  const longestEnd = gap - 1
-  const longestStart = longestEnd - longest + 1
-  if (longest > 0 && longestStart >= 0) {
-    for (let index = longestStart; index <= longestEnd; index += 1) flags[index] = true
+function computeStreakFromSet(done: Set<string>, todayIso: string): number {
+  let cursor = todayIso
+  if (!done.has(cursor)) {
+    cursor = shiftIso(cursor, -1)
+    if (!done.has(cursor)) return 0
   }
-
-  const separator = longestStart - 1
-  if (separator >= 0) flags[separator] = false
-
-  let remaining = activeDays - flags.filter(Boolean).length
-  let cursor = 0
-  const limit = Math.max(0, separator)
-  while (remaining > 0 && cursor < limit) {
-    const run = Math.min(longestStreak, remaining, limit - cursor)
-    for (let step = 0; step < run; step += 1) {
-      flags[cursor] = true
-      cursor += 1
-      remaining -= 1
-    }
-    if (cursor < limit) {
-      flags[cursor] = false
-      cursor += 1
-    }
+  let streak = 0
+  while (done.has(cursor)) {
+    streak += 1
+    cursor = shiftIso(cursor, -1)
   }
-
-  flags[today] = doneToday
-  return flags
+  return streak
 }
 
-function startOfDay(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate())
+function shiftIso(dateStr: string, days: number): string {
+  const d = new Date(`${dateStr}T00:00:00.000Z`)
+  d.setUTCDate(d.getUTCDate() + days)
+  return d.toISOString().slice(0, 10)
+}
+
+function utcIso(date: Date) {
+  return date.toISOString().slice(0, 10)
+}
+
+function utcDay(iso: string) {
+  return new Date(`${iso}T00:00:00.000Z`)
 }
 
 function addDays(date: Date, days: number) {
   const next = new Date(date)
-  next.setDate(next.getDate() + days)
+  next.setUTCDate(next.getUTCDate() + days)
   return next
 }
 
 function sundayOnOrBefore(date: Date) {
-  const day = startOfDay(date).getDay()
-  return addDays(startOfDay(date), -day)
-}
-
-function volume(date: Date) {
-  const seed = date.getFullYear() * 400 + date.getMonth() * 32 + date.getDate()
-  const mix = (seed * 17) % 13
-  if (mix < 4) return 1 + (mix % 2)
-  if (mix < 8) return 3 + (mix % 3)
-  if (mix < 11) return 6 + (mix % 4)
-  return 10 + (mix % 8)
-}
-
-function levelFromCount(count: number): Cell["level"] {
-  if (count <= 0) return 0
-  if (count <= 2) return 1
-  if (count <= 5) return 2
-  if (count <= 9) return 3
-  return 4
+  const day = date.getUTCDay()
+  return addDays(date, -day)
 }
 
 function daysBetween(start: Date, date: Date) {
-  const startUtc = Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())
-  const dateUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
-  return Math.round((dateUtc - startUtc) / 86_400_000)
-}
-
-function iso(date: Date) {
-  const pad = (value: number) => String(value).padStart(2, "0")
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+  return Math.round((date.getTime() - start.getTime()) / 86_400_000)
 }
 
 function formatLong(date: Date) {
@@ -360,6 +310,7 @@ function formatLong(date: Date) {
     month: "short",
     day: "numeric",
     year: "numeric",
+    timeZone: "UTC",
   }).format(date)
 }
 
@@ -367,5 +318,6 @@ function formatShort(date: Date) {
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",
+    timeZone: "UTC",
   }).format(date)
 }
