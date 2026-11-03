@@ -1544,5 +1544,5 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
 
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server is running on port ${PORT}`)
-})
+  console.log(`Server is running on port ${PORT}`);
+});
