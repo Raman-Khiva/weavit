@@ -15,6 +15,13 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
 import { ClockIcon, PlusIcon } from "lucide-react"
 import { cn } from "@workspace/ui/lib/utils"
 import { components } from "@weavit/api-types"
@@ -36,9 +43,55 @@ export interface DetailedCalendarProps {
   onToggle?: (deadline: DEADLINE) => void
 }
 
+const HOURS_12 = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"] as const
+const MINUTES = ["00", "15", "30", "45"] as const
+const MERIDIEMS = ["AM", "PM"] as const
+const ANY_TIME = "any"
+
+type Hour12 = (typeof HOURS_12)[number]
+type Minute = (typeof MINUTES)[number]
+type Meridiem = (typeof MERIDIEMS)[number]
+
 function dayKey(d: Date) {
   const pad = (n: number) => String(n).padStart(2, "0")
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+/** Stable calendar-day ISO (noon UTC) so slice(0,10) matches the picked day. */
+function dueDateFromDay(yyyyMmDd: string) {
+  return `${yyyyMmDd}T12:00:00.000Z`
+}
+
+function deadlineDay(dueDate: string) {
+  return dueDate.slice(0, 10)
+}
+
+function to24h(hour: Hour12, minute: Minute, meridiem: Meridiem): string {
+  let h = Number(hour)
+  if (meridiem === "AM" && h === 12) h = 0
+  if (meridiem === "PM" && h !== 12) h += 12
+  return `${String(h).padStart(2, "0")}:${minute}`
+}
+
+function formatTime12(hhmm: string) {
+  const [hRaw, mRaw] = hhmm.split(":")
+  let h = Number(hRaw)
+  const m = mRaw ?? "00"
+  const mer = h >= 12 ? "PM" : "AM"
+  h = h % 12 || 12
+  return `${h}:${m} ${mer}`
+}
+
+function defaultClockFromNow() {
+  const now = new Date()
+  const rounded = Math.ceil(now.getMinutes() / 15) * 15
+  const bumpHour = rounded === 60
+  let h24 = now.getHours() + (bumpHour ? 1 : 0)
+  if (h24 >= 24) h24 = 23
+  const minute = (bumpHour ? "00" : String(rounded).padStart(2, "0")) as Minute
+  const meridiem: Meridiem = h24 >= 12 ? "PM" : "AM"
+  const hour = String(h24 % 12 || 12) as Hour12
+  return { hour, minute, meridiem }
 }
 
 export function DetailedCalendar({
@@ -52,10 +105,15 @@ export function DetailedCalendar({
   const [date, setDate] = React.useState<Date | undefined>(new Date())
   const [open, setOpen] = React.useState(false)
   const [title, setTitle] = React.useState("")
-  const [time, setTime] = React.useState("")
+  const [formDate, setFormDate] = React.useState(dayKey(new Date()))
+  const [hour, setHour] = React.useState<string>(ANY_TIME)
+  const [minute, setMinute] = React.useState<Minute>("00")
+  const [meridiem, setMeridiem] = React.useState<Meridiem>("PM")
 
   const selectedKey = date ? dayKey(date) : ""
-  const dayDeadlines = deadlines.filter((d) => d.dueDate.slice(0, 10) === selectedKey)
+  const dayDeadlines = deadlines.filter(
+    (d) => deadlineDay(d.dueDate) === selectedKey
+  )
 
   const formattedDate = date
     ? date.toLocaleDateString("en-US", {
@@ -65,17 +123,55 @@ export function DetailedCalendar({
       })
     : "Select a date"
 
+  const hasClock = hour !== ANY_TIME
+
+  const resetForm = (forDay?: Date) => {
+    const day = forDay ?? date ?? new Date()
+    const clock = defaultClockFromNow()
+    setTitle("")
+    setFormDate(dayKey(day))
+    setHour(ANY_TIME)
+    setMinute(clock.minute)
+    setMeridiem(clock.meridiem)
+  }
+
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next)
+    if (next) resetForm(date)
+  }
+
+  const onHourChange = (value: string) => {
+    if (value === ANY_TIME) {
+      setHour(ANY_TIME)
+      return
+    }
+    // First pick from "Any time" → seed minute/meridiem from now
+    if (hour === ANY_TIME) {
+      const clock = defaultClockFromNow()
+      setMinute(clock.minute)
+      setMeridiem(clock.meridiem)
+    }
+    setHour(value)
+  }
+
   const save = () => {
-    if (!title.trim() || !date || !onAdd) return
+    if (!title.trim() || !formDate || !onAdd) return
+    const time =
+      hasClock && HOURS_12.includes(hour as Hour12)
+        ? to24h(hour as Hour12, minute, meridiem)
+        : undefined
     onAdd({
       title: title.trim(),
-      time: time.trim() || undefined,
-      dueDate: new Date(date).toISOString(),
+      time,
+      dueDate: dueDateFromDay(formDate),
     })
-    setTitle("")
-    setTime("")
+    const [y, m, d] = formDate.split("-").map(Number) as [number, number, number]
+    setDate(new Date(y, m - 1, d))
+    resetForm()
     setOpen(false)
   }
+
+  const canSave = Boolean(title.trim() && formDate)
 
   return (
     <div
@@ -112,7 +208,7 @@ export function DetailedCalendar({
               {dayDeadlines.length} deadline{dayDeadlines.length === 1 ? "" : "s"}
             </p>
           </div>
-          <Dialog open={open} onOpenChange={setOpen}>
+          <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="h-9 gap-1.5 rounded-lg px-3">
                 <PlusIcon className="size-4" />
@@ -123,37 +219,89 @@ export function DetailedCalendar({
               <DialogHeader>
                 <DialogTitle>Add Deadline</DialogTitle>
                 <DialogDescription>
-                  Create a deadline for {formattedDate}.
+                  Set a title, date, and optional time.
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="title" className="text-right">
+                  <Label htmlFor="deadline-title" className="text-right">
                     Title
                   </Label>
                   <Input
-                    id="title"
+                    id="deadline-title"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Deadline title"
+                    placeholder="Math quiz"
                     className="col-span-3"
+                    autoFocus
                   />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="time" className="text-right">
-                    Time
+                  <Label htmlFor="deadline-date" className="text-right">
+                    Date
                   </Label>
                   <Input
-                    id="time"
-                    value={time}
-                    onChange={(e) => setTime(e.target.value)}
-                    placeholder="14:00"
+                    id="deadline-date"
+                    type="date"
+                    value={formDate}
+                    onChange={(e) => setFormDate(e.target.value)}
                     className="col-span-3"
+                    required
                   />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label className="text-right">Time</Label>
+                  <div className="col-span-3 flex flex-wrap items-center gap-2">
+                    <Select value={hour} onValueChange={onHourChange}>
+                      <SelectTrigger className="min-w-24 flex-1" aria-label="Hour">
+                        <SelectValue placeholder="Any time" />
+                      </SelectTrigger>
+                      <SelectContent position="popper" className="max-h-64">
+                        <SelectItem value={ANY_TIME}>Any time</SelectItem>
+                        {HOURS_12.map((h) => (
+                          <SelectItem key={h} value={h}>
+                            {h}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select
+                      value={minute}
+                      onValueChange={(v) => setMinute(v as Minute)}
+                      disabled={!hasClock}
+                    >
+                      <SelectTrigger className="w-[4.5rem]" aria-label="Minute">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent position="popper">
+                        {MINUTES.map((m) => (
+                          <SelectItem key={m} value={m}>
+                            {m}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select
+                      value={meridiem}
+                      onValueChange={(v) => setMeridiem(v as Meridiem)}
+                      disabled={!hasClock}
+                    >
+                      <SelectTrigger className="w-[4.75rem]" aria-label="AM or PM">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent position="popper">
+                        {MERIDIEMS.map((m) => (
+                          <SelectItem key={m} value={m}>
+                            {m}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
               <DialogFooter>
-                <Button type="button" onClick={save} disabled={!title.trim()}>
+                <Button type="button" onClick={save} disabled={!canSave}>
                   Save
                 </Button>
               </DialogFooter>
@@ -193,9 +341,14 @@ export function DetailedCalendar({
                   {event.time ? (
                     <div className="flex items-center gap-1.5">
                       <ClockIcon className="size-4" />
-                      <span>{event.time}</span>
+                      <span>{formatTime12(event.time)}</span>
                     </div>
-                  ) : null}
+                  ) : (
+                    <div className="flex items-center gap-1.5">
+                      <ClockIcon className="size-4" />
+                      <span>Any time</span>
+                    </div>
+                  )}
                   {event.course ? <span>{event.course}</span> : null}
                 </div>
               </button>

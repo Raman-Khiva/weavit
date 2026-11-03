@@ -5,6 +5,9 @@ import { ReactLenis } from "lenis/react"
 import "lenis/dist/lenis.css"
 import { WeavitLanding } from "@/components/weavit-landing"
 import { cn } from "@workspace/ui/lib/utils"
+import { useAuth } from "@clerk/nextjs"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
 const display = Bricolage_Grotesque({
   subsets: ["latin"],
@@ -19,6 +22,17 @@ const body = Plus_Jakarta_Sans({
 })
 
 export default function Page(): React.ReactElement {
+
+  const {isLoaded, isSignedIn} = useAuth();
+
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      router.replace("/dashboard")
+    }
+  }, [isLoaded, isSignedIn, router])
+
   return (
     <ReactLenis
       root

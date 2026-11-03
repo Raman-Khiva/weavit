@@ -24,11 +24,17 @@ const DONE = "#34d399"
 const MISSED = "#f0b429"
 const UPCOMING = "#4a4a4a"
 
-const QUEUES: { key: string; label: string; slice: QueueSlice }[] = [
-  { key: "habits", label: "Habits", slice: { done: 3, missed: 1, upcoming: 2 } },
-  { key: "deadlines", label: "Deadlines", slice: { done: 1, missed: 1, upcoming: 3 } },
-  { key: "todos", label: "Todos", slice: { done: 2, missed: 1, upcoming: 1 } },
-]
+export type ProductivityQueue = {
+  key: string
+  label: string
+  slice: QueueSlice
+}
+
+export type ProductivityScore = {
+  score: number
+  trend: string
+  text: string
+}
 
 function duePhrase(date: string) {
   const [year = 0, month = 1, day = 1] = date.split("-").map(Number)
@@ -142,9 +148,26 @@ export function NextUp({ title, due }: { title: string; due: string }) {
   )
 }
 
-export function ProductivityBoard({ className }: { className?: string }) {
+export function ProductivityBoard({
+  className,
+  score,
+  queues,
+}: {
+  className?: string
+  /** When provided, replaces the static score meter */
+  score?: ProductivityScore
+  /** When provided, replaces the static habit/deadline/todo bars */
+  queues?: ProductivityQueue[]
+}) {
   const [timeframe, setTimeframe] = useState<Timeframe>("Week")
-  const current = SCORES[timeframe]
+  const current = score ?? SCORES[timeframe]
+  const queueRows =
+    queues ??
+    ([
+      { key: "habits", label: "Habits", slice: { done: 0, missed: 0, upcoming: 0 } },
+      { key: "deadlines", label: "Deadlines", slice: { done: 0, missed: 0, upcoming: 0 } },
+      { key: "todos", label: "Todos", slice: { done: 0, missed: 0, upcoming: 0 } },
+    ] satisfies ProductivityQueue[])
 
   return (
     <section
@@ -160,29 +183,31 @@ export function ProductivityBoard({ className }: { className?: string }) {
             <h2 className="text-lg leading-none font-semibold text-white">Productivity</h2>
             <span
               className="text-white/35"
-              title="From focus, finished work, and habit check-ins"
+              title="From habits, deadlines, and todos"
             >
               <Info className="size-4" aria-hidden />
-              <span className="sr-only">From focus, finished work, and habit check-ins</span>
+              <span className="sr-only">From habits, deadlines, and todos</span>
             </span>
           </div>
-          <div className="flex items-center rounded-lg border border-white/10 p-0.5">
-            {(["Day", "Week", "Month"] as const).map((option) => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => setTimeframe(option)}
-                className={cn(
-                  "rounded-md px-2 py-1 text-xs font-medium",
-                  timeframe === option
-                    ? "bg-white/10 text-white"
-                    : "text-white/45 hover:text-white"
-                )}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
+          {!score && (
+            <div className="flex items-center rounded-lg border border-white/10 p-0.5">
+              {(["Day", "Week", "Month"] as const).map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setTimeframe(option)}
+                  className={cn(
+                    "rounded-md px-2 py-1 text-xs font-medium",
+                    timeframe === option
+                      ? "bg-white/10 text-white"
+                      : "text-white/45 hover:text-white"
+                  )}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          )}
         </header>
 
         <p className="text-5xl leading-none font-semibold tracking-tight text-white">
@@ -216,7 +241,7 @@ export function ProductivityBoard({ className }: { className?: string }) {
         </span>
       </div>
 
-      {QUEUES.map((queue) => (
+      {queueRows.map((queue) => (
         <div key={queue.key}>
           <div className="mx-4 h-px bg-white/10" />
           <QueueBar label={queue.label} slice={queue.slice} />

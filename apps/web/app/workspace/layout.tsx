@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { usePathname } from "next/navigation"
-import { useAuth } from "@clerk/nextjs"
+import { useAuth, useUser } from "@clerk/nextjs"
 import { AppSidebar, type SidebarProject } from "@workspace/ui/components/app-sidebar"
 import {
   Breadcrumb,
@@ -35,9 +35,24 @@ export default function WorkspaceLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname()
   const { isLoaded, isSignedIn } = useAuth()
+  const { user } = useUser()
   const { data: projects } = useGetProjectsQuery(undefined, {
     skip: !isLoaded || !isSignedIn,
   })
+
+  const sidebarUser = React.useMemo(() => {
+    if (!user) return undefined
+    return {
+      name:
+        user.fullName ||
+        user.firstName ||
+        user.username ||
+        user.primaryEmailAddress?.emailAddress ||
+        "User",
+      email: user.primaryEmailAddress?.emailAddress || "",
+      avatar: user.imageUrl,
+    }
+  }, [user])
 
   const sidebarProjects = React.useMemo<SidebarProject[]>(() => {
     if (!projects?.length) return []
@@ -65,6 +80,7 @@ export default function WorkspaceLayout({
       <AppSidebar
         currentPath={pathname}
         projects={sidebarProjects}
+        user={sidebarUser}
         variant="sidebar"
         collapsible="icon"
       />

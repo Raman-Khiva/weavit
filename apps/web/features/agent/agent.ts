@@ -1,7 +1,13 @@
 import { useState } from "react"
 import Groq from "groq-sdk"
 import type { z } from "zod/v3"
-import { LlmResponseJsonSchema, LlmResponseSchema } from "./schema.agent"
+import {
+  ActionItemSchema,
+  LlmResponseJsonSchema,
+  LlmResponseSchema,
+  PlanPreviewSchema,
+  type ActionItem,
+} from "./schema.agent"
 import { userPrompot } from "./prompt.agent"
 
 type AgentOutput = z.infer<typeof LlmResponseSchema>
@@ -16,8 +22,7 @@ type AgentMeta = {
 
 type SubmitQuery = (
   prompt: string,
-  flatHabits: unknown,
-  flatPlans: unknown
+  state: unknown
 ) => Promise<AgentOutput | null>
 
 function getGroq() {
@@ -27,13 +32,49 @@ function getGroq() {
   })
 }
 
+/**
+ * Prefer strict parse; if Groq returns slightly-invalid extras (nulls / one bad action),
+ * salvage the message + every individually valid action so capabilities stay unlocked.
+ */
+export function parseAgentResponse(raw: unknown): AgentOutput | null {
+  const strict = LlmResponseSchema.safeParse(raw)
+  if (strict.success) return strict.data
+
+  if (!raw || typeof raw !== "object") return null
+  const obj = raw as { message?: unknown; actions?: unknown; preview?: unknown }
+
+  const actions: ActionItem[] = []
+  if (Array.isArray(obj.actions)) {
+    for (const item of obj.actions) {
+      const parsed = ActionItemSchema.safeParse(item)
+      if (parsed.success) actions.push(parsed.data)
+    }
+  }
+
+  const message =
+    typeof obj.message === "string" && obj.message.trim()
+      ? obj.message
+      : actions.length > 0
+        ? "Done."
+        : null
+
+  if (!message) return null
+
+  const previewParse = PlanPreviewSchema.safeParse(obj.preview)
+  return {
+    message,
+    actions,
+    preview: previewParse.success ? previewParse.data : null,
+  }
+}
+
 export function useAgent(): [SubmitQuery, AgentMeta] {
   const [data, setData] = useState<AgentOutput | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isError, setIsError] = useState(false)
   const [error, setError] = useState<AgentError>(null)
 
-  const submitQuery: SubmitQuery = async (prompt, flatHabits, flatPlans) => {
+  const submitQuery: SubmitQuery = async (prompt, state) => {
     setIsLoading(true)
     setIsError(false)
     setError(null)
@@ -48,7 +89,8 @@ export function useAgent(): [SubmitQuery, AgentMeta] {
             role: "user" as const,
             content: JSON.stringify({
               trigger: prompt,
-              state: { habits: flatHabits, plans: flatPlans },
+              now: new Date().toISOString(),
+              state,
             }),
           },
         ],
@@ -62,15 +104,14 @@ export function useAgent(): [SubmitQuery, AgentMeta] {
       })
 
       const raw = response.choices?.[0]?.message.content ?? "{}"
-      const parsed = JSON.parse(raw)
-      const result = LlmResponseSchema.safeParse(parsed)
+      const parsed = parseAgentResponse(JSON.parse(raw))
 
-      if (!result.success) {
+      if (!parsed) {
         throw new Error("Invalid agent response structure")
       }
 
-      setData(result.data)
-      return result.data
+      setData(parsed)
+      return parsed
     } catch (err) {
       const next = err instanceof Error ? err : new Error(String(err))
       setIsError(true)

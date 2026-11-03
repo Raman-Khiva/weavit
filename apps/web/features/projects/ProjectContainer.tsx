@@ -1,30 +1,32 @@
-// apps/web/features/projects/ProjectPhasesContainer.tsx
 "use client"
 
 import { ProjectPhases } from "@workspace/ui/components/project-phases"
 import {
-  useGetProjectsQuery,
+  useGetProjectQuery,
   usePatchTaskMutation,
   usePostTaskMutation,
   usePostNoteMutation,
   usePostPhaseMutation,
 } from "./projects.api"
-import { useAuth } from "@clerk/nextjs";
+import { useAuth } from "@clerk/nextjs"
 
-export function ProjectPhasesContainer({ projectId }: { projectId: string }) : JSX.Element{
-  const { isLoaded, isSignedIn } = useAuth();
-  const { data: projects, isLoading } = useGetProjectsQuery(undefined, {
-    skip: !isLoaded || !isSignedIn,
+export function ProjectPhasesContainer({
+  projectId,
+}: {
+  projectId: string
+}): JSX.Element {
+  const { isLoaded, isSignedIn } = useAuth()
+  const { data: project, isLoading } = useGetProjectQuery(projectId, {
+    skip: !isLoaded || !isSignedIn || !projectId,
   })
-  const project = projects?.find((p) => p.id === projectId)
 
   const [patchTask] = usePatchTaskMutation()
   const [postTask] = usePostTaskMutation()
   const [postNote] = usePostNoteMutation()
   const [postPhase] = usePostPhaseMutation()
 
-  if (isLoading) return <p>Loading…</p>
-  if (!project) return <p>Project not found</p>
+  if (isLoading) return <p className="text-sm text-muted-foreground">Loading phases…</p>
+  if (!project) return <p className="text-sm text-muted-foreground">Project not found</p>
 
   return (
     <ProjectPhases
@@ -52,8 +54,8 @@ export function ProjectPhasesContainer({ projectId }: { projectId: string }) : J
         })
       }}
       onAddTask={() => {}}
-      onAddPhase={(projectId, phase) => {
-        void postPhase({ projectId, body: phase })
+      onAddPhase={(id, phase) => {
+        void postPhase({ projectId: id, body: phase })
       }}
     />
   )

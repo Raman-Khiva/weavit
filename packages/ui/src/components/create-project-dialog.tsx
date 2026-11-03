@@ -41,11 +41,10 @@ export function CreateProjectDialog({ onAddProject, trigger }: CreateProjectDial
     if (!title.trim()) return
     onAddProject({
       title: title.trim(),
-
       description: description.trim() || "Custom multi-phase plan and execution roadmap.",
       category: category.trim() || "Custom Plan",
       icon: "Layers",
-      startDate: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+      startDate: new Date().toISOString(),
       // phases: [
       //   {
       //     id: `phase-${Date.now()}-1`,

@@ -7,7 +7,7 @@ import { PromptInput, PromptInputTextarea, PromptInputSubmit, PromptInputFooter,
 import { Conversation, ConversationContent } from "@workspace/ui/components/ai-elements/conversation";
 import { Message, MessageContent, MessageResponse } from "@workspace/ui/components/ai-elements/message";
 import { ChainOfThought, ChainOfThoughtHeader, ChainOfThoughtContent, ChainOfThoughtStep } from "@workspace/ui/components/ai-elements/chain-of-thought";
-import { PlanPreview } from "@/components/agent/plan-preview";
+import { PlanPreview as PlanPreviewView } from "@/components/agent/plan-preview";
 import { GenerationStatus } from "@/components/agent/generation-status";
 import { PromptInputBody, PromptInputActionMenu, PromptInputActionMenuTrigger, PromptInputActionMenuContent, PromptInputActionMenuItem } from "@workspace/ui/components/ai-elements/prompt-input";
 import { SequencedAchievementList, type SequencedAchievementItem, type SequencedAchievementProgress } from "@workspace/ui/components/achievement-list";
@@ -17,6 +17,8 @@ import { Textarea } from "@workspace/ui/components/textarea";
 import { cn } from "@workspace/ui/lib/utils";
 import { v4 as uuidv4 } from "uuid";
 import { useSearchParams } from "next/navigation";
+import { useAgentRuntime } from "@/features/agent/use-agent-runtime";
+import type { PlanPreview as AgentPlanPreview } from "@/features/agent/schema.agent";
 
 // ============================================================================
 // Types
@@ -60,206 +62,6 @@ interface AgentMessage {
 }
 
 type PlaybackStage = "thoughts" | "collapse" | "message" | "cards" | "closing" | "done";
-
-// ============================================================================
-// Mock Data - Simulated Plan Generation
-// ============================================================================
-
-const generateDSAPlan = (): AgentMessage => ({
-  id: uuidv4(),
-  role: "assistant",
-  parts: [
-    {
-      type: "text",
-      text: "I'll create a comprehensive **2-Month DSA Mastery Plan** for you. This plan is structured in 4 progressive phases, taking you from fundamentals to advanced problem-solving patterns.",
-    },
-    {
-      type: "reasoning",
-      reasoning: "The user wants a 2-month DSA learning plan. I need to structure this progressively:\n\n1. **Month 1 (Weeks 1-4): Foundations & Core Patterns**\n   - Week 1: Arrays, Hash Maps, Two Pointers, Sliding Window\n   - Week 2: Linked Lists, Stacks, Queues, Strings\n   - Week 3: Trees & Graphs Basics (BFS/DFS, Binary Trees)\n   - Week 4: Recursion & Backtracking patterns\n\n2. **Month 2 (Weeks 5-8): Advanced Patterns & Mastery**\n   - Week 5: Dynamic Programming (1D, 2D, Interval, Grid)\n   - Week 6: Advanced Graphs (Dijkstra, Topo Sort, Union Find, MST)\n   - Week 7: Advanced Trees (Tries, Segment Trees, BST operations)\n   - Week 8: Mock Interviews & LeetCode 150/200 grind\n\nEach phase should have executable tasks with categories and priorities.",
-    },
-    {
-      type: "tool-invocation",
-      toolInvocation: {
-        toolName: "generate_plan",
-        state: "call",
-        args: {
-          topic: "Data Structures & Algorithms",
-          duration: "2 months",
-          level: "intermediate",
-          focus: ["problem-solving", "interview-prep", "competitive-programming"],
-        },
-      },
-    },
-    {
-      type: "tool-invocation",
-      toolInvocation: {
-        toolName: "generate_plan",
-        state: "result",
-        args: {
-          topic: "Data Structures & Algorithms",
-          duration: "2 months",
-          level: "intermediate",
-          focus: ["problem-solving", "interview-prep", "competitive-programming"],
-        },
-        result: {
-          title: "2-Month DSA Mastery Plan",
-          description: "Progressive roadmap from fundamentals to advanced interview-ready problem solving",
-          phases: [
-            {
-              id: "phase-1",
-              title: "Foundations: Arrays, Hash Maps & Linear Patterns",
-              description: "Master the building blocks of algorithmic problem solving",
-              category: "Week 1-2",
-              status: "active",
-              startDate: "Week 1",
-              endDate: "Week 2",
-              tasks: [
-                { id: "t1", title: "Arrays & Hashing: Two Sum, Group Anagrams, Top K Frequent", description: "Master hash map lookups and frequency counting", category: "Arrays", priority: "high", status: "completed" },
-                { id: "t2", title: "Two Pointers: Valid Palindrome, 3Sum, Container With Most Water", description: "Opposite-direction and same-direction pointer patterns", category: "Two Pointers", priority: "high", status: "completed" },
-                { id: "t3", title: "Sliding Window: Max Subarray, Min Window Substring, Longest Substring", description: "Fixed vs variable window, expansion/contraction logic", category: "Sliding Window", priority: "high", status: "in_progress" },
-                { id: "t4", title: "Prefix Sum: Subarray Sum Equals K, Range Sum Query", description: "Precomputation for O(1) range queries", category: "Prefix Sum", priority: "medium", status: "pending" },
-                { id: "t5", title: "Linked Lists: Reverse, Detect Cycle, Merge Two Lists", description: "Pointer manipulation and fast/slow pointer technique", category: "Linked Lists", priority: "high", status: "pending" },
-                { id: "t6", title: "Stacks & Queues: Valid Parentheses, Min Stack, Daily Temperatures", description: "Monotonic stack pattern and queue simulations", category: "Stack/Queue", priority: "high", status: "pending" },
-              ],
-            },
-            {
-              id: "phase-2",
-              title: "Trees, Graphs & Recursion Fundamentals",
-              description: "Hierarchical data structures and graph traversal mastery",
-              category: "Week 3-4",
-              status: "pending",
-              startDate: "Week 3",
-              endDate: "Week 4",
-              tasks: [
-                { id: "t7", title: "Binary Trees: BFS Level Order, DFS Pre/In/Post Order, Max Depth", description: "Recursive and iterative tree traversals", category: "Trees", priority: "high", status: "pending" },
-                { id: "t8", title: "Binary Search Trees: Insert, Delete, Validate, Lowest Common Ancestor", description: "BST properties and recursive solutions", category: "BST", priority: "high", status: "pending" },
-                { id: "t9", title: "Graph Basics: Adjacency List, BFS/DFS, Number of Islands", description: "Graph representation and flood fill", category: "Graphs", priority: "high", status: "pending" },
-                { id: "t10", title: "Topological Sort: Course Schedule, Alien Dictionary", description: "Kahn's algorithm and DFS-based ordering", category: "Topo Sort", priority: "high", status: "pending" },
-                { id: "t11", title: "Recursion & Backtracking: Subsets, Permutations, N-Queens", description: "Decision tree exploration and pruning", category: "Backtracking", priority: "medium", status: "pending" },
-                { id: "t12", title: "Divide & Conquer: Merge Sort, Quick Select, Kth Largest", description: "Recurrence relations and partitioning", category: "Divide & Conquer", priority: "medium", status: "pending" },
-              ],
-            },
-            {
-              id: "phase-3",
-              title: "Dynamic Programming Mastery",
-              description: "From memoization to tabulation - the ultimate interview pattern",
-              category: "Week 5-6",
-              status: "pending",
-              startDate: "Week 5",
-              endDate: "Week 6",
-              tasks: [
-                { id: "t13", title: "1D DP: Climbing Stairs, House Robber, Coin Change", description: "State definition and transition", category: "1D DP", priority: "high", status: "pending" },
-                { id: "t14", title: "2D Grid DP: Unique Paths, Min Path Sum, Edit Distance", description: "Grid traversal and string alignment", category: "2D DP", priority: "high", status: "pending" },
-                { id: "t15", title: "Interval DP: Burst Balloons, Matrix Chain Multiplication", description: "Subproblem partitioning on intervals", category: "Interval DP", priority: "high", status: "pending" },
-                { id: "t16", title: "Subsequence DP: LIS, LCS, Longest Palindromic Subsequence", description: "Two-sequence and single-sequence LIS", category: "Subsequence", priority: "high", status: "pending" },
-                { id: "t17", title: "Knapsack Variants: 0/1, Unbounded, Multi-dimensional", description: "Capacity constraints and item selection", category: "Knapsack", priority: "medium", status: "pending" },
-                { id: "t18", title: "DP on Trees: House Robber III, Binary Tree Max Path Sum", description: "Tree DP with post-order traversal", category: "Tree DP", priority: "medium", status: "pending" },
-              ],
-            },
-            {
-              id: "phase-4",
-              title: "Advanced Graphs, Tries & Interview Simulation",
-              description: "Advanced algorithms and full mock interview preparation",
-              category: "Week 7-8",
-              status: "pending",
-              startDate: "Week 7",
-              endDate: "Week 8",
-              tasks: [
-                { id: "t19", title: "Dijkstra & A*: Network Delay Time, Shortest Path in Grid", description: "Priority queue and heuristic search", category: "Shortest Path", priority: "high", status: "pending" },
-                { id: "t20", title: "Union Find: Number of Islands II, Accounts Merge", description: "Disjoint set with path compression", category: "Union Find", priority: "high", status: "pending" },
-                { id: "t21", title: "MST: Min Cost to Connect All Points, Critical Connections", description: "Kruskal's and Prim's algorithms", category: "MST", priority: "medium", status: "pending" },
-                { id: "t22", title: "Tries: Implement Trie, Word Search II, Auto-complete", description: "Prefix tree operations and DFS on trie", category: "Tries", priority: "high", status: "pending" },
-                { id: "t23", title: "Segment Tree & BIT: Range Sum Query, Count of Smaller Numbers", description: "Advanced range query data structures", category: "Advanced DS", priority: "medium", status: "pending" },
-                { id: "t24", title: "Mock Interviews: LeetCode 150 Grind & Timed Sessions", description: "Simulated interview conditions with feedback", category: "Mock Interview", priority: "high", status: "pending" },
-              ],
-            },
-          ],
-        },
-      },
-    },
-    {
-      type: "plan",
-      plan: {
-        title: "2-Month DSA Mastery Plan",
-        description: "Progressive roadmap from fundamentals to advanced interview-ready problem solving",
-        phases: [
-          {
-            id: "phase-1",
-            title: "Foundations: Arrays, Hash Maps & Linear Patterns",
-            description: "Master the building blocks of algorithmic problem solving",
-            category: "Week 1-2",
-            status: "active",
-            startDate: "Week 1",
-            endDate: "Week 2",
-            tasks: [
-              { id: "t1", title: "Arrays & Hashing: Two Sum, Group Anagrams, Top K Frequent", description: "Master hash map lookups and frequency counting", category: "Arrays", priority: "high", status: "completed" },
-              { id: "t2", title: "Two Pointers: Valid Palindrome, 3Sum, Container With Most Water", description: "Opposite-direction and same-direction pointer patterns", category: "Two Pointers", priority: "high", status: "completed" },
-              { id: "t3", title: "Sliding Window: Max Subarray, Min Window Substring, Longest Substring", description: "Fixed vs variable window, expansion/contraction logic", category: "Sliding Window", priority: "high", status: "in_progress" },
-              { id: "t4", title: "Prefix Sum: Subarray Sum Equals K, Range Sum Query", description: "Precomputation for O(1) range queries", category: "Prefix Sum", priority: "medium", status: "pending" },
-              { id: "t5", title: "Linked Lists: Reverse, Detect Cycle, Merge Two Lists", description: "Pointer manipulation and fast/slow pointer technique", category: "Linked Lists", priority: "high", status: "pending" },
-              { id: "t6", title: "Stacks & Queues: Valid Parentheses, Min Stack, Daily Temperatures", description: "Monotonic stack pattern and queue simulations", category: "Stack/Queue", priority: "high", status: "pending" },
-            ],
-          },
-          {
-            id: "phase-2",
-            title: "Trees, Graphs & Recursion Fundamentals",
-            description: "Hierarchical data structures and graph traversal mastery",
-            category: "Week 3-4",
-            status: "pending",
-            startDate: "Week 3",
-            endDate: "Week 4",
-            tasks: [
-              { id: "t7", title: "Binary Trees: BFS Level Order, DFS Pre/In/Post Order, Max Depth", description: "Recursive and iterative tree traversals", category: "Trees", priority: "high", status: "pending" },
-              { id: "t8", title: "Binary Search Trees: Insert, Delete, Validate, Lowest Common Ancestor", description: "BST properties and recursive solutions", category: "BST", priority: "high", status: "pending" },
-              { id: "t9", title: "Graph Basics: Adjacency List, BFS/DFS, Number of Islands", description: "Graph representation and flood fill", category: "Graphs", priority: "high", status: "pending" },
-              { id: "t10", title: "Topological Sort: Course Schedule, Alien Dictionary", description: "Kahn's algorithm and DFS-based ordering", category: "Topo Sort", priority: "high", status: "pending" },
-              { id: "t11", title: "Recursion & Backtracking: Subsets, Permutations, N-Queens", description: "Decision tree exploration and pruning", category: "Backtracking", priority: "medium", status: "pending" },
-              { id: "t12", title: "Divide & Conquer: Merge Sort, Quick Select, Kth Largest", description: "Recurrence relations and partitioning", category: "Divide & Conquer", priority: "medium", status: "pending" },
-            ],
-          },
-          {
-            id: "phase-3",
-            title: "Dynamic Programming Mastery",
-            description: "From memoization to tabulation - the ultimate interview pattern",
-            category: "Week 5-6",
-            status: "pending",
-            startDate: "Week 5",
-            endDate: "Week 6",
-            tasks: [
-              { id: "t13", title: "1D DP: Climbing Stairs, House Robber, Coin Change", description: "State definition and transition", category: "1D DP", priority: "high", status: "pending" },
-              { id: "t14", title: "2D Grid DP: Unique Paths, Min Path Sum, Edit Distance", description: "Grid traversal and string alignment", category: "2D DP", priority: "high", status: "pending" },
-              { id: "t15", title: "Interval DP: Burst Balloons, Matrix Chain Multiplication", description: "Subproblem partitioning on intervals", category: "Interval DP", priority: "high", status: "pending" },
-              { id: "t16", title: "Subsequence DP: LIS, LCS, Longest Palindromic Subsequence", description: "Two-sequence and single-sequence LIS", category: "Subsequence", priority: "high", status: "pending" },
-              { id: "t17", title: "Knapsack Variants: 0/1, Unbounded, Multi-dimensional", description: "Capacity constraints and item selection", category: "Knapsack", priority: "medium", status: "pending" },
-              { id: "t18", title: "DP on Trees: House Robber III, Binary Tree Max Path Sum", description: "Tree DP with post-order traversal", category: "Tree DP", priority: "medium", status: "pending" },
-            ],
-          },
-          {
-            id: "phase-4",
-            title: "Advanced Graphs, Tries & Interview Simulation",
-            description: "Advanced algorithms and full mock interview preparation",
-            category: "Week 7-8",
-            status: "pending",
-            startDate: "Week 7",
-            endDate: "Week 8",
-            tasks: [
-              { id: "t19", title: "Dijkstra & A*: Network Delay Time, Shortest Path in Grid", description: "Priority queue and heuristic search", category: "Shortest Path", priority: "high", status: "pending" },
-              { id: "t20", title: "Union Find: Number of Islands II, Accounts Merge", description: "Disjoint set with path compression", category: "Union Find", priority: "high", status: "pending" },
-              { id: "t21", title: "MST: Min Cost to Connect All Points, Critical Connections", description: "Kruskal's and Prim's algorithms", category: "MST", priority: "medium", status: "pending" },
-              { id: "t22", title: "Tries: Implement Trie, Word Search II, Auto-complete", description: "Prefix tree operations and DFS on trie", category: "Tries", priority: "high", status: "pending" },
-              { id: "t23", title: "Segment Tree & BIT: Range Sum Query, Count of Smaller Numbers", description: "Advanced range query data structures", category: "Advanced DS", priority: "medium", status: "pending" },
-              { id: "t24", title: "Mock Interviews: LeetCode 150 Grind & Timed Sessions", description: "Simulated interview conditions with feedback", category: "Mock Interview", priority: "high", status: "pending" },
-            ],
-          },
-        ],
-      },
-    },
-    {
-      type: "text",
-      text: "Your **2-Month DSA Mastery Plan** is ready! I've structured it into 4 progressive phases with 24 executable tasks. The plan starts with foundational patterns (arrays, two pointers, sliding window) and builds up to advanced topics like dynamic programming, graph algorithms, and mock interviews.\n\n**Key Features:**\n- ✅ **24 executable tasks** with clear categories and priorities\n- 📅 **Week-by-week structure** with date ranges\n- 🎯 **Progress tracking** with status indicators\n- 🔄 **Adaptive** - you can ask me to adjust pace, add topics, or dive deeper into any area\n\nThe preview on the right shows your plan using the same components as the main app. You can ask me to:\n- **Modify** the plan (e.g., \"focus more on graphs, less on DP\")\n- **Expand** any phase with more detail\n- **Export** to your workspace as a project\n- **Start tracking** progress with notes and completion status",
-    },
-  ],
-});
 
 function RevealedText({
   text,
@@ -632,11 +434,37 @@ function AgentSidebar({
 type ExecutionStep = { label: string; status: "pending" | "active" | "complete"; description?: string };
 
 const INITIAL_STEPS: ExecutionStep[] = [
-  { label: "Understanding your goals", status: "complete", description: "Analyzing your request for a 2-month DSA plan" },
-  { label: "Structuring the curriculum", status: "complete", description: "Breaking down into 4 progressive phases" },
-  { label: "Generating executable tasks", status: "complete", description: "Creating 24 specific tasks with priorities" },
-  { label: "Building the preview", status: "active", description: "Rendering the interactive plan preview" },
+  { label: "Understanding your request", status: "active", description: "Reading goals against your workspace" },
+  { label: "Planning actions", status: "pending", description: "Choosing allowlisted mutations" },
+  { label: "Generating preview", status: "pending", description: "Building the live right-hand panel" },
+  { label: "Applying to workspace", status: "pending", description: "Persisting habits, todos, deadlines, plans" },
 ];
+
+function toUiPlan(
+  preview: AgentPlanPreview
+): NonNullable<AgentMessage["parts"][number]["plan"]> {
+  return {
+    title: preview.title,
+    description: preview.description,
+    phases: preview.phases.map((phase) => ({
+      id: phase.id,
+      title: phase.title,
+      description: phase.description ?? undefined,
+      category: phase.category ?? undefined,
+      status: phase.status,
+      startDate: phase.startDate ?? undefined,
+      endDate: phase.endDate ?? undefined,
+      tasks: phase.tasks.map((task) => ({
+        id: task.id,
+        title: task.title,
+        description: task.description ?? undefined,
+        category: task.category ?? undefined,
+        priority: task.priority ?? undefined,
+        status: task.status,
+      })),
+    })),
+  };
+}
 
 const FEATURE_HIGHLIGHTS = [
   {
@@ -803,35 +631,125 @@ function AgentEmptyState({ onSubmit }: { onSubmit: (text: string) => void }) {
 }
 
 export default function AgentPage(): JSX.Element {
+  const { ready, signedIn, run, isLoading: agentLoading } = useAgentRuntime();
   const [messages, setMessages] = useState<AgentMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [planData, setPlanData] = useState<AgentMessage["parts"][number]["plan"] | null>(null);
   const [assembly, setAssembly] = useState<SequencedAchievementProgress | null>(null);
   const [executionSteps, setExecutionSteps] = useState<ExecutionStep[]>(INITIAL_STEPS);
-  const [showExecutionSteps, setShowExecutionSteps] = useState(true);
+  const [showExecutionSteps, setShowExecutionSteps] = useState(false);
+  const [lastFailed, setLastFailed] = useState(0);
 
-  const handleSubmit = useCallback(async (text: string) => {
-    // Add user message
-    const userMessage: AgentMessage = {
-      id: uuidv4(),
-      role: "user",
-      parts: [{ type: "text", text }],
-    };
-    setMessages((prev) => [...prev, userMessage]);
-    setIsLoading(true);
-    setAssembly(null);
-    setShowExecutionSteps(false);
+  const busy = isLoading || agentLoading;
 
-    await new Promise((resolve) => setTimeout(resolve, 280));
+  const handleSubmit = useCallback(
+    async (text: string) => {
+      const prompt = text.trim();
+      if (!prompt || busy) return;
+      if (!signedIn) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: uuidv4(),
+            role: "user",
+            parts: [{ type: "text", text: prompt }],
+          },
+          {
+            id: uuidv4(),
+            role: "assistant",
+            parts: [
+              {
+                type: "text",
+                text: "Please sign in so I can read your workspace and apply changes.",
+              },
+            ],
+          },
+        ]);
+        return;
+      }
+      if (!ready) return;
 
-    const assistantMessage = generateDSAPlan();
-    setMessages((prev) => [...prev, assistantMessage]);
-    setPlanData(assistantMessage.parts.find((part) => part.type === "plan")?.plan ?? null);
-    setIsLoading(false);
-    setExecutionSteps((prev) => prev.map((step) => ({ ...step, status: "complete" as const })));
-  }, []);
+      const userMessage: AgentMessage = {
+        id: uuidv4(),
+        role: "user",
+        parts: [{ type: "text", text: prompt }],
+      };
+      setMessages((prev) => [...prev, userMessage]);
+      setIsLoading(true);
+      setAssembly(null);
+      setShowExecutionSteps(true);
+      setExecutionSteps(
+        INITIAL_STEPS.map((step, i) => ({
+          ...step,
+          status: i === 0 ? "active" : "pending",
+        }))
+      );
+      setLastFailed(0);
 
-  if (messages.length === 0 && !isLoading) {
+      try {
+        setExecutionSteps((prev) =>
+          prev.map((step, i) =>
+            i === 0
+              ? { ...step, status: "complete" }
+              : i === 1
+                ? { ...step, status: "active" }
+                : step
+          )
+        );
+
+        const result = await run(prompt);
+
+        setExecutionSteps((prev) =>
+          prev.map((step, i) =>
+            i <= 2
+              ? { ...step, status: "complete" }
+              : i === 3
+                ? { ...step, status: "active" }
+                : step
+          )
+        );
+
+        const uiPlan = result.preview ? toUiPlan(result.preview) : null;
+        if (uiPlan) setPlanData(uiPlan);
+
+        const failNote =
+          result.failed.length > 0
+            ? `\n\n_${result.failed.length} action(s) failed — check details in the response._`
+            : "";
+
+        const assistantMessage: AgentMessage = {
+          id: uuidv4(),
+          role: "assistant",
+          parts: [
+            { type: "text", text: `${result.message}${failNote}` },
+            ...(uiPlan ? [{ type: "plan" as const, plan: uiPlan }] : []),
+          ],
+        };
+        setMessages((prev) => [...prev, assistantMessage]);
+        setLastFailed(result.failed.length);
+        setExecutionSteps((prev) =>
+          prev.map((step) => ({ ...step, status: "complete" as const }))
+        );
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Something went wrong.";
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: uuidv4(),
+            role: "assistant",
+            parts: [{ type: "text", text: `**Error:** ${message}` }],
+          },
+        ]);
+      } finally {
+        setIsLoading(false);
+        setShowExecutionSteps(false);
+      }
+    },
+    [busy, ready, run, signedIn]
+  );
+
+  if (messages.length === 0 && !busy) {
     return (
       <React.Suspense fallback={null}>
         <AgentEmptyState onSubmit={handleSubmit} />
@@ -841,13 +759,12 @@ export default function AgentPage(): JSX.Element {
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
-      {/* Conversation Sidebar - 30% default, resizable 20-40% */}
       <ResizablePanelGroup orientation="horizontal" className="h-full">
         <ResizablePanel defaultSize="30%" minSize="20%" maxSize="40%" className="min-w-0">
           <AgentSidebar
             messages={messages}
             onSubmit={handleSubmit}
-            isLoading={isLoading}
+            isLoading={busy}
             planData={planData}
             onAssembly={setAssembly}
           />
@@ -855,14 +772,18 @@ export default function AgentPage(): JSX.Element {
 
         <ResizableHandle withHandle className="bg-gradient-to-b from-transparent via-border to-transparent" />
 
-        {/* Preview Panel - 70% default */}
         <ResizablePanel minSize="60%" className="min-w-0 flex flex-col">
           <PlanPreviewPanel
             planData={planData}
             assembly={assembly}
             executionSteps={executionSteps}
-            showExecutionSteps={showExecutionSteps && isLoading}
-            isGenerating={isLoading}
+            showExecutionSteps={showExecutionSteps && busy}
+            isGenerating={busy}
+            appliedNote={
+              lastFailed > 0
+                ? `${lastFailed} action(s) failed`
+                : "Workspace updated"
+            }
           />
         </ResizablePanel>
       </ResizablePanelGroup>
@@ -880,12 +801,14 @@ function PlanPreviewPanel({
   executionSteps,
   showExecutionSteps,
   isGenerating,
+  appliedNote,
 }: {
   planData: AgentMessage["parts"][number]["plan"] | null;
   assembly: SequencedAchievementProgress | null;
   executionSteps: Array<{ label: string; status: "pending" | "active" | "complete"; description?: string }>;
   showExecutionSteps: boolean;
   isGenerating: boolean;
+  appliedNote?: string;
 }) {
   return (
     <div className="flex flex-col h-full bg-background">
@@ -898,18 +821,25 @@ function PlanPreviewPanel({
           <div>
             <h1 className="font-semibold text-foreground">Live preview</h1>
             <p className="text-xs text-muted-foreground">
-              {planData ? `${planData.phases.length} phases · ${planData.phases.reduce((acc, p) => acc + p.tasks.length, 0)} tasks` : "Waiting for plan generation…"}
+              {planData
+                ? `${planData.phases.length} phases · ${planData.phases.reduce((acc, p) => acc + p.tasks.length, 0)} tasks`
+                : "Waiting for plan generation…"}
+              {appliedNote && planData ? ` · ${appliedNote}` : ""}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" className="gap-1.5">
-            <DownloadIcon className="size-3.5" />
-            <span className="hidden sm:inline">Export</span>
+          <Button variant="ghost" size="sm" className="gap-1.5" asChild>
+            <a href="/workspace/projects">
+              <DownloadIcon className="size-3.5" />
+              <span className="hidden sm:inline">Open projects</span>
+            </a>
           </Button>
-          <Button variant="default" size="sm" className="gap-1.5">
+          <Button variant="default" size="sm" className="gap-1.5" disabled>
             <PlusIcon className="size-3.5" />
-            <span className="hidden sm:inline">Save to Workspace</span>
+            <span className="hidden sm:inline">
+              {planData ? "Saved via agent" : "Save to Workspace"}
+            </span>
           </Button>
         </div>
       </div>
@@ -928,7 +858,7 @@ function PlanPreviewPanel({
       {/* Plan Preview Content */}
       <div className="flex-1 overflow-auto px-6 py-6 sm:px-10">
         {planData && assembly ? (
-          <PlanPreview plan={planData} isPreview assembly={assembly} />
+          <PlanPreviewView plan={planData} isPreview assembly={assembly} />
         ) : planData ? (
           <div className="flex h-full items-center justify-center">
             <GenerationStatus />

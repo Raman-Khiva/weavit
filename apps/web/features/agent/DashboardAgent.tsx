@@ -2,7 +2,18 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useAuth } from "@clerk/nextjs"
-import { Bot, Check, CircleCheck, Flame, Loader2, NotebookPen } from "lucide-react"
+import {
+  Bot,
+  Calendar,
+  Check,
+  CircleCheck,
+  Flame,
+  ListTodo,
+  Loader2,
+  NotebookPen,
+  Target,
+  X,
+} from "lucide-react"
 
 import { MessageResponse } from "@workspace/ui/components/ai-elements/message"
 import { Button } from "@workspace/ui/components/button"
@@ -13,64 +24,110 @@ import {
   SheetTitle,
 } from "@workspace/ui/components/sheet"
 import { useGetHabitsQuery } from "../habits/habits.api"
-import { useGetProjectsQuery } from "../projects/projects.api"
+import {
+  useGetProjectsQuery,
+  usePatchTaskMutation,
+  usePostNoteMutation,
+  usePostPhaseMutation,
+  usePostProjectMutation,
+  usePostTaskMutation,
+  usePatchProjectMutation,
+} from "../projects/projects.api"
+import {
+  useGetTodosQuery,
+  usePostTodoMutation,
+  usePatchTodoMutation,
+  useDeleteTodoMutation,
+} from "../todos/todos.api"
+import {
+  useGetDeadlinesQuery,
+  usePostDeadlineMutation,
+  usePatchDeadlineMutation,
+} from "../deadlines/deadlines.api"
+import {
+  useGetTimelineQuery,
+  usePostCalendarEventMutation,
+  usePatchCalendarEventMutation,
+  useDeleteCalendarEventMutation,
+} from "../timeline/timeline.api"
+import {
+  usePostHabitMutation,
+  usePostHabitLogMutation,
+  useToggleHabitMutation,
+} from "../habits/habits.api"
 import { useAgent } from "./agent"
 import type { ActionItem } from "./schema.agent"
+import {
+  buildAgentStateSnapshot,
+  describeAgentAction,
+  extractAndExecuteActions,
+  type AgentActionMutations,
+} from "./actions.agent"
 
 type ChatTurn = {
   id: string
   prompt: string
   message: string | null
   actions: ActionItem[]
+  executed: boolean
+  failedIndexes: number[]
+  failureReasons: Record<number, string>
 }
 
 function uid() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
 
-function actionMeta(action: ActionItem) {
-  switch (action.actionType) {
-    case "create_habit_log":
-      return {
-        icon: Flame,
-        label: "Habit log",
-        detail: action.data.notes,
-        target: action.data.habitId,
-      }
-    case "create_task_log":
-      return {
-        icon: NotebookPen,
-        label: "Task log",
-        detail: action.data.text,
-        target: action.data.taskId,
-      }
-    case "patch_task":
-      return {
-        icon: CircleCheck,
-        label: "Task update",
-        detail: action.data.note ?? action.data.status ?? action.data.title ?? "Updated",
-        target: action.data.taskId,
-      }
-  }
-}
-
-function ActionCard({ action }: { action: ActionItem }) {
-  const meta = actionMeta(action)
-  const Icon = meta.icon
+function ActionCard({
+  action,
+  state,
+  failed,
+  reason,
+}: {
+  action: ActionItem
+  state: Parameters<typeof describeAgentAction>[1]
+  failed?: boolean
+  reason?: string
+}) {
+  const meta = describeAgentAction(action, state)
+  const Icon =
+    meta.kind.startsWith("habit")
+      ? Flame
+      : meta.kind.startsWith("todo")
+        ? ListTodo
+        : meta.kind.startsWith("deadline")
+          ? Target
+          : meta.kind.startsWith("event")
+            ? Calendar
+            : meta.kind.includes("log")
+              ? NotebookPen
+              : CircleCheck
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-border/70 bg-card px-3.5 py-3">
+    <div
+      className={`flex items-center gap-3 rounded-xl border px-3.5 py-3 ${
+        failed
+          ? "border-destructive/40 bg-destructive/5"
+          : "border-border/70 bg-card"
+      }`}
+    >
       <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground">
         <Icon className="size-4" />
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-[11px] text-muted-foreground">{meta.label}</p>
         <p className="truncate text-sm font-medium text-foreground">{meta.target}</p>
-        <p className="truncate text-xs text-muted-foreground">{meta.detail}</p>
+        <p className="truncate text-xs text-muted-foreground">
+          {failed && reason ? reason : meta.detail}
+        </p>
       </div>
-      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-500">
-        <Check className="size-3.5" />
-        Executed
+      <span
+        className={`inline-flex items-center gap-1 text-[11px] font-medium ${
+          failed ? "text-destructive" : "text-emerald-500"
+        }`}
+      >
+        {failed ? <X className="size-3.5" /> : <Check className="size-3.5" />}
+        {failed ? "Failed" : "Executed"}
       </span>
     </div>
   )
@@ -80,8 +137,29 @@ export default function DashboardAgent() {
   const { isLoaded, isSignedIn } = useAuth()
   const skip = !isLoaded || !isSignedIn
 
-  const { data: habits } = useGetHabitsQuery(undefined, { skip })
-  const { data: plans } = useGetProjectsQuery(undefined, { skip })
+  const habitsQ = useGetHabitsQuery(undefined, { skip })
+  const plansQ = useGetProjectsQuery(undefined, { skip })
+  const todosQ = useGetTodosQuery(undefined, { skip })
+  const deadlinesQ = useGetDeadlinesQuery(undefined, { skip })
+  const timelineQ = useGetTimelineQuery(undefined, { skip })
+
+  const [postHabit] = usePostHabitMutation()
+  const [toggleHabit] = useToggleHabitMutation()
+  const [postHabitLog] = usePostHabitLogMutation()
+  const [postTodo] = usePostTodoMutation()
+  const [patchTodo] = usePatchTodoMutation()
+  const [deleteTodo] = useDeleteTodoMutation()
+  const [postDeadline] = usePostDeadlineMutation()
+  const [patchDeadline] = usePatchDeadlineMutation()
+  const [postProject] = usePostProjectMutation()
+  const [patchProject] = usePatchProjectMutation()
+  const [postPhase] = usePostPhaseMutation()
+  const [postTask] = usePostTaskMutation()
+  const [patchTask] = usePatchTaskMutation()
+  const [postTaskNote] = usePostNoteMutation()
+  const [postCalendarEvent] = usePostCalendarEventMutation()
+  const [patchCalendarEvent] = usePatchCalendarEventMutation()
+  const [deleteCalendarEvent] = useDeleteCalendarEventMutation()
 
   const [submitQuery, { isLoading }] = useAgent()
 
@@ -89,6 +167,14 @@ export default function DashboardAgent() {
   const [open, setOpen] = useState(false)
   const [turns, setTurns] = useState<ChatTurn[]>([])
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  const workspaceReady =
+    !skip &&
+    !habitsQ.isLoading &&
+    !plansQ.isLoading &&
+    !todosQ.isLoading &&
+    !deadlinesQ.isLoading &&
+    !timelineQ.isLoading
 
   useEffect(() => {
     const el = scrollRef.current
@@ -98,60 +184,125 @@ export default function DashboardAgent() {
     })
   }, [turns])
 
-  const flatHabits = useMemo(
-    () =>
-      habits?.map((h) => ({ habitId: h.id, habitTitle: h.title })) ?? [],
-    [habits]
+  const workspaceState = useMemo(
+    () => ({
+      habits: habitsQ.data,
+      plans: plansQ.data,
+      todos: todosQ.data,
+      deadlines: deadlinesQ.data,
+      calendars: timelineQ.data?.calendars,
+      events: timelineQ.data?.events,
+    }),
+    [
+      habitsQ.data,
+      plansQ.data,
+      todosQ.data,
+      deadlinesQ.data,
+      timelineQ.data,
+    ]
   )
 
-  const flatPlans = useMemo(
-    () =>
-      plans?.map((p) => ({
-        id: p.id,
-        title: p.title,
-        description: p.description,
-        phases:
-          p.phases?.map((ph) => ({
-            phaseId: ph.id,
-            title: ph.title,
-            tasks:
-              ph.tasks?.map((t) => ({
-                taskId: t.id,
-                title: t.title,
-                description: t.description,
-                status: t.status,
-              })) ?? [],
-          })) ?? [],
-      })) ?? [],
-    [plans]
+  const mutations = useMemo<AgentActionMutations>(
+    () => ({
+      postHabit: (body) => postHabit(body).unwrap(),
+      toggleHabit: (id) => toggleHabit(id).unwrap(),
+      postHabitLog: (args) => postHabitLog(args).unwrap(),
+      postTodo: (body) => postTodo(body).unwrap(),
+      patchTodo: ({ id, body }) => patchTodo({ id, body }).unwrap(),
+      deleteTodo: (id) => deleteTodo(id).unwrap(),
+      postDeadline: (body) => postDeadline(body).unwrap(),
+      patchDeadline: ({ id, body }) => patchDeadline({ id, body }).unwrap(),
+      postProject: (body) => postProject(body).unwrap(),
+      patchProject: ({ id, body }) => patchProject({ id, body }).unwrap(),
+      postPhase: ({ projectId, body }) => postPhase({ projectId, body }).unwrap(),
+      postTask: (args) => postTask(args).unwrap(),
+      patchTask: (args) => patchTask(args).unwrap(),
+      postTaskNote: (args) => postTaskNote(args).unwrap(),
+      postCalendarEvent: (body) => postCalendarEvent(body).unwrap(),
+      patchCalendarEvent: ({ id, body }) =>
+        patchCalendarEvent({ id, body }).unwrap(),
+      deleteCalendarEvent: (id) => deleteCalendarEvent(id).unwrap(),
+    }),
+    [
+      postHabit,
+      toggleHabit,
+      postHabitLog,
+      postTodo,
+      patchTodo,
+      deleteTodo,
+      postDeadline,
+      patchDeadline,
+      postProject,
+      patchProject,
+      postPhase,
+      postTask,
+      patchTask,
+      postTaskNote,
+      postCalendarEvent,
+      patchCalendarEvent,
+      deleteCalendarEvent,
+    ]
   )
 
   const handleSubmit = async () => {
     const prompt = input.trim()
-    if (!prompt || isLoading) return
+    if (!prompt || isLoading || !workspaceReady) return
 
     const turnId = uid()
     setInput("")
     setOpen(true)
     setTurns((prev) => [
       ...prev,
-      { id: turnId, prompt, message: null, actions: [] },
+      {
+        id: turnId,
+        prompt,
+        message: null,
+        actions: [],
+        executed: false,
+        failedIndexes: [],
+        failureReasons: {},
+      },
     ])
 
-    const result = await submitQuery(prompt, flatHabits, flatPlans)
+    // 1) LLM → { message, actions }
+    const result = await submitQuery(
+      prompt,
+      buildAgentStateSnapshot(workspaceState)
+    )
+
+    // 2) Extract actions and execute each via executeAgentAction
+    const { actions, failed } = await extractAndExecuteActions(result, {
+      ...workspaceState,
+      mutations,
+    })
+
+    const failedIndexes: number[] = []
+    const failureReasons: Record<number, string> = {}
+    for (const item of failed) {
+      const idx = actions.indexOf(item.action)
+      if (idx >= 0) {
+        failedIndexes.push(idx)
+        failureReasons[idx] = item.message
+      }
+    }
 
     setTurns((prev) =>
       prev.map((turn) =>
         turn.id === turnId
           ? {
               ...turn,
-              message: result?.message ?? "Something went wrong.",
-              actions: result?.actions ?? [],
+              message: result?.message ?? "Something went wrong — try again.",
+              actions,
+              executed: true,
+              failedIndexes,
+              failureReasons,
             }
           : turn
       )
     )
   }
+
+  const canSend = workspaceReady && !isLoading && Boolean(input.trim())
 
   return (
     <div className="mt-6 w-full max-w-xl">
@@ -166,15 +317,17 @@ export default function DashboardAgent() {
             }
           }}
           rows={2}
-          disabled={isLoading}
-          placeholder="Ask the agent…"
+          disabled={!workspaceReady || isLoading}
+          placeholder={
+            workspaceReady ? "Ask the agent…" : "Loading workspace…"
+          }
           className="w-full resize-none bg-transparent px-4 py-3.5 pr-14 text-[15px] outline-none placeholder:text-muted-foreground disabled:opacity-50"
         />
         <Button
           type="button"
           size="icon"
           className="absolute right-3 bottom-3 size-9 rounded-xl"
-          disabled={isLoading || !input.trim()}
+          disabled={!canSend}
           onClick={() => void handleSubmit()}
           aria-label="Send"
         >
@@ -221,13 +374,21 @@ export default function DashboardAgent() {
 
                     {turn.actions.length > 0 ? (
                       <div className="flex flex-col gap-2">
-                        <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                        <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
                           Actions
+                          {turn.failedIndexes.length > 0
+                            ? ` · ${turn.failedIndexes.length} failed`
+                            : turn.executed
+                              ? " · applied"
+                              : ""}
                         </p>
                         {turn.actions.map((action, i) => (
                           <ActionCard
                             key={`${turn.id}-${action.actionType}-${i}`}
                             action={action}
+                            state={workspaceState}
+                            failed={turn.failedIndexes.includes(i)}
+                            reason={turn.failureReasons[i]}
                           />
                         ))}
                       </div>
@@ -255,7 +416,7 @@ export default function DashboardAgent() {
                   }
                 }}
                 rows={2}
-                disabled={isLoading}
+                disabled={!workspaceReady || isLoading}
                 placeholder="Follow up…"
                 className="w-full resize-none bg-transparent px-3.5 py-3 pr-12 text-sm outline-none placeholder:text-muted-foreground disabled:opacity-50"
               />
@@ -263,7 +424,7 @@ export default function DashboardAgent() {
                 type="button"
                 size="icon-sm"
                 className="absolute right-2.5 bottom-2.5"
-                disabled={isLoading || !input.trim()}
+                disabled={!canSend}
                 onClick={() => void handleSubmit()}
                 aria-label="Send"
               >

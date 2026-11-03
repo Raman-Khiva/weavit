@@ -6,19 +6,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import {
-  Calendar,
-  FolderOpen,
-  Code2,
-  Rocket,
-  Layers,
-  CheckCircle2,
-  LucideIcon,
-  ChevronRight,
-} from "lucide-react"
+import { Calendar, Code2, ChevronRight } from "lucide-react"
 import { Progress } from "@workspace/ui/components/progress"
 import { Badge } from "@workspace/ui/components/badge"
-import { Project, calculateProjectProgress } from "@workspace/ui/lib/projects-store"
+import { calculateProjectProgress } from "@workspace/ui/lib/projects-store"
 import { components } from "@weavit/api-types"
 {/* const title = project?.title || directtitle || "untitled plan"
   const description = project?.description || directdescription || ""
@@ -61,38 +52,44 @@ export const ProjectCard = (
 
 ) => {
 
-  const title = project?.title || "untitled plan";
-  const description = project?.description || "";
-  const category = project?.category || "roadmap";
-  const date = project?.startDate ? `${project.startDate}${project.endDate ? ` - ${project.endDate}` : ""}` : project.startDate || "active plan"
+  const title = project?.title || "untitled plan"
+  const description = project?.description || ""
+  const category = project?.category || "roadmap"
+  const formatDate = (value?: string | null) => {
+    if (!value) return null
+    const d = new Date(value)
+    if (Number.isNaN(d.getTime())) return value
+    return d.toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    })
+  }
+  const start = formatDate(project?.startDate)
+  const end = formatDate(project?.endDate)
+  const date = start ? `${start}${end ? ` – ${end}` : ""}` : "Active plan"
 
-  const computedstats = null;
-  const progressvalue = 40;
-
-  const icon = Code2;
+  const computedStats = calculateProjectProgress(project)
+  const progressValue = computedStats.percentage
 
   return (
-    <Card size=
-      {"default"} className="flex w-full  flex-col justify-between gap-2 h-full transition-all duration-200 hover:border-primary/50 hover:shadow-md group">
+    <Card
+      size="default"
+      className="group flex h-full w-full flex-col justify-between gap-2 transition-all duration-200 hover:border-primary/50 hover:shadow-md"
+    >
       <CardHeader className="pb-2">
         <div className="flex items-start gap-3">
-          <div className="rounded-xl border border-border bg-Card p-2.5 text-primary group-hover:bg-primary/10 transition-colors">
+          <div className="rounded-xl border border-border bg-card p-2.5 text-primary transition-colors group-hover:bg-primary/10">
             <Code2 />
-            {/*<icon
-              className="size-6 text-foreground group-hover:text-primary transition-colors"
-              strokewidth={1.8}
-            />*/}
           </div>
-          <div className="flex-1 min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="flex items-center justify-between gap-1">
-              <Badge className="text-[10px] px-2 py-0 font-medium" variant="outline">
+              <Badge className="px-2 py-0 text-[10px] font-medium" variant="outline">
                 {category}
               </Badge>
-              {computedstats && (
-                <span className="text-[11px] font-mono font-bold text-muted-foreground">
-                  {4}/{10} done
-                </span>
-              )}
+              <span className="font-mono text-[11px] font-bold text-muted-foreground">
+                {computedStats.CompletedTasks}/{computedStats.totalTasks} done
+              </span>
             </div>
             <CardTitle className="mt-1 text-base font-bold line-clamp-1 group-hover:text-primary transition-colors">
               {title}
@@ -108,7 +105,7 @@ export const ProjectCard = (
           </CardDescription>
         )}
         <div className={showDescription && description ? "mt-3" : "mt-1"}>
-          <Progress value={progressvalue} className="h-2" />
+          <Progress value={progressValue} className="h-2" />
         </div>
       </CardContent>
 

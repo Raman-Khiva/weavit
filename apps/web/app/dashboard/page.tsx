@@ -4,7 +4,10 @@ import { FloatingDockDemo } from "@workspace/ui/components/mvpblocks/floating-do
 import { Habits } from "@workspace/ui/components/habits"
 import { Deadlines, type Deadline } from "@workspace/ui/components/deadlines"
 import { PlanItemCard, TaskCard as QueueTaskCard } from "@workspace/ui/components/queue-cards"
-import { ProductivityBoard } from "@workspace/ui/components/productivity-board"
+import {
+  ProductivityBoard,
+  type ProductivityQueue,
+} from "@workspace/ui/components/productivity-board"
 import { PlansOverview } from "@workspace/ui/components/plans-overview"
 import { HeaderIslands, type ScheduleEvent } from "@workspace/ui/components/header-islands"
 import { Bot } from "lucide-react"
@@ -41,33 +44,24 @@ const DEMO_DEADLINE: Deadline = {
 }
 
 const DEMO_TASK = {
+  id: "demo-task",
   title: "Demo: Add authentication",
   description: "Sample queue card",
   dueDate: new Date().toISOString().slice(0, 10),
   priority: "high" as const,
 }
 
-const FALLBACK_PLANS = [
-  {
-    id: "demo-plan-row",
-    title: "Demo: Trees, Graphs & Traversals",
-    planName: "SDE Interview Preparation",
-    topic: "Data Structures & Algorithms",
-  },
-]
-
 function AssistantGreeting() {
   const { isSignedIn } = useAuth()
   const { user } = useUser()
   const [index, setIndex] = useState(0)
 
-  const name =
-    isSignedIn
-      ? user?.firstName ||
-        user?.username ||
-        user?.primaryEmailAddress?.emailAddress?.split("@")[0] ||
-        "user"
-      : "user"
+  const name = isSignedIn
+    ? user?.firstName ||
+      user?.username ||
+      user?.primaryEmailAddress?.emailAddress?.split("@")[0] ||
+      "user"
+    : "user"
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -144,11 +138,7 @@ function CenterBottomRail({
       aria-label="Plans and deadlines"
       className="flex h-80 shrink-0 gap-1 overflow-hidden px-1 pb-1"
     >
-      <PlansOverview
-        className="min-h-0 min-w-0 flex-1"
-        projects={projects}
-        max={3}
-      />
+      <PlansOverview className="min-h-0 min-w-0 flex-1" projects={projects} max={3} />
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-sm border border-white/10 bg-white/[0.03]">
         <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <Deadlines
@@ -181,7 +171,7 @@ export default function Page(): React.ReactElement {
   const events = useMemo(() => {
     const fromDeadlines = (apiDeadlines ?? [])
       .filter((d) => d.dueDate.slice(0, 10) === today && !d.isCompleted)
-      .slice(0, 2)
+      .slice(0, 3)
       .map((d, i) => {
         const hour = d.time ? Number(d.time.split(":")[0]) || 14 + i : 14 + i
         return eventToday(d.id, d.title, hour, hour + 1)
@@ -191,10 +181,7 @@ export default function Page(): React.ReactElement {
       : [eventToday("demo-event", "Demo: Math Quiz", 14, 15)]
   }, [apiDeadlines, today])
 
-  const fromPlans = useMemo(() => {
-    const rows = planRows(data ?? [])
-    return rows.length > 0 ? rows : FALLBACK_PLANS
-  }, [data])
+  const fromPlans = useMemo(() => planRows(data ?? []), [data])
 
   const deadlines: Deadline[] = useMemo(() => {
     const mapped = (apiDeadlines ?? []).map((d) => ({
@@ -205,7 +192,7 @@ export default function Page(): React.ReactElement {
       priority: mapPriority(d.priority),
       done: d.isCompleted,
     }))
-    return [...mapped, DEMO_DEADLINE]
+    return mapped.length > 0 ? [...mapped, DEMO_DEADLINE] : [DEMO_DEADLINE]
   }, [apiDeadlines])
 
   const taskCards = useMemo(() => {
@@ -213,6 +200,7 @@ export default function Page(): React.ReactElement {
       .filter((t) => t.status !== "COMPLETED" && t.status !== "SKIPPED")
       .slice(0, 3)
       .map((t) => ({
+        id: t.id,
         title: t.title,
         description: t.description ?? t.tags?.join(", ") ?? "",
         dueDate: t.dueDate?.slice(0, 10) ?? today,
@@ -221,13 +209,86 @@ export default function Page(): React.ReactElement {
     return open.length > 0 ? [...open, DEMO_TASK].slice(0, 4) : [DEMO_TASK]
   }, [todos, today])
 
+  const productivityQueues = useMemo<ProductivityQueue[]>(() => {
+    const habitList = habits ?? []
+    const habitDone = habitList.filter((h) =>
+      (h.completedDates ?? []).includes(today)
+    ).length
+    const habitUpcoming = Math.max(habitList.length - habitDone, 0)
+
+    const deadlineList = apiDeadlines ?? []
+    const deadlineDone = deadlineList.filter((d) => d.isCompleted).length
+    const deadlineMissed = deadlineList.filter((d) => {
+      if (d.isCompleted) return false
+      return new Date(d.dueDate).getTime() < Date.now() - 86_400_000
+    }).length
+    const deadlineUpcoming = Math.max(
+      deadlineList.length - deadlineDone - deadlineMissed,
+      0
+    )
+
+    const todoList = todos ?? []
+    const todoDone = todoList.filter((t) => t.status === "COMPLETED").length
+    const todoMissed = todoList.filter((t) => {
+      if (t.status === "COMPLETED" || t.status === "SKIPPED") return false
+      if (!t.dueDate) return false
+      return new Date(t.dueDate).getTime() < Date.now() - 86_400_000
+    }).length
+    const todoUpcoming = Math.max(todoList.length - todoDone - todoMissed, 0)
+
+    return [
+      {
+        key: "habits",
+        label: "Habits",
+        slice: { done: habitDone, missed: 0, upcoming: habitUpcoming },
+      },
+      {
+        key: "deadlines",
+        label: "Deadlines",
+        slice: {
+          done: deadlineDone,
+          missed: deadlineMissed,
+          upcoming: deadlineUpcoming,
+        },
+      },
+      {
+        key: "todos",
+        label: "Todos",
+        slice: { done: todoDone, missed: todoMissed, upcoming: todoUpcoming },
+      },
+    ]
+  }, [habits, apiDeadlines, todos, today])
+
+  const focusScore = useMemo(() => {
+    const slices = productivityQueues.map((q) => q.slice)
+    const done = slices.reduce((sum, s) => sum + s.done, 0)
+    const total = slices.reduce(
+      (sum, s) => sum + s.done + s.missed + s.upcoming,
+      0
+    )
+    const score = total > 0 ? Math.round((done / total) * 100) : 0
+    return {
+      score,
+      trend: `${done}/${total}`,
+      text: "completed today",
+    }
+  }, [productivityQueues])
+
+  const notificationCount = useMemo(() => {
+    const openDeadlines = (apiDeadlines ?? []).filter((d) => !d.isCompleted).length
+    const openTodos = (todos ?? []).filter(
+      (t) => t.status !== "COMPLETED" && t.status !== "SKIPPED"
+    ).length
+    return Math.min(openDeadlines + openTodos, 99)
+  }, [apiDeadlines, todos])
+
   return (
     <main className="relative flex h-screen w-full flex-col bg-background pt-16 pb-19">
       <HeaderIslands
         habitsDone={habitsDone}
         habitsTotal={habitsTotal}
         events={events}
-        notificationCount={3}
+        notificationCount={notificationCount}
       />
 
       <div className="flex min-h-0 flex-1 gap-1 px-1 pt-1">
@@ -242,19 +303,33 @@ export default function Page(): React.ReactElement {
           <div className="mt-3 flex flex-col gap-1.5 px-1">
             <SectionRule label="Tasks" />
             {taskCards.map((task) => (
-              <QueueTaskCard key={task.title} {...task} />
+              <QueueTaskCard
+                key={task.id}
+                title={task.title}
+                description={task.description}
+                dueDate={task.dueDate}
+                priority={task.priority}
+              />
             ))}
           </div>
           <div className="mt-3 flex flex-col gap-1.5 px-1 pb-2">
             <SectionRule label="From plans" />
-            {fromPlans.slice(0, 4).map((row) => (
+            {fromPlans.length > 0 ? (
+              fromPlans.slice(0, 4).map((row) => (
+                <PlanItemCard
+                  key={row.id}
+                  title={row.title}
+                  planName={row.planName}
+                  topic={row.topic}
+                />
+              ))
+            ) : (
               <PlanItemCard
-                key={row.id}
-                title={row.title}
-                planName={row.planName}
-                topic={row.topic}
+                title="Demo: Trees, Graphs & Traversals"
+                planName="Demo roadmap"
+                topic="Data Structures"
               />
-            ))}
+            )}
           </div>
         </div>
 
@@ -279,7 +354,7 @@ export default function Page(): React.ReactElement {
           aria-label="Stats"
           className="h-full min-h-0 w-96 shrink-0 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
-          <ProductivityBoard />
+          <ProductivityBoard score={focusScore} queues={productivityQueues} />
         </aside>
       </div>
 
@@ -290,7 +365,7 @@ export default function Page(): React.ReactElement {
         </div>
         <div className="flex flex-1 justify-center">
           <div className="flex items-center gap-2 rounded-full border border-border/60 bg-white/[0.03] px-3.5 py-1.5 text-xs font-semibold text-muted-foreground shadow-xs backdrop-blur-md">
-            <span className="font-bold text-emerald-500">⚡ 96%</span>
+            <span className="font-bold text-emerald-500">⚡ {focusScore.score}%</span>
             <span>Focus Velocity</span>
           </div>
         </div>
