@@ -12,12 +12,22 @@ import {
 } from "motion/react"
 import { useRef, useState } from "react"
 
+export type FloatingDockItem = {
+  title: string
+  icon: React.ReactNode
+  href: string
+  /** Prefer href navigation; use for actions that should not navigate. */
+  onClick?: (event: React.MouseEvent) => void
+  onHoverEnter?: () => void
+  onHoverLeave?: () => void
+}
+
 export const FloatingDock = ({
   items,
   desktopClassName,
   mobileClassName,
 }: {
-  items: { title: string; icon: React.ReactNode; href: string; onClick?: () => void }[]
+  items: FloatingDockItem[]
   desktopClassName?: string
   mobileClassName?: string
 }) => {
@@ -33,7 +43,7 @@ const FloatingDockMobile = ({
   items,
   className,
 }: Readonly<{
-  items: { title: string; icon: React.ReactNode; href: string; onClick?: () => void }[]
+  items: FloatingDockItem[]
   className?: string
 }>) => {
   const [open, setOpen] = useState(false)
@@ -62,26 +72,16 @@ const FloatingDockMobile = ({
                 }}
                 transition={{ delay: (items.length - 1 - idx) * 0.05 }}
               >
-                {item.onClick ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setOpen(false)
-                      item.onClick?.()
-                    }}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-muted/80 text-foreground cursor-pointer"
-                  >
-                    <div className="h-4 w-4">{item.icon}</div>
-                  </button>
-                ) : (
-                  <a
-                    href={item.href}
-                    key={item.title}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-muted/80 text-foreground"
-                  >
-                    <div className="h-4 w-4">{item.icon}</div>
-                  </a>
-                )}
+                <a
+                  href={item.href}
+                  onClick={(event) => {
+                    setOpen(false)
+                    item.onClick?.(event)
+                  }}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-muted/80 text-foreground"
+                >
+                  <div className="h-4 w-4">{item.icon}</div>
+                </a>
               </motion.div>
             ))}
           </motion.div>
@@ -102,7 +102,7 @@ const FloatingDockDesktop = ({
   items,
   className,
 }: Readonly<{
-  items: { title: string; icon: React.ReactNode; href: string; onClick?: () => void }[]
+  items: FloatingDockItem[]
   className?: string
 }>) => {
   const mouseX = useMotionValue(Infinity)
@@ -128,13 +128,13 @@ function IconContainer({
   icon,
   href,
   onClick,
-}: Readonly<{
-  mouseX: MotionValue
-  title: string
-  icon: React.ReactNode
-  href: string
-  onClick?: () => void
-}>) {
+  onHoverEnter,
+  onHoverLeave,
+}: Readonly<
+  {
+    mouseX: MotionValue
+  } & FloatingDockItem
+>) {
   const ref = useRef<HTMLDivElement>(null)
 
   const distance = useTransform(mouseX, (val) => {
@@ -180,47 +180,46 @@ function IconContainer({
   })
 
   const [hovered, setHovered] = useState(false)
+  const hasPreviewHover = Boolean(onHoverEnter)
 
-  const content = (
-    <motion.div
-      ref={ref}
-      style={{ width, height }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className="relative flex aspect-square items-center justify-center rounded-full border border-border/50 bg-muted/70 text-foreground transition-colors hover:bg-accent"
+  return (
+    <a
+      href={href}
+      onClick={onClick}
+      onMouseEnter={() => {
+        setHovered(true)
+        onHoverEnter?.()
+      }}
+      onMouseLeave={() => {
+        setHovered(false)
+        onHoverLeave?.()
+      }}
+      className="cursor-pointer"
     >
-      <AnimatePresence>
-        {hovered && (
-          <motion.div
-            initial={{ opacity: 0, y: 10, x: "-50%" }}
-            animate={{ opacity: 1, y: 0, x: "-50%" }}
-            exit={{ opacity: 0, y: 2, x: "-50%" }}
-            className="absolute -top-8 left-1/2 w-fit rounded-md border border-border bg-popover px-2 py-0.5 text-xs whitespace-pre text-popover-foreground shadow-md"
-          >
-            {title}
-          </motion.div>
-        )}
-      </AnimatePresence>
       <motion.div
-        style={{ width: widthIcon, height: heightIcon }}
-        className="flex items-center justify-center"
+        ref={ref}
+        style={{ width, height }}
+        className="relative flex aspect-square items-center justify-center rounded-full border border-border/50 bg-muted/70 text-foreground transition-colors hover:bg-accent"
       >
-        {icon}
+        <AnimatePresence>
+          {hovered && !hasPreviewHover && (
+            <motion.div
+              initial={{ opacity: 0, y: 10, x: "-50%" }}
+              animate={{ opacity: 1, y: 0, x: "-50%" }}
+              exit={{ opacity: 0, y: 2, x: "-50%" }}
+              className="absolute -top-8 left-1/2 w-fit rounded-md border border-border bg-popover px-2 py-0.5 text-xs whitespace-pre text-popover-foreground shadow-md"
+            >
+              {title}
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <motion.div
+          style={{ width: widthIcon, height: heightIcon }}
+          className="flex items-center justify-center"
+        >
+          {icon}
+        </motion.div>
       </motion.div>
-    </motion.div>
+    </a>
   )
-
-  if (onClick) {
-    return (
-      <button
-        type="button"
-        onClick={onClick}
-        className="cursor-pointer border-0 bg-transparent p-0 outline-none"
-      >
-        {content}
-      </button>
-    )
-  }
-
-  return <a href={href}>{content}</a>
 }

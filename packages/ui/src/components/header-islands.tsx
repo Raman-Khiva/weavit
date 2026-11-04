@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bell, Check } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
-import { Notifications } from "@workspace/ui/components/notifications";
 
 /* ---------- shared island surface ---------- */
 
@@ -16,10 +14,7 @@ const island =
 export type ScheduleEvent = { id: string; title: string; start: Date; end: Date };
 
 type HeaderIslandsProps = {
-  habitsDone: number;
-  habitsTotal: number;
   events: ScheduleEvent[]; // the component picks the one happening now
-  notificationCount: number;
 };
 
 /* ---------- helpers ---------- */
@@ -41,61 +36,6 @@ const fmtTime = (d: Date) =>
 const fmtShort = (d: Date) =>
   d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
 
-/* ---------- left: today + habit progress ---------- */
-
-function ProgressRing({ done, total }: { done: number; total: number }) {
-  const r = 11;
-  const c = 2 * Math.PI * r;
-  const pct = total === 0 ? 0 : done / total;
-  const complete = total > 0 && done === total;
-
-  return (
-    <div
-      className="relative size-7 shrink-0"
-      role="img"
-      aria-label={`${done} of ${total} habits done today`}
-    >
-      <svg viewBox="0 0 28 28" className="size-7 -rotate-90">
-        <circle cx="14" cy="14" r={r} fill="none" strokeWidth="3" className="stroke-white/10" />
-        <circle
-          cx="14"
-          cy="14"
-          r={r}
-          fill="none"
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeDasharray={c}
-          strokeDashoffset={c * (1 - pct)}
-          className={cn(
-            "transition-[stroke-dashoffset,stroke] duration-500 ease-out",
-            complete ? "stroke-emerald-400" : "stroke-emerald-400/80"
-          )}
-        />
-      </svg>
-      <span className="absolute inset-0 flex items-center justify-center">
-        {complete ? (
-          <Check className="size-3.5 text-emerald-300" strokeWidth={3} />
-        ) : (
-          <span className="text-[10px] font-semibold tabular-nums text-white/80">{done}</span>
-        )}
-      </span>
-    </div>
-  );
-}
-
-function TodayIsland({ now, done, total }: { now: Date | null; done: number; total: number }) {
-  const date = now?.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-  return (
-    <div className={cn(island, "gap-2.5 pl-2 pr-4")}>
-      <ProgressRing done={done} total={total} />
-      <div className="leading-tight">
-        <p className="text-sm font-semibold text-white">Today</p>
-        <p className="hidden text-[11px] text-white/45 sm:block">{date ?? "\u00A0"}</p>
-      </div>
-    </div>
-  );
-}
-
 /* ---------- middle: time + what's on right now ---------- */
 
 function NowIsland({ now, events }: { now: Date | null; events: ScheduleEvent[] }) {
@@ -110,7 +50,6 @@ function NowIsland({ now, events }: { now: Date | null; events: ScheduleEvent[] 
 
   return (
     <div className={cn(island, "gap-3.5 px-5")}>
-      {/* time */}
       <div className="flex items-baseline gap-1 tabular-nums">
         <span className="text-[17px] font-semibold leading-none text-white">{hhmm}</span>
         <span className="text-[11px] font-medium text-white/50">{meridiem}</span>
@@ -118,7 +57,6 @@ function NowIsland({ now, events }: { now: Date | null; events: ScheduleEvent[] 
 
       <span aria-hidden className="h-5 w-px bg-white/10" />
 
-      {/* current event only */}
       {current ? (
         <div className="flex min-w-0 items-center gap-2">
           <span aria-hidden className="relative flex size-2 shrink-0">
@@ -134,7 +72,6 @@ function NowIsland({ now, events }: { now: Date | null; events: ScheduleEvent[] 
         <span className="text-sm text-white/45">Nothing scheduled</span>
       )}
 
-      {/* elapsed time of the current event */}
       {current && (
         <span
           aria-hidden
@@ -146,71 +83,14 @@ function NowIsland({ now, events }: { now: Date | null; events: ScheduleEvent[] 
   );
 }
 
-/* ---------- right: notifications ---------- */
-
-function NotificationsIsland({ count }: { count: number }) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div
-      className={cn(
-        island,
-        "h-auto flex-col items-stretch rounded-[22px] transition-[width] duration-300 ease-out",
-        open ? "w-80" : "w-11"
-      )}
-    >
-      <button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        aria-expanded={open}
-        aria-label={count > 0 ? `${count} unread notifications` : "Notifications"}
-        className="flex h-11 w-full items-center gap-2 px-3 outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-      >
-        <Bell className="size-[18px] shrink-0 text-white/80" strokeWidth={1.75} />
-        {open && (
-          <span className="truncate text-sm font-semibold text-white">Notifications</span>
-        )}
-        {count > 0 && !open && (
-          <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-indigo-500 px-1 text-[10px] font-semibold leading-none text-white ring-2 ring-neutral-950">
-            {count > 9 ? "9+" : count}
-          </span>
-        )}
-      </button>
-      <div
-        className={cn(
-          "grid transition-[grid-template-rows] duration-300 ease-out",
-          open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-        )}
-      >
-        <div className="overflow-hidden">
-          <div className="max-h-80 overflow-y-auto px-2 pb-3">
-            <Notifications />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /* ---------- header ---------- */
 
-export function HeaderIslands({
-  habitsDone,
-  habitsTotal,
-  events,
-  notificationCount,
-}: HeaderIslandsProps) {
+export function HeaderIslands({ events }: HeaderIslandsProps) {
   const now = useNow();
 
   return (
-    <header className="pointer-events-none fixed inset-x-0 top-3 z-40 grid grid-cols-[1fr_auto_1fr] items-start gap-3 px-4">
-      <div className="justify-self-start">
-        <TodayIsland now={now} done={habitsDone} total={habitsTotal} />
-      </div>
+    <header className="pointer-events-none fixed inset-x-0 top-3 z-40 flex items-start justify-center px-4">
       <NowIsland now={now} events={events} />
-      <div className="justify-self-end">
-        <NotificationsIsland count={notificationCount} />
-      </div>
     </header>
   );
 }

@@ -24,8 +24,8 @@ import { cn } from "@workspace/ui/lib/utils"
 const ORBIT_CARDS = [
   {
     id: "habits",
-    title: "Habit manager",
-    hint: "Check in · protect streaks",
+    title: "Keep the loop",
+    hint: "Agent logs today's check-in",
     prompt: "Mark my deep work habit complete for today",
     icon: Flame,
     // Behind the input; nudged up so it peeks above the box
@@ -35,8 +35,8 @@ const ORBIT_CARDS = [
   },
   {
     id: "plans",
-    title: "Plan creator",
-    hint: "Phases · tasks · progress",
+    title: "Draft a roadmap",
+    hint: "Phases appear in live preview",
     prompt: "Create a 4-phase SDE interview prep roadmap",
     icon: FolderKanban,
     className: "-right-2 -top-2 rotate-3 sm:-right-5 sm:-top-3",
@@ -45,8 +45,8 @@ const ORBIT_CARDS = [
   },
   {
     id: "deadlines",
-    title: "Deadline tracker",
-    hint: "Priority · due dates",
+    title: "Surface what's due",
+    hint: "Priorities, not another list",
     prompt: "Show my high-priority deadlines this week",
     icon: CalendarDays,
     className: "-bottom-3 left-1/2 -translate-x-1/2 rotate-1 sm:-bottom-4",
@@ -198,7 +198,7 @@ function HeroPromptStage() {
           <div className="flex min-h-[7.25rem] flex-col rounded-xl bg-white/[0.03] p-3 sm:min-h-[8.25rem]">
             <p className="mb-2 flex items-center gap-1.5 text-[11px] font-medium text-white/35">
               <Bot className="size-3.5 text-emerald-400/80" />
-              Ask Weavit to run an allowlisted action
+              Talk to the agent — it runs allowlisted workspace actions
             </p>
             <textarea
               id="hero-prompt"
@@ -208,7 +208,7 @@ function HeroPromptStage() {
                 setPrompt(event.target.value)
                 setActiveCard(null)
               }}
-              placeholder="Create a plan, log a habit, check deadlines…"
+              placeholder="Build a roadmap, log a check-in, or ask what’s due…"
               className="min-h-0 w-full flex-1 resize-none bg-transparent text-sm leading-relaxed text-white outline-none placeholder:text-white/30"
             />
             <div className="mt-2 flex items-center justify-end">
@@ -272,17 +272,16 @@ export function WeavitLanding() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-70" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
               </span>
-              Weavit · Workspace Engine · v0.1
+              Agent-driven workspace · early access
             </p>
 
-            <p className="font-[family-name:var(--font-landing-display)] text-[clamp(3rem,7vw,5.25rem)] font-semibold leading-[0.92] tracking-[-0.03em] text-white">
-              weavit
-            </p>
-            <h1 className="mt-4 font-[family-name:var(--font-landing-display)] text-[clamp(1.45rem,2.6vw,2.15rem)] font-medium leading-snug tracking-[-0.02em] text-white/80">
-              Ask once. Plans, habits, and deadlines move.
+            <h1 className="font-[family-name:var(--font-landing-display)] text-[clamp(2.35rem,5.2vw,4rem)] font-semibold leading-[1.02] tracking-[-0.03em] text-white">
+              Ask once. Your workspace moves.
             </h1>
-            <p className="mt-4 max-w-md text-sm leading-relaxed text-white/45 sm:text-base">
-              Type what you need — or tap a nearby card to see what the agent can run.
+            <p className="mt-5 max-w-md text-sm leading-relaxed text-white/50 sm:text-[1.05rem] sm:leading-relaxed">
+              An AI workspace for builders — draft phased roadmaps with a live
+              preview, keep daily loops honest, and surface what&apos;s due, all
+              through one agent that updates the real workspace for you.
             </p>
 
             <div className="mt-9 flex flex-wrap items-center gap-3">

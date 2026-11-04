@@ -14,12 +14,12 @@ export const getToken = () => {
 }
 
 
-
+const serverURL = process.env.SERVER_URL || "http://localhost:4000";
 
 export const api = createApi({
     reducerPath: 'api',
     baseQuery: fetchBaseQuery({
-        baseUrl: "http://localhost:4000",
+        baseUrl: serverURL,
         prepareHeaders: async (headers) => {
 
             if (getTokenFn) {

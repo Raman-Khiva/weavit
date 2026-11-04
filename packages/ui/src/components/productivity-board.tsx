@@ -1,7 +1,16 @@
 "use client"
 
 import { useState } from "react"
-import { ArrowUpRight, Info, Lightbulb } from "lucide-react"
+import {
+  ArrowUpRight,
+  CalendarDays,
+  CheckCircle2,
+  CircleDot,
+  Flame,
+  FolderKanban,
+  Info,
+  Lightbulb,
+} from "lucide-react"
 import { cn } from "@workspace/ui/lib/utils"
 
 type Timeframe = "Day" | "Week" | "Month"
@@ -34,6 +43,16 @@ export type ProductivityScore = {
   score: number
   trend: string
   text: string
+}
+
+export type ActivityKind = "habit" | "deadline" | "todo" | "plan"
+
+export type ActivityItem = {
+  id: string
+  kind: ActivityKind
+  title: string
+  detail: string
+  timeLabel?: string
 }
 
 function duePhrase(date: string) {
@@ -77,8 +96,8 @@ function QueueBar({ label, slice }: { label: string; slice: QueueSlice }) {
   ]
 
   return (
-    <div className="px-4 py-3.5">
-      <div className="mb-2 flex items-baseline justify-between gap-3">
+    <div className="px-4 py-2.5">
+      <div className="mb-1.5 flex items-baseline justify-between gap-3">
         <h3 className="text-sm font-medium text-white">{label}</h3>
         <p className="text-right text-[11px] tabular-nums text-white/45">
           {slice.done} done · {slice.missed} missed · {slice.upcoming} upcoming
@@ -86,7 +105,7 @@ function QueueBar({ label, slice }: { label: string; slice: QueueSlice }) {
       </div>
       <div className="flex items-center gap-3">
         <div
-          className="flex h-4 min-w-0 flex-1 overflow-hidden rounded-[4px]"
+          className="flex h-2 min-w-0 flex-1 overflow-hidden rounded-[4px]"
           role="img"
           aria-label={`${label}: ${slice.done} done, ${slice.missed} missed, ${slice.upcoming} upcoming`}
         >
@@ -108,6 +127,79 @@ function QueueBar({ label, slice }: { label: string; slice: QueueSlice }) {
         </span>
       </div>
     </div>
+  )
+}
+
+const ACTIVITY_ICON: Record<
+  ActivityKind,
+  React.ComponentType<{ className?: string; strokeWidth?: number }>
+> = {
+  habit: Flame,
+  deadline: CalendarDays,
+  todo: CheckCircle2,
+  plan: FolderKanban,
+}
+
+export function RecentActivity({
+  items,
+  className,
+}: {
+  items: ActivityItem[]
+  className?: string
+}) {
+  return (
+    <section
+      aria-label="Recent activity"
+      className={cn(
+        "flex min-h-0 flex-1 flex-col rounded-sm border border-white/10 bg-white/[0.03]",
+        className
+      )}
+    >
+      <div className="flex shrink-0 items-center justify-between gap-2 px-4 pt-3.5 pb-2">
+        <h3 className="text-sm font-semibold text-white">Recent activity</h3>
+        <CircleDot className="size-3.5 text-white/30" aria-hidden />
+      </div>
+
+      {items.length === 0 ? (
+        <p className="px-4 pb-4 text-xs text-white/35">
+          Check-ins, completions, and plan moves will show up here.
+        </p>
+      ) : (
+        <ol className="min-h-0 flex-1 space-y-0 overflow-y-auto px-4 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {items.map((item, index) => {
+            const Icon = ACTIVITY_ICON[item.kind]
+            const isLast = index === items.length - 1
+            return (
+              <li key={item.id} className="relative flex gap-2.5">
+                <div className="relative flex w-5 shrink-0 flex-col items-center">
+                  <span className="relative z-10 mt-0.5 flex size-5 items-center justify-center rounded-full border border-white/15 bg-white/[0.06] text-white/70">
+                    <Icon className="size-2.5" strokeWidth={2} />
+                  </span>
+                  {!isLast ? (
+                    <span aria-hidden className="mt-0.5 w-px flex-1 bg-white/10" />
+                  ) : null}
+                </div>
+                <div className={cn("min-w-0 flex-1 pb-3", isLast && "pb-1")}>
+                  <div className="flex items-baseline justify-between gap-2">
+                    <p className="truncate text-xs font-medium text-white">
+                      {item.title}
+                    </p>
+                    {item.timeLabel ? (
+                      <span className="shrink-0 text-[10px] tabular-nums text-white/35">
+                        {item.timeLabel}
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="mt-0.5 truncate text-[11px] text-white/40">
+                    {item.detail}
+                  </p>
+                </div>
+              </li>
+            )
+          })}
+        </ol>
+      )}
+    </section>
   )
 }
 
@@ -173,52 +265,56 @@ export function ProductivityBoard({
     <section
       aria-label="Productivity"
       className={cn(
-        "flex w-full flex-col rounded-sm border border-white/10 bg-white/[0.03]",
+        "flex w-full shrink-0 flex-col rounded-sm border border-white/10 bg-white/[0.03]",
         className
       )}
     >
       <div className="shrink-0 px-5 pt-5 pb-4">
-        <header className="mb-4 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <h2 className="text-lg leading-none font-semibold text-white">Productivity</h2>
-            <span
-              className="text-white/35"
-              title="From habits, deadlines, and todos"
-            >
-              <Info className="size-4" aria-hidden />
-              <span className="sr-only">From habits, deadlines, and todos</span>
-            </span>
+        <header className="mb-3 flex items-start justify-between gap-3">
+          <div>
+            <p className="text-5xl leading-none font-semibold tracking-tight text-white">
+              {current.score}
+              <span className="ml-2 text-2xl font-medium text-white/45">/100</span>
+            </p>
+            <p className="mt-3 flex items-center gap-1 text-base font-semibold text-emerald-400">
+              <ArrowUpRight className="size-4" />
+              {current.trend}
+              <span className="font-normal text-white/45">{current.text}</span>
+            </p>
           </div>
-          {!score && (
-            <div className="flex items-center rounded-lg border border-white/10 p-0.5">
-              {(["Day", "Week", "Month"] as const).map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => setTimeframe(option)}
-                  className={cn(
-                    "rounded-md px-2 py-1 text-xs font-medium",
-                    timeframe === option
-                      ? "bg-white/10 text-white"
-                      : "text-white/45 hover:text-white"
-                  )}
-                >
-                  {option}
-                </button>
-              ))}
+          <div className="flex flex-col items-end gap-2 pt-1">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg leading-none font-semibold text-white">Productivity</h2>
+              <span
+                className="text-white/35"
+                title="From habits, deadlines, and todos"
+              >
+                <Info className="size-4" aria-hidden />
+                <span className="sr-only">From habits, deadlines, and todos</span>
+              </span>
             </div>
-          )}
+            {!score && (
+              <div className="flex items-center rounded-lg border border-white/10 p-0.5">
+                {(["Day", "Week", "Month"] as const).map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => setTimeframe(option)}
+                    className={cn(
+                      "rounded-md px-2 py-1 text-xs font-medium",
+                      timeframe === option
+                        ? "bg-white/10 text-white"
+                        : "text-white/45 hover:text-white"
+                    )}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </header>
 
-        <p className="text-5xl leading-none font-semibold tracking-tight text-white">
-          {current.score}
-          <span className="ml-2 text-2xl font-medium text-white/45">/100</span>
-        </p>
-        <p className="mt-3 flex items-center gap-1 text-base font-semibold text-emerald-400">
-          <ArrowUpRight className="size-4" />
-          {current.trend}
-          <span className="font-normal text-white/45">{current.text}</span>
-        </p>
         <div className="mt-4">
           <ScoreMeter score={current.score} />
         </div>

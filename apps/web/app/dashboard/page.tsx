@@ -6,6 +6,8 @@ import { Deadlines, type Deadline } from "@workspace/ui/components/deadlines"
 import { PlanItemCard, TaskCard as QueueTaskCard } from "@workspace/ui/components/queue-cards"
 import {
   ProductivityBoard,
+  RecentActivity,
+  type ActivityItem,
   type ProductivityQueue,
 } from "@workspace/ui/components/productivity-board"
 import { PlansOverview } from "@workspace/ui/components/plans-overview"
@@ -75,11 +77,11 @@ function AssistantGreeting() {
       aria-label="Assistant"
       className="@container flex min-h-0 flex-1 flex-col overflow-y-auto px-8 pt-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
-      <p className="text-[clamp(2.5rem,14cqw,4.5rem)] font-semibold leading-none tracking-tight text-foreground">
+      <p className="text-[clamp(2rem,9cqw,3rem)] font-semibold leading-none tracking-tight text-foreground">
         hi, {name}.
       </p>
-      <p className="mt-1 flex items-center gap-2 text-lg text-muted-foreground">
-        <Bot className="size-6 shrink-0" strokeWidth={1.75} />
+      <p className="mt-1.5 flex items-center gap-2 text-base text-muted-foreground">
+        <Bot className="size-5 shrink-0" strokeWidth={1.75} />
         <span>{ASSISTANT_MESSAGES[index]}</span>
       </p>
       <DashboardAgent />
@@ -163,10 +165,6 @@ export default function Page(): React.ReactElement {
   const [patchDeadline] = usePatchDeadlineMutation()
 
   const today = new Date().toISOString().slice(0, 10)
-  const habitsDone = (habits ?? []).filter((h) =>
-    (h.completedDates ?? []).includes(today)
-  ).length
-  const habitsTotal = Math.max((habits ?? []).length, 1)
 
   const events = useMemo(() => {
     const fromDeadlines = (apiDeadlines ?? [])
@@ -274,24 +272,94 @@ export default function Page(): React.ReactElement {
     }
   }, [productivityQueues])
 
-  const notificationCount = useMemo(() => {
-    const openDeadlines = (apiDeadlines ?? []).filter((d) => !d.isCompleted).length
-    const openTodos = (todos ?? []).filter(
-      (t) => t.status !== "COMPLETED" && t.status !== "SKIPPED"
-    ).length
-    return Math.min(openDeadlines + openTodos, 99)
-  }, [apiDeadlines, todos])
+  const recentActivity = useMemo<ActivityItem[]>(() => {
+    const items: ActivityItem[] = []
+
+    for (const habit of habits ?? []) {
+      if ((habit.completedDates ?? []).includes(today)) {
+        items.push({
+          id: `habit-${habit.id}`,
+          kind: "habit",
+          title: habit.title,
+          detail: "Checked in today",
+          timeLabel: "Today",
+        })
+      }
+    }
+
+    for (const deadline of apiDeadlines ?? []) {
+      if (!deadline.isCompleted) continue
+      items.push({
+        id: `deadline-${deadline.id}`,
+        kind: "deadline",
+        title: deadline.title,
+        detail: "Deadline cleared",
+        timeLabel: deadline.dueDate.slice(0, 10) === today ? "Today" : "Done",
+      })
+    }
+
+    for (const todo of todos ?? []) {
+      if (todo.status !== "COMPLETED") continue
+      items.push({
+        id: `todo-${todo.id}`,
+        kind: "todo",
+        title: todo.title,
+        detail: "Todo completed",
+        timeLabel: "Done",
+      })
+    }
+
+    for (const row of fromPlans.slice(0, 3)) {
+      items.push({
+        id: `plan-${row.id}`,
+        kind: "plan",
+        title: row.title,
+        detail: `${row.planName}${row.topic ? ` · ${row.topic}` : ""}`,
+        timeLabel: "Active",
+      })
+    }
+
+    if (items.length === 0) {
+      return [
+        {
+          id: "demo-habit",
+          kind: "habit",
+          title: "Deep work block",
+          detail: "Checked in today",
+          timeLabel: "Today",
+        },
+        {
+          id: "demo-deadline",
+          kind: "deadline",
+          title: "Ship landing polish",
+          detail: "Deadline cleared",
+          timeLabel: "Today",
+        },
+        {
+          id: "demo-todo",
+          kind: "todo",
+          title: "Review agent prompts",
+          detail: "Todo completed",
+          timeLabel: "Earlier",
+        },
+        {
+          id: "demo-plan",
+          kind: "plan",
+          title: "Trees & graphs",
+          detail: "Demo roadmap · Data Structures",
+          timeLabel: "Active",
+        },
+      ]
+    }
+
+    return items.slice(0, 12)
+  }, [habits, apiDeadlines, todos, fromPlans, today])
 
   return (
-    <main className="relative flex h-screen w-full flex-col bg-background pt-16 pb-19">
-      <HeaderIslands
-        habitsDone={habitsDone}
-        habitsTotal={habitsTotal}
-        events={events}
-        notificationCount={notificationCount}
-      />
+    <main className="relative flex h-screen w-full flex-col bg-background pb-19">
+      <HeaderIslands events={events} />
 
-      <div className="flex min-h-0 flex-1 gap-1 px-1 pt-1">
+      <div className="flex min-h-0 flex-1 items-stretch gap-1 px-1 pt-1">
         <div className="flex w-96 shrink-0 flex-col overflow-y-auto rounded-sm border border-white/10 bg-white/[0.03] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <SectionRule label="Habits" />
           <Habits
@@ -333,7 +401,7 @@ export default function Page(): React.ReactElement {
           </div>
         </div>
 
-        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden pt-14">
           <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <AssistantGreeting />
           </div>
@@ -352,16 +420,17 @@ export default function Page(): React.ReactElement {
 
         <aside
           aria-label="Stats"
-          className="h-full min-h-0 w-96 shrink-0 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex h-full min-h-0 w-96 shrink-0 flex-col gap-1"
         >
           <ProductivityBoard score={focusScore} queues={productivityQueues} />
+          <RecentActivity items={recentActivity} />
         </aside>
       </div>
 
       <div className="absolute right-0 bottom-2 left-0 flex w-full items-center justify-between">
         <div className="flex-1" />
         <div className="z-20 w-72">
-          <FloatingDockDemo />
+          <FloatingDockDemo habits={habits ?? []} projects={data ?? []} />
         </div>
         <div className="flex flex-1 justify-center">
           <div className="flex items-center gap-2 rounded-full border border-border/60 bg-white/[0.03] px-3.5 py-1.5 text-xs font-semibold text-muted-foreground shadow-xs backdrop-blur-md">
