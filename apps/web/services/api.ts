@@ -19,7 +19,7 @@ const serverURL = process.env.SERVER_URL || "http://localhost:4000";
 export const api = createApi({
     reducerPath: 'api',
     baseQuery: fetchBaseQuery({
-        baseUrl: serverURL,
+        baseUrl: "https://api.weavit.tech",
         prepareHeaders: async (headers) => {
 
             if (getTokenFn) {
