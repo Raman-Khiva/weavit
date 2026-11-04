@@ -438,10 +438,12 @@ app.patch("/habits/:habitId", async (_req: Request<{ habitId: string }>, res: Re
 })
 
 
+
+// syncUser route
 app.post('/syncUser', async (req: Request, res: Response) => {
   try {
     console.log("Entering /syncUser")
-    const { userId } = await getAuth(req);
+    const { userId } = getAuth(req);
 
     if (!userId) {
       return res.status(400).json({
