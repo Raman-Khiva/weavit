@@ -22,11 +22,11 @@ export function ClerkTokenProvider() {
             })
 
 
-             if(!response.ok){
-                alert("Login failed");
-            }else{
-                alert("Logged In successfully");
-            }
+            //  if(!response.ok){
+            //     alert("Login failed");
+            // }else{
+            //     alert("Logged In successfully");
+            // }
            }catch(error){
                alert("Login Failed")
            }
