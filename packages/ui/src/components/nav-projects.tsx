@@ -66,15 +66,18 @@ export function NavProjects({
                   tooltip={item.name}
                   isActive={isItemActive}
                   className={cn(
-                    "relative group/proj-item rounded-lg px-2.5 transition-all duration-150",
+                    "relative group/proj-item rounded-lg px-2.5 transition-all duration-150 group-data-[collapsible=icon]:justify-center",
                     isItemActive
                       ? "bg-sidebar-accent font-medium text-foreground shadow-2xs"
                       : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground"
                   )}
                 >
-                  <a href={item.url} className="flex w-full items-center gap-3">
+                  <a
+                    href={item.url}
+                    className="flex w-full items-center gap-3 group-data-[collapsible=icon]:w-auto group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0"
+                  >
                     {isItemActive && (
-                      <span className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-1 rounded-r-full bg-primary" />
+                      <span className="absolute left-0 top-1/2 h-4 w-1 -translate-y-1/2 rounded-r-full bg-primary group-data-[collapsible=icon]:hidden" />
                     )}
                     <span
                       className={cn(
@@ -86,9 +89,11 @@ export function NavProjects({
                     >
                       {item.icon}
                     </span>
-                    <span className="flex-1 truncate text-[13px] font-medium">{item.name}</span>
+                    <span className="flex-1 truncate text-[13px] font-medium group-data-[collapsible=icon]:hidden">
+                      {item.name}
+                    </span>
                     {item.badge && (
-                      <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-muted/60 text-muted-foreground shrink-0">
+                      <span className="shrink-0 rounded-md bg-muted/60 px-1.5 py-0.5 font-mono text-[10px] font-bold text-muted-foreground group-data-[collapsible=icon]:hidden">
                         {item.badge}
                       </span>
                     )}

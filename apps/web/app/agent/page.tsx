@@ -43,7 +43,13 @@ const AGENT_NAV = [
   { href: "/workspace/timeline", label: "Timeline" },
 ] as const;
 
-function AgentTopBar({ subtitle }: { subtitle: string }) {
+function AgentTopBar({
+  subtitle,
+  signedIn,
+}: {
+  subtitle: string
+  signedIn?: boolean
+}) {
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-border bg-background/95 px-4 py-3 backdrop-blur sm:px-5">
       <div className="flex min-w-0 items-center gap-2.5">
@@ -64,17 +70,27 @@ function AgentTopBar({ subtitle }: { subtitle: string }) {
         </div>
       </div>
 
-      <nav className="flex shrink-0 items-center gap-0.5 sm:gap-1">
-        {AGENT_NAV.map((item) => (
+      <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+        <nav className="hidden items-center gap-0.5 sm:flex sm:gap-1">
+          {AGENT_NAV.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="rounded-lg px-2 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground sm:px-2.5 sm:text-xs"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+        {signedIn === false ? (
           <Link
-            key={item.href}
-            href={item.href}
-            className="rounded-lg px-2 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground sm:px-2.5 sm:text-xs"
+            href="/login"
+            className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-emerald-400 transition-colors hover:bg-emerald-400/10 hover:text-emerald-300"
           >
-            {item.label}
+            Sign in
           </Link>
-        ))}
-      </nav>
+        ) : null}
+      </div>
     </header>
   );
 }
@@ -121,9 +137,21 @@ interface AgentMessage {
   actions?: ActionItem[];
   failedActionIndexes?: number[];
   failureReasons?: Record<number, string>;
+  /** Guest mode: show Sign in CTA under the reply */
+  needsLogin?: boolean;
 }
 
 type PlaybackStage = "thoughts" | "collapse" | "message" | "cards" | "closing" | "done";
+
+const ASSISTANT_PROSE =
+  "prose prose-2xl dark:prose-invert max-w-2xl leading-relaxed text-foreground/85 " +
+  "prose-p:my-5 prose-p:leading-9 prose-p:text-foreground/85 " +
+  "prose-ul:my-6 prose-ul:space-y-3.5 prose-li:my-2 prose-li:leading-9 prose-li:text-foreground/85 " +
+  "prose-ol:my-6 prose-ol:space-y-3.5 " +
+  "prose-headings:mb-3 prose-headings:mt-7 prose-headings:leading-snug prose-headings:text-foreground " +
+  "prose-strong:font-bold prose-strong:text-foreground " +
+  "prose-a:font-semibold prose-a:text-emerald-400 prose-a:no-underline prose-a:underline-offset-4 " +
+  "hover:prose-a:text-emerald-300 hover:prose-a:underline";
 
 function RevealedText({
   text,
@@ -157,7 +185,7 @@ function RevealedText({
   if (!active && count === 0) return null;
 
   return (
-    <MessageResponse className="prose prose-sm dark:prose-invert max-w-none">
+    <MessageResponse className={ASSISTANT_PROSE}>
       {words.slice(0, count).join("")}
     </MessageResponse>
   );
@@ -255,9 +283,9 @@ function AgentMessageBubble({
 
   return (
     <Message from="assistant">
-      <MessageContent className="w-full">
+      <MessageContent className="w-full max-w-2xl gap-1">
         {thoughts.length > 0 && (
-          <ChainOfThought open={chainOpen} onOpenChange={setChainOpen} className="mb-4">
+          <ChainOfThought open={chainOpen} onOpenChange={setChainOpen} className="mb-5">
             <ChainOfThoughtHeader>
               {stage === "thoughts" ? "Thinking" : "Chain of Thought"}
             </ChainOfThoughtHeader>
@@ -278,7 +306,7 @@ function AgentMessageBubble({
         )}
 
         {showActions ? (
-          <div className="mt-4 flex flex-col gap-2">
+          <div className="mt-6 flex flex-col gap-2.5">
             <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
               Actions
               {failedIndexes.length > 0
@@ -298,21 +326,36 @@ function AgentMessageBubble({
         ) : null}
 
         {showCards && cards.length > 0 && (
-          <SequencedAchievementList
-            items={cards}
-            durationMs={4200}
-            onProgress={onAssembly}
-            onComplete={() => setStage(nextStage(intro, cards, closingText, "cards"))}
-          />
+          <div className="mt-6">
+            <SequencedAchievementList
+              items={cards}
+              durationMs={4200}
+              onProgress={onAssembly}
+              onComplete={() => setStage(nextStage(intro, cards, closingText, "cards"))}
+            />
+          </div>
         )}
 
         {showClosing && closingText && (
-          <RevealedText
-            text={closingText}
-            active={stage === "closing"}
-            onComplete={() => setStage("done")}
-          />
+          <div className="mt-5">
+            <RevealedText
+              text={closingText}
+              active={stage === "closing"}
+              onComplete={() => setStage("done")}
+            />
+          </div>
         )}
+
+        {showMessage && message.needsLogin ? (
+          <div className="mt-6">
+            <Link
+              href="/login"
+              className="inline-flex items-center gap-1.5 text-base font-semibold text-emerald-400 underline-offset-4 transition-colors hover:text-emerald-300 hover:underline"
+            >
+              Sign in to continue
+            </Link>
+          </div>
+        ) : null}
       </MessageContent>
     </Message>
   );
@@ -368,6 +411,7 @@ function AgentSidebar({
   onAssembly,
   workspaceState,
   layout = "split",
+  signedIn,
 }: {
   messages: AgentMessage[];
   onSubmit: (text: string) => void;
@@ -376,6 +420,7 @@ function AgentSidebar({
   workspaceState: AgentWorkspaceState;
   /** full = no preview panel; chat owns the whole viewport */
   layout?: "full" | "split";
+  signedIn?: boolean;
 }) {
   const [inputValue, setInputValue] = useState("");
   const isFull = layout === "full";
@@ -398,11 +443,21 @@ function AgentSidebar({
         !isFull && "border-r border-border"
       )}
     >
-      <AgentTopBar subtitle="Your AI planning assistant" />
+      <AgentTopBar
+        subtitle={
+          signedIn === false
+            ? "Guest guide · ask about Weavit"
+            : "Your AI planning assistant"
+        }
+        signedIn={signedIn}
+      />
 
       <Conversation className="min-h-0 flex-1">
         <ConversationContent
-          className={cn(isFull && "mx-auto w-full max-w-3xl px-4 sm:px-6")}
+          className={cn(
+            "gap-8 py-6",
+            isFull && "mx-auto w-full max-w-3xl px-4 sm:px-6"
+          )}
         >
           {messages.length === 0 ? null : (
             <>
@@ -533,11 +588,27 @@ const EXAMPLE_PROMPTS = [
   "Set deadlines for this week's assignments",
 ];
 
-function AgentEmptyState({ onSubmit }: { onSubmit: (text: string) => void }) {
+const GUEST_EXAMPLE_PROMPTS = [
+  "What is Weavit?",
+  "What can the agent do after I sign in?",
+  "How do roadmaps and live preview work?",
+  "How should I get started?",
+];
+
+function AgentEmptyState({
+  onSubmit,
+  canAutoSend,
+  signedIn,
+}: {
+  onSubmit: (text: string) => void;
+  canAutoSend: boolean;
+  signedIn?: boolean;
+}) {
   const [input, setInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const searchParams = useSearchParams();
   const seeded = useRef(false);
+  const autoSent = useRef(false);
 
   useEffect(() => {
     const fromQuery = searchParams.get("prompt")?.trim();
@@ -545,6 +616,15 @@ function AgentEmptyState({ onSubmit }: { onSubmit: (text: string) => void }) {
     seeded.current = true;
     setInput(fromQuery);
   }, [searchParams]);
+
+  // Landing / deep-link: ?prompt=…&autosend=1 → send once workspace (or guest path) is ready
+  useEffect(() => {
+    const fromQuery = searchParams.get("prompt")?.trim();
+    const wantAuto = searchParams.get("autosend") === "1";
+    if (!fromQuery || !wantAuto || !canAutoSend || autoSent.current) return;
+    autoSent.current = true;
+    onSubmit(fromQuery);
+  }, [searchParams, canAutoSend, onSubmit]);
 
   const submit = () => {
     const text = input.trim();
@@ -554,7 +634,14 @@ function AgentEmptyState({ onSubmit }: { onSubmit: (text: string) => void }) {
 
   return (
     <div className="flex h-screen flex-col text-foreground">
-      <AgentTopBar subtitle="Full agent · live workspace preview" />
+      <AgentTopBar
+        subtitle={
+          signedIn === false
+            ? "Guest guide · ask what Weavit is"
+            : "Full agent · live workspace preview"
+        }
+        signedIn={signedIn}
+      />
 
       <div className="flex flex-1 flex-col items-center justify-center overflow-y-auto px-6 py-8">
         <div className="mb-8 flex flex-col items-center gap-3 text-center">
@@ -565,14 +652,17 @@ function AgentEmptyState({ onSubmit }: { onSubmit: (text: string) => void }) {
             </div>
           </div>
           <p className="rounded-full border border-border/70 bg-card/50 px-3 py-1 text-[11px] font-medium text-muted-foreground">
-            Same agent as the dashboard drawer · plus live preview
+            {signedIn === false
+              ? "No account needed · ask about Weavit"
+              : "Same agent as the dashboard drawer · plus live preview"}
           </p>
           <h1 className="mt-2 text-2xl font-bold tracking-tight">
-            What should we work on?
+            {signedIn === false ? "Curious about Weavit?" : "What should we work on?"}
           </h1>
           <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
-            Build roadmaps with a live preview, scaffold habits and deadlines,
-            then keep chatting. Quick check-ins can stay on the dashboard drawer.
+            {signedIn === false
+              ? "Chat about the product and how the agent works. Sign in when you want it to update your real workspace."
+              : "Build roadmaps with a live preview, scaffold habits and deadlines, then keep chatting. Quick check-ins can stay on the dashboard drawer."}
           </p>
         </div>
 
@@ -626,7 +716,8 @@ function AgentEmptyState({ onSubmit }: { onSubmit: (text: string) => void }) {
         <div className="w-full max-w-3xl">
           <p className="mb-2 text-center text-xs font-medium text-muted-foreground">Try one of these examples</p>
           <div className="flex flex-wrap justify-center gap-2">
-            {EXAMPLE_PROMPTS.map((prompt) => (
+            {(signedIn === false ? GUEST_EXAMPLE_PROMPTS : EXAMPLE_PROMPTS).map(
+              (prompt) => (
               <button
                 key={prompt}
                 type="button"
@@ -639,7 +730,8 @@ function AgentEmptyState({ onSubmit }: { onSubmit: (text: string) => void }) {
                 <ChevronRightIcon className="size-3 text-muted-foreground" />
                 {prompt}
               </button>
-            ))}
+            )
+            )}
           </div>
         </div>
       </div>
@@ -651,7 +743,9 @@ export default function AgentPage(): JSX.Element {
   const {
     ready,
     signedIn,
+    authLoaded,
     run,
+    runGuest,
     savePreviewToWorkspace,
     workspaceState,
     isLoading: agentLoading,
@@ -672,28 +766,58 @@ export default function AgentPage(): JSX.Element {
     async (text: string) => {
       const prompt = text.trim();
       if (!prompt || busy) return;
-      if (!signedIn) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: uuidv4(),
-            role: "user",
-            parts: [{ type: "text", text: prompt }],
-          },
-          {
-            id: uuidv4(),
-            role: "assistant",
-            parts: [
-              {
-                type: "text",
-                text: "Please sign in so I can read your workspace and apply changes.",
-              },
-            ],
-          },
-        ]);
+
+      // Guest product guide — conversation only, no workspace mutations
+      if (authLoaded && !signedIn) {
+        const history = messages
+          .filter((m) => m.role === "user" || m.role === "assistant")
+          .map((m) => ({
+            role: m.role as "user" | "assistant",
+            content: m.parts
+              .filter((p) => p.type === "text" && p.text)
+              .map((p) => p.text!)
+              .join("\n"),
+          }));
+
+        const userMessage: AgentMessage = {
+          id: uuidv4(),
+          role: "user",
+          parts: [{ type: "text", text: prompt }],
+        };
+        setMessages((prev) => [...prev, userMessage]);
+        setIsLoading(true);
+        setPlanData(null);
+        setRawPreview(null);
+
+        try {
+          const result = await runGuest(prompt, history);
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: uuidv4(),
+              role: "assistant",
+              parts: [{ type: "text", text: result.message }],
+              needsLogin: result.needsLogin,
+            },
+          ]);
+        } catch (err) {
+          const message =
+            err instanceof Error ? err.message : "Something went wrong.";
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: uuidv4(),
+              role: "assistant",
+              parts: [{ type: "text", text: `**Error:** ${message}` }],
+            },
+          ]);
+        } finally {
+          setIsLoading(false);
+        }
         return;
       }
-      if (!ready) return;
+
+      if (!signedIn || !ready) return;
 
       const userMessage: AgentMessage = {
         id: uuidv4(),
@@ -770,7 +894,7 @@ export default function AgentPage(): JSX.Element {
         setIsLoading(false);
       }
     },
-    [busy, ready, run, signedIn]
+    [authLoaded, busy, messages, ready, run, runGuest, signedIn]
   );
 
   const handleSave = useCallback(async () => {
@@ -802,10 +926,17 @@ export default function AgentPage(): JSX.Element {
     }
   }, [rawPreview, savePreviewToWorkspace, saved, saving]);
 
+  // Guests chat as soon as Clerk loads; signed-in waits for workspace.
+  const canAutoSend = authLoaded && (!signedIn || ready);
+
   if (messages.length === 0 && !busy) {
     return (
       <React.Suspense fallback={null}>
-        <AgentEmptyState onSubmit={handleSubmit} />
+        <AgentEmptyState
+          onSubmit={handleSubmit}
+          canAutoSend={canAutoSend}
+          signedIn={signedIn}
+        />
       </React.Suspense>
     );
   }
@@ -821,6 +952,7 @@ export default function AgentPage(): JSX.Element {
           onAssembly={setAssembly}
           workspaceState={workspaceState}
           layout="full"
+          signedIn={signedIn}
         />
       </div>
     );
@@ -838,6 +970,7 @@ export default function AgentPage(): JSX.Element {
             onAssembly={setAssembly}
             workspaceState={workspaceState}
             layout="split"
+            signedIn={signedIn}
           />
         </ResizablePanel>
 

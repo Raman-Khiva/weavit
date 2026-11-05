@@ -29,6 +29,7 @@ import {
   BookOpen,
   Target,
   ClipboardCheck,
+  LogIn,
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils"
 
@@ -54,12 +55,15 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
     email: string
     avatar?: string
   }
+  /** When false, footer shows Sign in instead of the user menu */
+  signedIn?: boolean
 }
 
 export function AppSidebar({
   currentPath: propCurrentPath,
   projects: propProjects = [],
   user: propUser,
+  signedIn = true,
   ...props
 }: AppSidebarProps) {
   const [mountedPath, setMountedPath] = React.useState("")
@@ -187,22 +191,38 @@ export function AppSidebar({
   return (
 
     <Sidebar variant="sidebar" className="" {...props}>
-      <SidebarHeader className="flex h-14 justify-center p-0 px-2">
-        <SidebarMenu className="min-w-56">
+      <SidebarHeader className="flex h-14 justify-center">
+        <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild className="rounded-xl transition-all duration-150 hover:bg-sidebar-accent/60">
-              <a href="/" className="flex items-center gap-3">
-                <div className="flex aspect-square size-9 items-center justify-center rounded-xl bg-sidebar-primary/10 border border-sidebar-border/80 shadow-xs overflow-hidden">
-                  <img src="/logo-weavit.png" alt="Weavit Logo" className="h-6 w-6 object-contain" />
+            <SidebarMenuButton
+              size="lg"
+              asChild
+              tooltip="Weavit"
+              className="rounded-xl transition-all duration-150 hover:bg-sidebar-accent/60 group-data-[collapsible=icon]:size-10! group-data-[collapsible=icon]:justify-center"
+            >
+              <a
+                href="/"
+                className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0"
+              >
+                <div className="flex aspect-square size-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-sidebar-border/80 bg-sidebar-primary/10 shadow-xs">
+                  <img
+                    src="/logo-weavit.png"
+                    alt="Weavit Logo"
+                    className="h-6 w-6 object-contain"
+                  />
                 </div>
-                <div className="grid flex-1 text-left leading-tight">
+                <div className="grid min-w-0 flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
                   <div className="flex items-center gap-1.5">
-                    <span className="font-extrabold tracking-tight text-foreground text-sm">Weavit</span>
-                    <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-sm bg-primary/10 text-primary border border-primary/20">
+                    <span className="text-sm font-extrabold tracking-tight text-foreground">
+                      Weavit
+                    </span>
+                    <span className="rounded-sm border border-primary/20 bg-primary/10 px-1.5 py-0.2 font-mono text-[9px] font-bold text-primary">
                       PRO
                     </span>
                   </div>
-                  <span className="text-[11px] text-muted-foreground font-medium">Workspace Engine</span>
+                  <span className="text-[11px] font-medium text-muted-foreground">
+                    Workspace Engine
+                  </span>
                 </div>
               </a>
             </SidebarMenuButton>
@@ -210,7 +230,7 @@ export function AppSidebar({
         </SidebarMenu>
       </SidebarHeader>
 
-      <SidebarContent className="gap-3 px-2 py-2">
+      <SidebarContent className="gap-3 px-2 py-2 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:overflow-hidden group-data-[collapsible=icon]:px-1.5">
         <SidebarGroup>
           <SidebarGroupLabel className="px-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80">
             Apps
@@ -227,15 +247,18 @@ export function AppSidebar({
                     tooltip={item.title}
                     isActive={isActive}
                     className={cn(
-                      "relative rounded-lg px-2.5 transition-all duration-150",
+                      "relative rounded-lg px-2.5 transition-all duration-150 group-data-[collapsible=icon]:justify-center",
                       isActive
                         ? "bg-sidebar-accent font-medium text-foreground shadow-2xs"
                         : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground"
                     )}
                   >
-                    <a href={item.url} className="flex w-full items-center gap-3">
+                    <a
+                      href={item.url}
+                      className="flex w-full items-center gap-3 group-data-[collapsible=icon]:w-auto group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0"
+                    >
                       {isActive && (
-                        <span className="absolute top-1/2 left-0 h-4 w-1 -translate-y-1/2 rounded-r-full bg-primary" />
+                        <span className="absolute top-1/2 left-0 h-4 w-1 -translate-y-1/2 rounded-r-full bg-primary group-data-[collapsible=icon]:hidden" />
                       )}
                       <span
                         className={cn(
@@ -247,7 +270,7 @@ export function AppSidebar({
                       >
                         {item.icon}
                       </span>
-                      <span className="flex-1 truncate text-[13px] font-medium">
+                      <span className="flex-1 truncate text-[13px] font-medium group-data-[collapsible=icon]:hidden">
                         {item.title}
                       </span>
                     </a>
@@ -259,12 +282,45 @@ export function AppSidebar({
         </SidebarGroup>
 
         <NavMain items={navMain} currentPath={currentPath} />
-        <NavProjects projects={projectItems}  currentPath={currentPath} />
-        <NavSecondary items={navSecondary} className="mt-auto pt-2 border-t border-sidebar-border/40" />
+        <NavProjects projects={projectItems} currentPath={currentPath} />
+        <NavSecondary
+          items={navSecondary}
+          className="mt-auto border-t border-sidebar-border/40 pt-2"
+        />
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border/50 pt-2">
-        <NavUser user={user} />
+        {signedIn ? (
+          <NavUser user={user} />
+        ) : (
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                size="lg"
+                asChild
+                tooltip="Sign in"
+                className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground group-data-[collapsible=icon]:size-10! group-data-[collapsible=icon]:justify-center"
+              >
+                <a
+                  href="/login"
+                  className="flex w-full items-center gap-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0"
+                >
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary-foreground/15">
+                    <LogIn className="size-4" />
+                  </span>
+                  <span className="grid min-w-0 flex-1 text-left text-xs leading-tight group-data-[collapsible=icon]:hidden">
+                    <span className="truncate text-[13px] font-semibold">
+                      Sign in
+                    </span>
+                    <span className="truncate text-[11px] opacity-80">
+                      Unlock your workspace
+                    </span>
+                  </span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        )}
       </SidebarFooter>
     </Sidebar>
   )

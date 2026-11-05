@@ -1,7 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { usePathname } from "next/navigation"
+import Link from "next/link"
+import { usePathname, useRouter } from "next/navigation"
 import { useAuth, useUser } from "@clerk/nextjs"
 import { AppSidebar, type SidebarProject } from "@workspace/ui/components/app-sidebar"
 import {
@@ -12,6 +13,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@workspace/ui/components/breadcrumb"
+import { Button } from "@workspace/ui/components/button"
 import {
   SidebarInset,
   SidebarProvider,
@@ -30,15 +32,29 @@ const ROUTE_LABELS: Record<string, string> = {
   "/workspace/settings": "Settings",
 }
 
+function isWorkspaceHome(pathname: string | null) {
+  if (!pathname) return false
+  return pathname === "/workspace" || pathname === "/workspace/"
+}
+
 export default function WorkspaceLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname()
+  const router = useRouter()
   const { isLoaded, isSignedIn } = useAuth()
   const { user } = useUser()
   const { data: projects } = useGetProjectsQuery(undefined, {
     skip: !isLoaded || !isSignedIn,
   })
+
+  const onHome = isWorkspaceHome(pathname)
+
+  // Nested workspace pages require auth; home stays public with a login CTA
+  React.useEffect(() => {
+    if (!isLoaded || isSignedIn || onHome) return
+    router.replace("/login")
+  }, [isLoaded, isSignedIn, onHome, router])
 
   const sidebarUser = React.useMemo(() => {
     if (!user) return undefined
@@ -75,12 +91,25 @@ export default function WorkspaceLayout({
     return "Workspace"
   }, [pathname])
 
+  // Brief gate while redirecting away from nested pages
+  if (isLoaded && !isSignedIn && !onHome) {
+    return (
+      <div className="flex h-svh flex-col items-center justify-center gap-3 bg-background px-6 text-center">
+        <p className="text-sm text-muted-foreground">Redirecting to sign in…</p>
+        <Button asChild size="sm" className="rounded-lg">
+          <Link href="/login">Sign in</Link>
+        </Button>
+      </div>
+    )
+  }
+
   return (
     <SidebarProvider className=" h-svh overflow-hidden">
       <AppSidebar
         currentPath={pathname}
         projects={sidebarProjects}
         user={sidebarUser}
+        signedIn={Boolean(isSignedIn)}
         variant="sidebar"
         collapsible="icon"
       />
@@ -88,11 +117,7 @@ export default function WorkspaceLayout({
       <SidebarInset className="min-h-0 min-w-0 overflow-hidden bg-background">
         <header className=" ml-1 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-border bg-background px-4">
           <SidebarTrigger className="-ml-1 mr-6 text-foreground/45 hover:text-foreground" />
-          {/* <Separator
-            orientation="vertical"
-            className="mr-2  bg-border data-[orientation=vertical]:h-full "
-          /> */}
-          <Breadcrumb>
+          <Breadcrumb className="min-w-0 flex-1">
             <BreadcrumbList className="text-sm">
               <BreadcrumbItem className="hidden sm:block">
                 <BreadcrumbLink
@@ -110,6 +135,11 @@ export default function WorkspaceLayout({
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
+          {isLoaded && !isSignedIn ? (
+            <Button asChild size="sm" className="shrink-0 rounded-lg">
+              <Link href="/login">Sign in</Link>
+            </Button>
+          ) : null}
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>

@@ -188,21 +188,32 @@ export default function WorkspaceHomePage() {
               {todayLabel}
             </div>
             <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-              Welcome back, {firstName}
+              {isSignedIn ? `Welcome back, ${firstName}` : "Your workspace"}
             </h1>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              Your workspace home — habits, todos, roadmaps, and deadlines in one
-              place. Jump into what needs attention today.
+              {isSignedIn
+                ? "Your workspace home — habits, todos, roadmaps, and deadlines in one place. Jump into what needs attention today."
+                : "Browse the workspace overview. Sign in to open habits, plans, todos, deadlines, and your real data."}
             </p>
           </div>
-          <Link
-            href="/workspace/timeline"
-            className="inline-flex items-center gap-1.5 self-start rounded-lg border border-border/80 bg-card/60 px-3 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:border-border hover:text-foreground md:self-auto"
-          >
-            <Flame className="size-3.5" />
-            Open week timeline
-            <ArrowRight className="size-3.5" />
-          </Link>
+          {isLoaded && !isSignedIn ? (
+            <Link
+              href="/login"
+              className="inline-flex items-center gap-1.5 self-start rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90 md:self-auto"
+            >
+              Sign in
+              <ArrowRight className="size-4" />
+            </Link>
+          ) : (
+            <Link
+              href="/workspace/timeline"
+              className="inline-flex items-center gap-1.5 self-start rounded-lg border border-border/80 bg-card/60 px-3 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:border-border hover:text-foreground md:self-auto"
+            >
+              <Flame className="size-3.5" />
+              Open week timeline
+              <ArrowRight className="size-3.5" />
+            </Link>
+          )}
         </header>
 
         <section

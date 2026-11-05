@@ -48,19 +48,23 @@ export function NavUser({
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="rounded-xl p-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground hover:bg-sidebar-accent/80 transition-colors"
+              className="rounded-xl p-2 transition-colors hover:bg-sidebar-accent/80 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-10! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0!"
             >
-              <Avatar className="h-8 w-8 rounded-lg border border-border/80">
+              <Avatar className="h-8 w-8 shrink-0 rounded-lg border border-border/80">
                 {user.avatar && <AvatarImage src={user.avatar} alt={user.name} />}
-                <AvatarFallback className="rounded-lg bg-primary/10 text-primary font-bold text-xs">
+                <AvatarFallback className="rounded-lg bg-primary/10 text-xs font-bold text-primary">
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left text-xs leading-tight">
-                <span className="truncate font-semibold text-foreground text-[13px]">{user.name}</span>
-                <span className="truncate text-[11px] text-muted-foreground">{user.email}</span>
+              <div className="grid min-w-0 flex-1 text-left text-xs leading-tight group-data-[collapsible=icon]:hidden">
+                <span className="truncate text-[13px] font-semibold text-foreground">
+                  {user.name}
+                </span>
+                <span className="truncate text-[11px] text-muted-foreground">
+                  {user.email}
+                </span>
               </div>
-              <ChevronsUpDownIcon className="ml-auto size-3.5 text-muted-foreground" />
+              <ChevronsUpDownIcon className="ml-auto size-3.5 text-muted-foreground group-data-[collapsible=icon]:hidden" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent

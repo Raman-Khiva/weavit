@@ -34,7 +34,11 @@ import {
   usePatchCalendarEventMutation,
   useDeleteCalendarEventMutation,
 } from "../timeline/timeline.api"
-import { useAgent } from "./agent"
+import {
+  splitGuestLoginMarker,
+  useAgent,
+  type AgentChatTurn,
+} from "./agent"
 import {
   buildAgentStateSnapshot,
   extractAndExecuteActions,
@@ -50,6 +54,8 @@ export type AgentRunResult = {
   preview: PlanPreview | null
   failed: { action: ActionItem; message: string }[]
   skippedPlanSeeds: number
+  /** Guest replies may ask the UI to show Sign in */
+  needsLogin?: boolean
 }
 
 export function useAgentRuntime() {
@@ -170,6 +176,26 @@ export function useAgentRuntime() {
     }
   }
 
+  /** Product-only conversation for signed-out visitors — no actions / preview */
+  async function runGuest(
+    prompt: string,
+    history: AgentChatTurn[] = []
+  ): Promise<AgentRunResult> {
+    const result = await submitQuery(prompt, {}, { mode: "guest", history })
+    const rawMessage =
+      result?.message ?? "Something went wrong — try again."
+    const { text, needsLogin } = splitGuestLoginMarker(rawMessage)
+
+    return {
+      message: text,
+      actions: [],
+      preview: null,
+      failed: [],
+      skippedPlanSeeds: 0,
+      needsLogin,
+    }
+  }
+
   async function savePreviewToWorkspace(preview: PlanPreview) {
     const body = previewToCreateProjectInput(preview)
     return postProject(body).unwrap()
@@ -178,8 +204,10 @@ export function useAgentRuntime() {
   return {
     ready,
     signedIn: Boolean(isSignedIn),
+    authLoaded: isLoaded,
     workspaceState,
     run,
+    runGuest,
     savePreviewToWorkspace,
     isLoading: agentMeta.isLoading,
     error: agentMeta.error,

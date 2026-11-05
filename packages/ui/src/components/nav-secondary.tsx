@@ -29,11 +29,17 @@ export function NavSecondary({
               <SidebarMenuButton
                 asChild
                 size="sm"
-                className="text-muted-foreground transition-colors hover:text-foreground [&_svg]:text-muted-foreground/70"
+                tooltip={item.title}
+                className="text-muted-foreground transition-colors hover:text-foreground group-data-[collapsible=icon]:justify-center [&_svg]:text-muted-foreground/70"
               >
-                <a href={item.url} className="flex items-center gap-3">
+                <a
+                  href={item.url}
+                  className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0"
+                >
                   <span className="shrink-0 [&_svg]:size-4">{item.icon}</span>
-                  <span className="text-[12.5px] font-medium">{item.title}</span>
+                  <span className="text-[12.5px] font-medium group-data-[collapsible=icon]:hidden">
+                    {item.title}
+                  </span>
                 </a>
               </SidebarMenuButton>
             </SidebarMenuItem>

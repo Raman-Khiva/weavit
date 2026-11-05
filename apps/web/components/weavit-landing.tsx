@@ -116,35 +116,37 @@ function HeroOrbitCard({
         onClick={onSelect}
         style={{ animationDelay: delay }}
         className={cn(
-          "group w-[9.25rem] rounded-2xl border bg-[#0c0e12]/95 p-3 text-left shadow-[0_12px_40px_-18px_rgba(0,0,0,0.85)] backdrop-blur-md transition-colors sm:w-[10rem]",
+          "group w-[9.25rem] rounded-2xl border bg-white p-3 text-left shadow-[0_12px_32px_-14px_rgba(0,0,0,0.22)] backdrop-blur-md transition-colors sm:w-[10rem] dark:bg-[#0c0e12]/95 dark:shadow-[0_12px_40px_-18px_rgba(0,0,0,0.85)]",
           "animate-[weavit-float_7s_ease-in-out_infinite]",
           active
-            ? "border-emerald-400/50 bg-emerald-400/10"
-            : "border-white/12 hover:border-white/25 hover:bg-white/[0.06]"
+            ? "border-emerald-500/60 bg-emerald-50 dark:border-emerald-400/50 dark:bg-emerald-400/10"
+            : "border-zinc-300 hover:border-zinc-400 hover:bg-zinc-50 dark:border-white/12 dark:hover:border-white/25 dark:hover:bg-white/[0.06]"
         )}
       >
         <span
           className={cn(
             "mb-2 inline-flex size-8 items-center justify-center rounded-xl border",
             active
-              ? "border-emerald-400/40 bg-emerald-400/15 text-emerald-300"
-              : "border-white/10 bg-white/[0.04] text-white/70 group-hover:text-white"
+              ? "border-emerald-500/40 bg-emerald-100 text-emerald-700 dark:border-emerald-400/40 dark:bg-emerald-400/15 dark:text-emerald-300"
+              : "border-zinc-200 bg-zinc-50 text-zinc-600 group-hover:text-zinc-950 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70 dark:group-hover:text-white"
           )}
         >
           <Icon className="size-4" strokeWidth={1.75} />
         </span>
-        <p className="font-[family-name:var(--font-landing-display)] text-[13px] font-semibold tracking-tight text-white">
+        <p className="font-[family-name:var(--font-landing-display)] text-[13px] font-semibold tracking-tight text-zinc-950 dark:text-white">
           {title}
         </p>
-        <p className="mt-0.5 text-[11px] leading-snug text-white/40">{hint}</p>
+        <p className="mt-0.5 text-[11px] leading-snug text-zinc-500 dark:text-white/40">{hint}</p>
       </button>
     </div>
   )
 }
 
+const HERO_DEFAULT_PROMPT = "What is Weavit?"
+
 function HeroPromptStage() {
   const router = useRouter()
-  const [prompt, setPrompt] = useState("")
+  const [prompt, setPrompt] = useState(HERO_DEFAULT_PROMPT)
   const [activeCard, setActiveCard] = useState<string | null>(null)
 
   function fillFromCard(id: string, sample: string) {
@@ -154,12 +156,8 @@ function HeroPromptStage() {
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const q = prompt.trim()
-    if (q) {
-      router.push(`/dashboard?prompt=${encodeURIComponent(q)}`)
-      return
-    }
-    router.push("/dashboard")
+    const q = prompt.trim() || HERO_DEFAULT_PROMPT
+    router.push(`/agent?prompt=${encodeURIComponent(q)}&autosend=1`)
   }
 
   return (
@@ -190,14 +188,14 @@ function HeroPromptStage() {
 
         <form
           onSubmit={onSubmit}
-          className="relative z-10 rounded-2xl border border-white/15 bg-[#0c0e12]/95 p-3 shadow-[0_30px_80px_-28px_rgba(16,185,129,0.4)] backdrop-blur-xl sm:p-3.5"
+          className="relative z-10 rounded-2xl border border-zinc-300 bg-white p-3 shadow-[0_18px_50px_-20px_rgba(0,0,0,0.28),0_0_0_1px_rgba(0,0,0,0.04)] backdrop-blur-xl sm:p-3.5 dark:border-white/15 dark:bg-[#0c0e12]/95 dark:shadow-[0_30px_80px_-28px_rgba(16,185,129,0.4)]"
         >
           <label htmlFor="hero-prompt" className="sr-only">
             Ask Weavit
           </label>
-          <div className="flex min-h-[7.25rem] flex-col rounded-xl bg-white/[0.03] p-3 sm:min-h-[8.25rem]">
-            <p className="mb-2 flex items-center gap-1.5 text-[11px] font-medium text-white/35">
-              <Bot className="size-3.5 text-emerald-400/80" />
+          <div className="flex min-h-[7.25rem] flex-col rounded-xl bg-zinc-100/70 p-3 sm:min-h-[8.25rem] dark:bg-white/[0.03]">
+            <p className="mb-2 flex items-center gap-1.5 text-[11px] font-medium text-zinc-500 dark:text-white/35">
+              <Bot className="size-3.5 text-emerald-600 dark:text-emerald-400/80" />
               Talk to the agent — it runs allowlisted workspace actions
             </p>
             <textarea
@@ -209,12 +207,12 @@ function HeroPromptStage() {
                 setActiveCard(null)
               }}
               placeholder="Build a roadmap, log a check-in, or ask what’s due…"
-              className="min-h-0 w-full flex-1 resize-none bg-transparent text-sm leading-relaxed text-white outline-none placeholder:text-white/30"
+              className="min-h-0 w-full flex-1 resize-none bg-transparent text-base font-semibold leading-relaxed text-zinc-950 outline-none placeholder:text-zinc-400 sm:text-lg dark:text-white dark:placeholder:text-white/30"
             />
             <div className="mt-2 flex items-center justify-end">
               <button
                 type="submit"
-                className="inline-flex items-center gap-2 rounded-xl bg-emerald-400 px-4 py-2 text-sm font-bold text-zinc-950 transition-colors hover:bg-emerald-300"
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-bold text-zinc-950 transition-colors hover:bg-emerald-400 dark:bg-emerald-400 dark:hover:bg-emerald-300"
               >
                 Open
                 <ArrowRight className="size-4" />
@@ -234,8 +232,8 @@ function HeroPromptStage() {
                 className={cn(
                   "inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium",
                   activeCard === card.id
-                    ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-200"
-                    : "border-white/10 bg-white/[0.04] text-white/70"
+                    ? "border-emerald-500/40 bg-emerald-50 text-emerald-800 dark:border-emerald-400/40 dark:bg-emerald-400/10 dark:text-emerald-200"
+                    : "border-zinc-200 bg-white text-zinc-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70"
                 )}
               >
                 <Icon className="size-3.5" />
@@ -251,14 +249,14 @@ function HeroPromptStage() {
 
 export function WeavitLanding() {
   return (
-    <div className="relative min-h-screen w-full overflow-x-hidden bg-[#07080a] text-white">
+    <div className="relative min-h-screen w-full overflow-x-hidden bg-zinc-50 text-zinc-950 dark:bg-[#07080a] dark:text-white">
       <FloatingNav />
 
       {/* Hero — vertically centered in the viewport */}
       <section className="relative flex min-h-[100svh] items-center overflow-x-clip py-24 lg:py-28">
         <div
           aria-hidden
-          className="pointer-events-none absolute top-1/2 left-1/2 h-[120%] w-screen max-w-none -translate-x-1/2 -translate-y-1/2"
+          className="pointer-events-none absolute top-1/2 left-1/2 h-[120%] w-screen max-w-none -translate-x-1/2 -translate-y-1/2 opacity-70 dark:opacity-100"
           style={{
             background:
               "radial-gradient(ellipse 70% 55% at 72% 48%, rgba(16,185,129,0.16) 0%, rgba(16,185,129,0.07) 32%, rgba(16,185,129,0.02) 55%, transparent 72%)",
@@ -267,18 +265,18 @@ export function WeavitLanding() {
 
         <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-10 px-5 sm:px-10 lg:grid-cols-2 lg:gap-6 lg:px-10 xl:gap-4 xl:px-12">
           <div className="relative flex max-w-xl flex-col justify-center lg:ml-auto lg:mr-2 lg:max-w-md xl:mr-6 xl:max-w-lg">
-            <p className="mb-6 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/45">
+            <p className="mb-6 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500 dark:text-white/45">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-70" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500 dark:bg-emerald-400" />
               </span>
               Agent-driven workspace · early access
             </p>
 
-            <h1 className="font-[family-name:var(--font-landing-display)] text-[clamp(2.35rem,5.2vw,4rem)] font-semibold leading-[1.02] tracking-[-0.03em] text-white">
+            <h1 className="font-[family-name:var(--font-landing-display)] text-[clamp(2.35rem,5.2vw,4rem)] font-semibold leading-[1.02] tracking-[-0.03em] text-zinc-950 dark:text-white">
               Ask once. Your workspace moves.
             </h1>
-            <p className="mt-5 max-w-md text-sm leading-relaxed text-white/50 sm:text-[1.05rem] sm:leading-relaxed">
+            <p className="mt-5 max-w-md text-sm leading-relaxed text-zinc-600 sm:text-[1.05rem] sm:leading-relaxed dark:text-white/50">
               An AI workspace for builders — draft phased roadmaps with a live
               preview, keep daily loops honest, and surface what&apos;s due, all
               through one agent that updates the real workspace for you.
@@ -287,16 +285,18 @@ export function WeavitLanding() {
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <Link
                 href="/dashboard"
-                className="group inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-zinc-950 transition-all hover:gap-3"
+                className="group inline-flex items-center gap-2 rounded-full bg-zinc-950 px-6 py-3 text-sm font-bold text-white transition-all hover:gap-3 dark:bg-white dark:text-zinc-950"
               >
                 Open Workspace
                 <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
               <Link
-                href="/overview"
-                className="inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-3 text-sm font-semibold text-white/75 transition-colors hover:border-white/40 hover:text-white"
+                href={`/agent?prompt=${encodeURIComponent(
+                  "What is Weavit, and how should I start using the agent in my workspace?"
+                )}&autosend=1`}
+                className="inline-flex items-center gap-2 rounded-full border border-zinc-300 px-5 py-3 text-sm font-semibold text-zinc-700 transition-colors hover:border-zinc-400 hover:text-zinc-950 dark:border-white/20 dark:text-white/75 dark:hover:border-white/40 dark:hover:text-white"
               >
-                See how it works
+                What is Weavit?
               </Link>
             </div>
           </div>
@@ -307,16 +307,16 @@ export function WeavitLanding() {
         </div>
       </section>
 
-      {/* Built-with strip → soft fade into white feature section */}
-      <div className="border-t border-white/10 bg-[#07080a]">
+      {/* Built-with strip → soft fade into feature section */}
+      <div className="border-t border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-[#07080a]">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-10 gap-y-4 px-6 py-6 sm:justify-between">
-          <p className="w-full text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-white/35 sm:w-auto sm:text-left">
+          <p className="w-full text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-400 sm:w-auto sm:text-left dark:text-white/35">
             Built with
           </p>
           {STACK.slice(0, 6).map((name) => (
             <span
               key={name}
-              className="text-sm font-semibold tracking-tight text-white/40"
+              className="text-sm font-semibold tracking-tight text-zinc-500 dark:text-white/40"
             >
               {name}
             </span>
@@ -326,45 +326,45 @@ export function WeavitLanding() {
 
       <div
         aria-hidden
-        className="h-24 w-full sm:h-32"
-        style={{
-          background:
-            "linear-gradient(to bottom, #07080a 0%, #121316 28%, #3f3f46 55%, #d4d4d8 82%, #fafafa 100%)",
-        }}
+        className="h-16 w-full bg-gradient-to-b from-zinc-50 to-zinc-50 sm:h-24 dark:from-[#07080a] dark:via-[#3f3f46] dark:to-[#fafafa]"
       />
 
       <FeatureSection />
 
       <div
         aria-hidden
-        className="h-24 w-full sm:h-32"
-        style={{
-          background:
-            "linear-gradient(to bottom, #fafafa 0%, #d4d4d8 18%, #3f3f46 45%, #121316 72%, #07080a 100%)",
-        }}
+        className="h-16 w-full bg-gradient-to-b from-zinc-50 to-zinc-50 sm:h-24 dark:from-[#fafafa] dark:via-[#3f3f46] dark:to-[#07080a]"
       />
 
       <PlatformCapabilities />
 
       {/* Trust */}
-      <section className="border-y border-white/10 bg-[#0b0d10]">
+      <section className="border-y border-zinc-200 bg-white dark:border-white/10 dark:bg-[#0b0d10]">
         <div className="mx-auto max-w-6xl px-6 py-20 sm:px-10 lg:py-24">
           <div className="max-w-2xl">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/35">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-400 dark:text-white/35">
               Trust
             </p>
-            <h2 className="mt-3 font-[family-name:var(--font-landing-display)] text-[clamp(1.75rem,3.2vw,2.5rem)] font-semibold tracking-tight text-white">
+            <h2 className="mt-3 font-[family-name:var(--font-landing-display)] text-[clamp(1.75rem,3.2vw,2.5rem)] font-semibold tracking-tight text-zinc-950 dark:text-white">
               Built like production software — even in early access.
             </h2>
           </div>
           <div className="mt-12 grid gap-8 md:grid-cols-3">
             {TRUST.map(({ icon: Icon, title, body }) => (
-              <div key={title} className="space-y-3 border-t border-white/10 pt-6">
-                <Icon className="size-5 text-emerald-400" strokeWidth={1.75} />
-                <h3 className="font-[family-name:var(--font-landing-display)] text-lg font-semibold text-white">
+              <div
+                key={title}
+                className="space-y-3 border-t border-zinc-200 pt-6 dark:border-white/10"
+              >
+                <Icon
+                  className="size-5 text-emerald-600 dark:text-emerald-400"
+                  strokeWidth={1.75}
+                />
+                <h3 className="font-[family-name:var(--font-landing-display)] text-lg font-semibold text-zinc-950 dark:text-white">
                   {title}
                 </h3>
-                <p className="text-sm leading-relaxed text-white/45">{body}</p>
+                <p className="text-sm leading-relaxed text-zinc-600 dark:text-white/45">
+                  {body}
+                </p>
               </div>
             ))}
           </div>
@@ -374,29 +374,29 @@ export function WeavitLanding() {
       <ComparisonSection />
 
       {/* Final CTA */}
-      <section className="relative overflow-hidden bg-[#07080a] px-6 py-24 sm:px-10">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(16,185,129,0.16),transparent_50%)]" />
+      <section className="relative overflow-hidden bg-zinc-50 px-6 py-24 sm:px-10 dark:bg-[#07080a]">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(16,185,129,0.12),transparent_50%)] dark:bg-[radial-gradient(ellipse_at_50%_0%,rgba(16,185,129,0.16),transparent_50%)]" />
         <div className="relative mx-auto max-w-4xl text-center">
-          <Zap className="mx-auto size-8 text-emerald-400" />
-          <h2 className="mt-6 font-[family-name:var(--font-landing-display)] text-[clamp(2rem,4.5vw,3.5rem)] font-semibold leading-[1.08] tracking-[-0.02em] text-white">
+          <Zap className="mx-auto size-8 text-emerald-600 dark:text-emerald-400" />
+          <h2 className="mt-6 font-[family-name:var(--font-landing-display)] text-[clamp(2rem,4.5vw,3.5rem)] font-semibold leading-[1.08] tracking-[-0.02em] text-zinc-950 dark:text-white">
             Stop planning in five tabs.
             <br />
             Start executing in one.
           </h2>
-          <p className="mx-auto mt-5 max-w-lg text-base text-white/50">
+          <p className="mx-auto mt-5 max-w-lg text-base text-zinc-600 dark:text-white/50">
             Open the workspace. Load a roadmap. Check a habit. Ask the agent.
           </p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
             <Link
               href="/dashboard"
-              className="group inline-flex items-center gap-2 rounded-full bg-emerald-400 px-8 py-3.5 text-sm font-bold text-zinc-950 transition-all hover:gap-3 hover:bg-emerald-300"
+              className="group inline-flex items-center gap-2 rounded-full bg-emerald-500 px-8 py-3.5 text-sm font-bold text-zinc-950 transition-all hover:gap-3 hover:bg-emerald-400 dark:bg-emerald-400 dark:hover:bg-emerald-300"
             >
               Open Workspace
               <ArrowRight className="size-4" />
             </Link>
             <Link
               href="/overview"
-              className="inline-flex items-center gap-2 rounded-full border border-white/20 px-6 py-3.5 text-sm font-semibold text-white/75 hover:text-white"
+              className="inline-flex items-center gap-2 rounded-full border border-zinc-300 px-6 py-3.5 text-sm font-semibold text-zinc-700 hover:text-zinc-950 dark:border-white/20 dark:text-white/75 dark:hover:text-white"
             >
               Learn more
             </Link>
@@ -405,16 +405,16 @@ export function WeavitLanding() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-white/10 bg-black px-6 py-14 sm:px-10">
+      <footer className="border-t border-zinc-200 bg-white px-6 py-14 sm:px-10 dark:border-white/10 dark:bg-black">
         <div className="mx-auto grid max-w-6xl gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="sm:col-span-2 lg:col-span-1">
             <Link href="/" className="inline-flex items-center gap-2">
               <img src="/logo-weavit.png" alt="" className="h-7 w-auto" />
-              <span className="font-[family-name:var(--font-landing-display)] text-lg font-semibold tracking-tight text-white">
+              <span className="font-[family-name:var(--font-landing-display)] text-lg font-semibold tracking-tight text-zinc-950 dark:text-white">
                 weavit
               </span>
             </Link>
-            <p className="mt-3 max-w-xs text-sm text-white/40">
+            <p className="mt-3 max-w-xs text-sm text-zinc-500 dark:text-white/40">
               High-density workspace engine for builders who ship.
             </p>
           </div>
@@ -439,13 +439,18 @@ export function WeavitLanding() {
             {
               title: "Resources",
               links: [
-                { href: "/agent", label: "Agent" },
+                {
+                  href: `/agent?prompt=${encodeURIComponent(
+                    "What is Weavit, and how should I start using the agent in my workspace?"
+                  )}&autosend=1`,
+                  label: "What is Weavit?",
+                },
                 { href: "/login", label: "Sign in" },
               ],
             },
           ].map((col) => (
             <div key={col.title}>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/35">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400 dark:text-white/35">
                 {col.title}
               </p>
               <ul className="mt-4 space-y-2.5">
@@ -453,7 +458,7 @@ export function WeavitLanding() {
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-sm text-white/60 transition-colors hover:text-white"
+                      className="text-sm text-zinc-600 transition-colors hover:text-zinc-950 dark:text-white/60 dark:hover:text-white"
                     >
                       {link.label}
                     </Link>
@@ -465,7 +470,7 @@ export function WeavitLanding() {
         </div>
         <div
           id="about"
-          className="mx-auto mt-12 flex max-w-6xl flex-col gap-3 border-t border-white/10 pt-8 text-xs text-white/35 sm:flex-row sm:items-center sm:justify-between"
+          className="mx-auto mt-12 flex max-w-6xl flex-col gap-3 border-t border-zinc-200 pt-8 text-xs text-zinc-400 sm:flex-row sm:items-center sm:justify-between dark:border-white/10 dark:text-white/35"
         >
           <p>© {new Date().getFullYear()} Weavit · Workspace Engine</p>
           <p className="font-mono">Plans · Habits · Deadlines · Agent</p>
