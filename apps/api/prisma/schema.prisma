@@ -64,7 +64,9 @@ model User {
   todos     Todo[]
   deadlines Deadline[]
   calendars Calendar[]
+
   calendarEvents CalendarEvent[]
+  @@index([clerkId])
 }
 
 /// CalendarWeek CalendarSource — named calendars that color/filter events
