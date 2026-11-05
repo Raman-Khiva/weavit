@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import {
   Avatar,
   AvatarFallback,
@@ -24,14 +25,18 @@ import { ChevronsUpDownIcon, BadgeCheckIcon, CreditCardIcon, BellIcon, LogOutIco
 
 export function NavUser({
   user,
+  onSignOut,
 }: {
   user: {
     name: string
     email: string
     avatar?: string
   }
+  /** Must call the auth provider sign-out (e.g. Clerk). Linking to /login alone leaves the session active. */
+  onSignOut?: () => void | Promise<void>
 }) {
   const { isMobile } = useSidebar()
+  const [signingOut, setSigningOut] = React.useState(false)
   const initials = user.name
     ? user.name
         .split(" ")
@@ -112,11 +117,20 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator className="my-1" />
-            <DropdownMenuItem asChild className="text-xs font-medium cursor-pointer rounded-lg text-rose-500 focus:text-rose-500 focus:bg-rose-500/10">
-              <a href="/login" className="flex items-center">
-                <LogOutIcon className="size-3.5 mr-2" />
-                Sign out
-              </a>
+            <DropdownMenuItem
+              disabled={signingOut || !onSignOut}
+              className="cursor-pointer rounded-lg text-xs font-medium text-rose-500 focus:bg-rose-500/10 focus:text-rose-500"
+              onSelect={(event) => {
+                event.preventDefault()
+                if (!onSignOut || signingOut) return
+                setSigningOut(true)
+                void Promise.resolve(onSignOut()).finally(() => {
+                  setSigningOut(false)
+                })
+              }}
+            >
+              <LogOutIcon className="mr-2 size-3.5" />
+              {signingOut ? "Logging out…" : "Logout"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

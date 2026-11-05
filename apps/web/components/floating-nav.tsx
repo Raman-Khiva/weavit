@@ -1,5 +1,6 @@
 import { UserButton, Show } from "@clerk/nextjs"
 import Link from "next/link"
+import { WeavitLogo } from "@workspace/ui/components/weavit-logo"
 
 export const FloatingNav = (): JSX.Element => {
   return (
@@ -7,11 +8,7 @@ export const FloatingNav = (): JSX.Element => {
       <nav className="pointer-events-auto flex w-full max-w-4xl items-center justify-between gap-4 rounded-2xl border border-zinc-200/80 bg-white/80 px-5 py-2 shadow-md backdrop-blur-md sm:gap-6 sm:px-9 sm:py-3 dark:border-white/10 dark:bg-zinc-950/70">
         <div className="mr-2 text-lg font-bold tracking-tighter text-zinc-950 sm:mr-4 dark:text-white">
           <Link href="/" className="flex items-center transition-opacity hover:opacity-90">
-            <img
-              src="/logo-weavit.png"
-              alt="Weavit Logo"
-              className="h-11 w-auto rounded-md object-contain"
-            />
+            <WeavitLogo className="h-11 w-auto rounded-md" />
             <span className="font-bold">weavit.</span>
           </Link>
         </div>

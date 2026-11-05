@@ -12,6 +12,7 @@ import {
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { Loader2, ArrowLeft } from "lucide-react"
+import { WeavitLogo } from "@workspace/ui/components/weavit-logo"
 
 export interface LoginFormProps extends Omit<React.ComponentProps<"div">, "onSubmit"> {
   isSignUp?: boolean
@@ -83,11 +84,7 @@ export function LoginForm({
               className="flex flex-col items-center gap-2 font-medium transition-opacity hover:opacity-90"
             >
               <div className="flex items-center justify-center">
-                <img
-                  src="/logo-weavit.png"
-                  alt="Weavit Logo"
-                  className="h-16 w-auto object-contain rounded-md"
-                />
+                <WeavitLogo className="h-16 w-auto rounded-md" />
               </div>
               <span className="sr-only">Weavit</span>
             </a>

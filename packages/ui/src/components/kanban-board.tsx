@@ -28,6 +28,7 @@ interface PatternProps {
   buildingData: TODO[];
   shippedData: TODO[];
   onStatusChange?: (id: string, status: TODO["status"]) => void;
+  className?: string;
 }
 
 type ColumnId = "planned" | "building" | "shipped";
@@ -123,6 +124,7 @@ export function Pattern({
   buildingData,
   shippedData,
   onStatusChange,
+  className,
 }: PatternProps) {
   const [columns, setColumns] = useState<Columns>(() =>
     groupTodos([...plannedData, ...buildingData, ...shippedData])
@@ -177,16 +179,21 @@ export function Pattern({
         }
       }}
       getItemValue={(item) => item.id}
+      className={cn("flex h-full min-h-0 flex-col", className)}
     >
-      <KanbanBoard className="grid grid-cols-3 gap-3">
+      <KanbanBoard className="grid h-full min-h-0 grid-cols-1 gap-3 sm:grid-cols-3">
         {(Object.keys(COLUMNS) as ColumnId[]).map((columnId) => {
           const column = COLUMNS[columnId];
           const todos = columns[columnId];
 
           return (
-            <KanbanColumn key={columnId} value={columnId}>
-              <Frame spacing="sm" className="h-full">
-                <FrameHeader className="flex flex-row items-center gap-2">
+            <KanbanColumn
+              key={columnId}
+              value={columnId}
+              className="min-h-0 h-full"
+            >
+              <Frame spacing="sm" className="flex h-full min-h-0 flex-col">
+                <FrameHeader className="flex shrink-0 flex-row items-center gap-2">
                   <div
                     className={cn(
                       "size-2 rounded-full",
@@ -203,7 +210,7 @@ export function Pattern({
 
                 <KanbanColumnContent
                   value={columnId}
-                  className="flex flex-col gap-2 p-0.5"
+                  className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-0.5"
                 >
                   {todos.map((todo) => (
                     <TodoCard key={todo.id} todo={todo} />

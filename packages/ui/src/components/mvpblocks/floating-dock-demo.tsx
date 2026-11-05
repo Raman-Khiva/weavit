@@ -17,6 +17,7 @@ import {
 import { AgendaTimeline } from "@workspace/ui/components/agenda-timeline"
 import { Habits } from "@workspace/ui/components/habits"
 import { PlansOverview } from "@workspace/ui/components/plans-overview"
+import { WeavitLogo } from "@workspace/ui/components/weavit-logo"
 import type { components } from "@weavit/api-types"
 
 type Habit = components["schemas"]["Habit"]
@@ -85,13 +86,7 @@ export function FloatingDockDemo({
     () => [
       {
         title: "Weavit",
-        icon: (
-          <img
-            src="/logo-weavit.png"
-            alt="W"
-            className="h-full w-full object-contain rounded-full"
-          />
-        ),
+        icon: <WeavitLogo alt="W" className="h-full w-full rounded-full" />,
         href: "/",
       },
       {

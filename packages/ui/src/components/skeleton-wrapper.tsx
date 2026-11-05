@@ -69,9 +69,9 @@ export function HabitsPageSkeleton() {
 
 export function TodosPageSkeleton() {
   return (
-    <div className="flex min-h-full w-full flex-col items-center gap-10 px-16 py-15">
-      <Skeleton className="w-full h-12 border-b mb-6" />
-      <Skeleton className="w-full h-64" />
+    <div className="mx-auto flex h-full min-h-0 w-full max-w-7xl flex-col gap-4 p-6 md:p-8">
+      <Skeleton className="h-40 w-full shrink-0 rounded-2xl" />
+      <Skeleton className="min-h-0 flex-1 w-full rounded-xl" />
     </div>
   );
 }
@@ -111,8 +111,13 @@ export function TimelinePageSkeleton() {
 
 export function DraftsPageSkeleton() {
   return (
-    <div className="flex h-full w-full items-center justify-center">
-      <Skeleton className="h-12 w-1/4" />
+    <div className="mx-auto flex h-full w-full max-w-5xl flex-col gap-10 p-6 md:p-10">
+      <Skeleton className="h-44 w-full rounded-2xl" />
+      <div className="grid gap-3 sm:grid-cols-2">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-28 rounded-xl" />
+        ))}
+      </div>
     </div>
   );
 }

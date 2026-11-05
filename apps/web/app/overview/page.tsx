@@ -23,6 +23,7 @@ import {
   Repeat,
   AlertCircle,
 } from "lucide-react"
+import { WeavitLogo } from "@workspace/ui/components/weavit-logo"
 
 // Helper component to render 180-Degree Semi-Circle Arc Chart
 function SemiCircleGauge({
@@ -202,7 +203,7 @@ export default function OverviewPage() {
           </Link>
           <div className="h-4 w-[1px] bg-red-950" />
           <div className="flex items-center gap-2.5">
-            <img src="/logo-weavit.png" alt="Weavit Logo" className="h-6 w-auto object-contain" />
+            <WeavitLogo className="h-6 w-auto" />
             <h1 className="text-xs sm:text-sm font-semibold tracking-wider text-slate-200 uppercase">
               Raman Khiva <span className="text-muted-foreground font-normal">| Productive Command Canvas</span>
             </h1>

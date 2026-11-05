@@ -34,6 +34,7 @@ import type {
 } from "@/features/agent/schema.agent";
 import type { AgentWorkspaceState } from "@/features/agent/actions.agent";
 import { ActionCard } from "@/features/agent/ActionCard";
+import { WeavitLogo } from "@workspace/ui/components/weavit-logo";
 
 const AGENT_NAV = [
   { href: "/dashboard", label: "Dashboard" },
@@ -54,10 +55,9 @@ function AgentTopBar({
     <header className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-border bg-background/95 px-4 py-3 backdrop-blur sm:px-5">
       <div className="flex min-w-0 items-center gap-2.5">
         <Link href="/dashboard" className="shrink-0">
-          <img
-            src="/logo-weavit.png"
+          <WeavitLogo
             alt="Weavit"
-            className="size-8 rounded-xl object-contain sm:size-9"
+            className="size-8 rounded-xl sm:size-9"
           />
         </Link>
         <div className="min-w-0">

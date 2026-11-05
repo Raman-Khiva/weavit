@@ -32,6 +32,7 @@ import {
   LogIn,
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils"
+import { WeavitLogo } from "@workspace/ui/components/weavit-logo"
 
 export type SidebarProject = {
   id: string
@@ -57,6 +58,7 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   }
   /** When false, footer shows Sign in instead of the user menu */
   signedIn?: boolean
+  onSignOut?: () => void | Promise<void>
 }
 
 export function AppSidebar({
@@ -64,6 +66,7 @@ export function AppSidebar({
   projects: propProjects = [],
   user: propUser,
   signedIn = true,
+  onSignOut,
   ...props
 }: AppSidebarProps) {
   const [mountedPath, setMountedPath] = React.useState("")
@@ -205,11 +208,7 @@ export function AppSidebar({
                 className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0"
               >
                 <div className="flex aspect-square size-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-sidebar-border/80 bg-sidebar-primary/10 shadow-xs">
-                  <img
-                    src="/logo-weavit.png"
-                    alt="Weavit Logo"
-                    className="h-6 w-6 object-contain"
-                  />
+                  <WeavitLogo className="h-6 w-6" />
                 </div>
                 <div className="grid min-w-0 flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
                   <div className="flex items-center gap-1.5">
@@ -291,7 +290,7 @@ export function AppSidebar({
 
       <SidebarFooter className="border-t border-sidebar-border/50 pt-2">
         {signedIn ? (
-          <NavUser user={user} />
+          <NavUser user={user} onSignOut={onSignOut} />
         ) : (
           <SidebarMenu>
             <SidebarMenuItem>

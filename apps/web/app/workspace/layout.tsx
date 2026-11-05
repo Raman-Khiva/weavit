@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { useAuth, useUser } from "@clerk/nextjs"
+import { useAuth, useClerk, useUser } from "@clerk/nextjs"
 import { AppSidebar, type SidebarProject } from "@workspace/ui/components/app-sidebar"
 import {
   Breadcrumb,
@@ -43,6 +43,7 @@ export default function WorkspaceLayout({
   const pathname = usePathname()
   const router = useRouter()
   const { isLoaded, isSignedIn } = useAuth()
+  const { signOut } = useClerk()
   const { user } = useUser()
   const { data: projects } = useGetProjectsQuery(undefined, {
     skip: !isLoaded || !isSignedIn,
@@ -55,6 +56,10 @@ export default function WorkspaceLayout({
     if (!isLoaded || isSignedIn || onHome) return
     router.replace("/login")
   }, [isLoaded, isSignedIn, onHome, router])
+
+  const handleSignOut = React.useCallback(async () => {
+    await signOut({ redirectUrl: "/" })
+  }, [signOut])
 
   const sidebarUser = React.useMemo(() => {
     if (!user) return undefined
@@ -110,6 +115,7 @@ export default function WorkspaceLayout({
         projects={sidebarProjects}
         user={sidebarUser}
         signedIn={Boolean(isSignedIn)}
+        onSignOut={handleSignOut}
         variant="sidebar"
         collapsible="icon"
       />

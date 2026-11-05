@@ -12,6 +12,7 @@ import {
   Sliders,
 } from "lucide-react"
 import { cn } from "@workspace/ui/lib/utils"
+import { WeavitLogo } from "@workspace/ui/components/weavit-logo"
 
 const COMPARISON_ROWS = [
   {
@@ -90,11 +91,7 @@ export function ComparisonSection({ className }: { className?: string }) {
               </span>
             </div>
             <div className="relative z-10 col-span-4 flex flex-col items-center justify-center rounded-t-3xl border-b border-zinc-200 bg-white p-5 text-center shadow-lg backdrop-blur-xl sm:p-7 dark:border-white/10 dark:bg-white/[0.06] dark:shadow-2xl">
-              <img
-                src="/logo-weavit.png"
-                alt="Weavit Logo"
-                className="mb-2 h-10 w-auto object-contain"
-              />
+              <WeavitLogo className="mb-2 h-10 w-auto" />
               <h3 className="text-lg font-bold text-zinc-950 dark:text-white">Weavit</h3>
               <p className="text-[11px] text-zinc-500 dark:text-white/45">
                 Built with developer needs in mind

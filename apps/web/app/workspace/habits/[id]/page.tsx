@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { useParams } from "next/navigation"
 import { useAuth } from "@clerk/nextjs"
 import { HabitHeader, type HabitStatus } from "@workspace/ui/components/habit-header"
@@ -16,10 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
 import { HabitDetailPageSkeleton } from "@workspace/ui/components/skeleton-wrapper"
-import { Link2Icon, UnlinkIcon } from "lucide-react"
 import {
   useGetHabitsQuery,
   usePostHabitLogMutation,
@@ -106,18 +103,6 @@ function periodsFromCompletedDates(completedDates: string[]) {
   return periods
 }
 
-function LeetCodeMark({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
-      <path
-        fill="currentColor"
-        d="M14.7 3.3 6.4 12l8.3 8.7-1.9 1.8L2.6 12 12.8 1.5z"
-      />
-      <path fill="currentColor" d="M18.2 6.4h2.4v11.2h-2.4z" />
-    </svg>
-  )
-}
-
 function Page(): JSX.Element {
   const params = useParams()
   const habitId = habitIdFromParams(params.id)
@@ -129,9 +114,6 @@ function Page(): JSX.Element {
   const [postHabitLog] = usePostHabitLogMutation()
   const [toggleHabit] = useToggleHabitMutation()
 
-  const [leetcodeHandle, setLeetcodeHandle] = useState<string | null>(null)
-  const [draftHandle, setDraftHandle] = useState("")
-  const [isConnecting, setIsConnecting] = useState(false)
   const [reminder, setReminder] = useState<string | null>("Not set")
 
   const realHabit = habits?.find((item) => item.id === habitId)
@@ -168,19 +150,6 @@ function Page(): JSX.Element {
     [completedDates]
   )
 
-  useEffect(() => {
-    const getTodayStatus = async () => {
-      try {
-        const res = await fetch("http://localhost:4000/leetcode/Raman_Khiva")
-        if (!res.ok) return
-        await res.json()
-      } catch {
-        // optional integration probe; ignore failures
-      }
-    }
-    void getTodayStatus()
-  }, [])
-
   if (!isLoaded || !isSignedIn || isLoading || (isFetching && !habits)) {
     return <HabitDetailPageSkeleton />
   }
@@ -206,20 +175,6 @@ function Page(): JSX.Element {
   const status: HabitStatus = "on_track"
   const cadence = frequencyLabel(realHabit.frequency)
 
-  const connectLeetCode = () => {
-    const handle = draftHandle.trim()
-    if (!handle) return
-    setLeetcodeHandle(handle)
-    setDraftHandle("")
-    setIsConnecting(false)
-  }
-
-  const disconnectLeetCode = () => {
-    setLeetcodeHandle(null)
-    setDraftHandle("")
-    setIsConnecting(false)
-  }
-
   return (
     <main className="flex min-h-full w-full flex-col gap-10 px-10 py-16 xl:flex-row xl:justify-between">
       <div className="flex w-full flex-col gap-12 xl:max-w-[70%]">
@@ -234,7 +189,7 @@ function Page(): JSX.Element {
           startDate={PERIOD_START}
           targetEndDate={PERIOD_END}
           reminder={reminder}
-          source={leetcodeHandle ? `LeetCode · ${leetcodeHandle}` : "Manual check-in"}
+          source="Manual check-in"
           activeDays={stats.totalActiveDays}
           totalDays={stats.totalDays}
           doneToday={isDoneToday}
@@ -243,87 +198,6 @@ function Page(): JSX.Element {
           }}
           onSetReminder={() => setReminder("08:00 PM")}
         />
-
-        <section className="flex flex-col gap-3" aria-labelledby="habit-integrations">
-          <div className="flex items-end justify-between gap-3">
-            <div>
-              <h2 id="habit-integrations" className="text-sm font-semibold">
-                Integrations
-              </h2>
-              <p className="text-xs text-muted-foreground">
-                LeetCode is the only source that can check this habit in for you.
-              </p>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-border bg-card p-4">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-start gap-3">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-background/50 text-foreground">
-                  <LeetCodeMark className="size-5" />
-                </span>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold">LeetCode</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    A solved problem counts as today&apos;s check-in.
-                  </p>
-                  {leetcodeHandle && (
-                    <p className="mt-1 text-xs font-medium text-foreground">
-                      Connected as {leetcodeHandle}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {leetcodeHandle ? (
-                <Button variant="outline" size="sm" onClick={disconnectLeetCode}>
-                  <UnlinkIcon />
-                  Disconnect
-                </Button>
-              ) : (
-                <Button size="sm" onClick={() => setIsConnecting(true)} disabled={isConnecting}>
-                  <Link2Icon />
-                  Connect
-                </Button>
-              )}
-            </div>
-
-            {isConnecting && !leetcodeHandle && (
-              <form
-                className="mt-4 flex flex-col gap-2 border-t border-border pt-4 sm:flex-row"
-                onSubmit={(event) => {
-                  event.preventDefault()
-                  connectLeetCode()
-                }}
-              >
-                <Input
-                  value={draftHandle}
-                  onChange={(event) => setDraftHandle(event.target.value)}
-                  placeholder="LeetCode username"
-                  aria-label="LeetCode username"
-                  autoFocus
-                  className="border-input bg-background"
-                />
-                <div className="flex gap-2">
-                  <Button type="submit" size="sm" disabled={draftHandle.trim().length === 0}>
-                    Save
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setIsConnecting(false)
-                      setDraftHandle("")
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </form>
-            )}
-          </div>
-        </section>
 
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">

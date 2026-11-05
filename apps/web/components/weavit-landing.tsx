@@ -18,6 +18,7 @@ import { ComparisonSection } from "@/components/comparison-section"
 import { FeatureSection } from "@/components/feature-section"
 import { FloatingNav } from "@/components/floating-nav"
 import { PlatformCapabilities } from "@/components/platform-capabilities"
+import { WeavitLogo } from "@workspace/ui/components/weavit-logo"
 import { cn } from "@workspace/ui/lib/utils"
 
 /** 3 cards clustered close to the hero prompt */
@@ -274,12 +275,14 @@ export function WeavitLanding() {
             </p>
 
             <h1 className="font-[family-name:var(--font-landing-display)] text-[clamp(2.35rem,5.2vw,4rem)] font-semibold leading-[1.02] tracking-[-0.03em] text-zinc-950 dark:text-white">
-              Ask once. Your workspace moves.
+              From intention to execution.
+              <br />
+              Automatically.
             </h1>
             <p className="mt-5 max-w-md text-sm leading-relaxed text-zinc-600 sm:text-[1.05rem] sm:leading-relaxed dark:text-white/50">
-              An AI workspace for builders — draft phased roadmaps with a live
-              preview, keep daily loops honest, and surface what&apos;s due, all
-              through one agent that updates the real workspace for you.
+              Plan projects, organize tasks, manage daily routines, and track
+              progress through a command to an agent that can actually interact
+              with your workspace.
             </p>
 
             <div className="mt-9 flex flex-wrap items-center gap-3">
@@ -409,7 +412,7 @@ export function WeavitLanding() {
         <div className="mx-auto grid max-w-6xl gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="sm:col-span-2 lg:col-span-1">
             <Link href="/" className="inline-flex items-center gap-2">
-              <img src="/logo-weavit.png" alt="" className="h-7 w-auto" />
+              <WeavitLogo className="h-7 w-auto" alt="" />
               <span className="font-[family-name:var(--font-landing-display)] text-lg font-semibold tracking-tight text-zinc-950 dark:text-white">
                 weavit
               </span>

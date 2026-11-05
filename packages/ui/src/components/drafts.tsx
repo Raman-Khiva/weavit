@@ -1,62 +1,28 @@
-import { HiCursorArrowRipple } from "react-icons/hi2"
-import { Layers, Send } from "lucide-react"
-import { AccordionApp } from "@workspace/ui/components/animated-accordion"
-import { PiHandTap } from "react-icons/pi"
-import { IoIosTimer } from "react-icons/io"
-
-const items = [
-  {
-    id: 1,
-    title: "What is Interaction Design?",
-    icon: (
-      <HiCursorArrowRipple className="size-6 -rotate-10 md:size-[1.625rem]" />
-    ),
-    content:
-      "Interaction design focuses on creating engaging interfaces with well-thought-out behaviors and actions.",
-  },
-  {
-    id: 2,
-    title: "Principles & Patterns",
-    icon: <Layers className="size-6 md:size-[1.625rem]" />,
-    content:
-      "Fundamental guidelines and repeated solutions that ensure consistency and usability in design.",
-  },
-  {
-    id: 3,
-    title: "Usability & Accessibility",
-    icon: <PiHandTap className="size-6 -rotate-20 md:size-[1.625rem]" />,
-    content:
-      "Designing experiences that are easy to use and accessible to people of all abilities.",
-  },
-  {
-    id: 4,
-    title: "Prototyping & Testing",
-    icon: <Send className="size-6 md:size-[1.625rem]" />,
-    content:
-      "Rapid experimentation and validation of ideas through prototypes and real user testing.",
-  },
-  {
-    id: 5,
-    title: "UX Optimisation",
-    icon: <IoIosTimer className="size-6 md:size-[1.625rem]" />,
-    content:
-      "Improving user experience by analyzing behavior and refining interactions over time.",
-  },
-]
+import { FileText, Sparkles } from "lucide-react"
 
 export function Drafts(): JSX.Element {
   return (
     <main className="flex h-full w-full flex-col">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="global-heading">Drafts</h2>
+        <h2 className="global-heading">Drafts & Notes</h2>
         <a
           href="/workspace/drafts"
           className="text-sm text-muted-foreground hover:underline"
         >
-          View all
+          View
         </a>
       </div>
-      <AccordionApp items={items} />
+      <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/80 bg-muted/15 px-4 py-8 text-center">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
+          <Sparkles className="size-3" />
+          Coming soon
+        </span>
+        <FileText className="size-7 text-muted-foreground/45" strokeWidth={1.5} />
+        <p className="text-sm font-medium text-foreground">Scratchpads & notes</p>
+        <p className="max-w-[16rem] text-xs leading-relaxed text-muted-foreground">
+          Capture ideas and promote them into tasks or plans — landing soon.
+        </p>
+      </div>
     </main>
   )
 }
