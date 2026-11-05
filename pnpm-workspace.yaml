@@ -2,7 +2,7 @@ packages:
   - "apps/*"
   - "!apps/base"
   - "packages/*"
-
+  - "tests/*"
 allowBuilds:
   '@prisma/engines': true
   '@scarf/scarf': true
