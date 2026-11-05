@@ -41,7 +41,7 @@ export function NavProjects({
   return (
     <SidebarGroup className=" max-w-60 group-data-[collapsible=icon]:hidden">
       <div className="flex items-center justify-between px-2">
-        <SidebarGroupLabel className="p-0 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+        <SidebarGroupLabel className="p-0 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80">
           Roadmaps & Plans
         </SidebarGroupLabel>
         <SidebarGroupAction asChild title="All Roadmaps">
@@ -68,25 +68,25 @@ export function NavProjects({
                   className={cn(
                     "relative group/proj-item rounded-lg px-2.5 transition-all duration-150",
                     isItemActive
-                      ? "bg-sidebar-accent font-semibold text-foreground shadow-2xs"
-                      : "text-foreground hover:bg-sidebar-accent/60 hover:text-foreground"
+                      ? "bg-sidebar-accent font-medium text-foreground shadow-2xs"
+                      : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground"
                   )}
                 >
-                  <a href={item.url} className="flex items-center gap-2.5 w-full">
+                  <a href={item.url} className="flex w-full items-center gap-3">
                     {isItemActive && (
                       <span className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-1 rounded-r-full bg-primary" />
                     )}
                     <span
                       className={cn(
-                        "flex items-center justify-center shrink-0 transition-colors",
+                        "flex shrink-0 items-center justify-center transition-colors",
                         isItemActive
-                          ? "text-foreground/70"
-                          : "text-foreground/45 group-hover/proj-item:text-foreground/60"
+                          ? "text-foreground/55"
+                          : "text-muted-foreground/70 group-hover/proj-item:text-muted-foreground"
                       )}
                     >
                       {item.icon}
                     </span>
-                    <span className="truncate flex-1 font-medium">{item.name}</span>
+                    <span className="flex-1 truncate text-[13px] font-medium">{item.name}</span>
                     {item.badge && (
                       <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-muted/60 text-muted-foreground shrink-0">
                         {item.badge}

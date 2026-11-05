@@ -79,7 +79,7 @@ function ScoreMeter({ score }: { score: number }) {
           className={
             index < active
               ? "h-6 min-w-0 flex-1 rounded-full bg-emerald-500"
-              : "h-6 min-w-0 flex-1 rounded-full bg-white/15"
+              : "h-6 min-w-0 flex-1 rounded-full bg-muted"
           }
         />
       ))}
@@ -98,8 +98,8 @@ function QueueBar({ label, slice }: { label: string; slice: QueueSlice }) {
   return (
     <div className="px-4 py-2.5">
       <div className="mb-1.5 flex items-baseline justify-between gap-3">
-        <h3 className="text-sm font-medium text-white">{label}</h3>
-        <p className="text-right text-[11px] tabular-nums text-white/45">
+        <h3 className="text-sm font-medium text-foreground">{label}</h3>
+        <p className="text-right text-[11px] tabular-nums text-muted-foreground">
           {slice.done} done · {slice.missed} missed · {slice.upcoming} upcoming
         </p>
       </div>
@@ -122,7 +122,7 @@ function QueueBar({ label, slice }: { label: string; slice: QueueSlice }) {
             ) : null
           )}
         </div>
-        <span className="w-6 shrink-0 text-right text-xs tabular-nums text-white/70">
+        <span className="w-6 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
           {slice.done + slice.missed + slice.upcoming}
         </span>
       </div>
@@ -151,17 +151,17 @@ export function RecentActivity({
     <section
       aria-label="Recent activity"
       className={cn(
-        "flex min-h-0 flex-1 flex-col rounded-sm border border-white/10 bg-white/[0.03]",
+        "flex min-h-0 flex-1 flex-col rounded-sm border border-border bg-card",
         className
       )}
     >
       <div className="flex shrink-0 items-center justify-between gap-2 px-4 pt-3.5 pb-2">
-        <h3 className="text-sm font-semibold text-white">Recent activity</h3>
-        <CircleDot className="size-3.5 text-white/30" aria-hidden />
+        <h3 className="text-sm font-semibold text-foreground">Recent activity</h3>
+        <CircleDot className="size-3.5 text-muted-foreground" aria-hidden />
       </div>
 
       {items.length === 0 ? (
-        <p className="px-4 pb-4 text-xs text-white/35">
+        <p className="px-4 pb-4 text-xs text-muted-foreground">
           Check-ins, completions, and plan moves will show up here.
         </p>
       ) : (
@@ -172,25 +172,25 @@ export function RecentActivity({
             return (
               <li key={item.id} className="relative flex gap-2.5">
                 <div className="relative flex w-5 shrink-0 flex-col items-center">
-                  <span className="relative z-10 mt-0.5 flex size-5 items-center justify-center rounded-full border border-white/15 bg-white/[0.06] text-white/70">
+                  <span className="relative z-10 mt-0.5 flex size-5 items-center justify-center rounded-full border border-border bg-muted text-muted-foreground">
                     <Icon className="size-2.5" strokeWidth={2} />
                   </span>
                   {!isLast ? (
-                    <span aria-hidden className="mt-0.5 w-px flex-1 bg-white/10" />
+                    <span aria-hidden className="mt-0.5 w-px flex-1 bg-muted" />
                   ) : null}
                 </div>
                 <div className={cn("min-w-0 flex-1 pb-3", isLast && "pb-1")}>
                   <div className="flex items-baseline justify-between gap-2">
-                    <p className="truncate text-xs font-medium text-white">
+                    <p className="truncate text-xs font-medium text-foreground">
                       {item.title}
                     </p>
                     {item.timeLabel ? (
-                      <span className="shrink-0 text-[10px] tabular-nums text-white/35">
+                      <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground">
                         {item.timeLabel}
                       </span>
                     ) : null}
                   </div>
-                  <p className="mt-0.5 truncate text-[11px] text-white/40">
+                  <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
                     {item.detail}
                   </p>
                 </div>
@@ -217,7 +217,7 @@ export function NextUp({ title, due }: { title: string; due: string }) {
       <div className="rounded-xl border border-border bg-card p-4">
         <div className="flex flex-col gap-4 @min-[28rem]:flex-row @min-[28rem]:items-center @min-[28rem]:justify-between">
           <div className="flex min-w-0 items-start gap-3">
-            <span className="grid size-16 shrink-0 place-items-center rounded-[22px] border border-white/20 text-white">
+            <span className="grid size-16 shrink-0 place-items-center rounded-[22px] border border-border text-foreground">
               <Lightbulb className="size-7" strokeWidth={2} />
             </span>
             <div className="min-w-0">
@@ -229,7 +229,7 @@ export function NextUp({ title, due }: { title: string; due: string }) {
             type="button"
             className="inline-flex shrink-0 items-center gap-2 self-start text-sm font-medium text-foreground @min-[28rem]:self-center"
           >
-            <span className="font-mono text-sm leading-none text-white/70" aria-hidden>
+            <span className="font-mono text-sm leading-none text-muted-foreground" aria-hidden>
               &gt;_
             </span>
             start now
@@ -265,28 +265,28 @@ export function ProductivityBoard({
     <section
       aria-label="Productivity"
       className={cn(
-        "flex w-full shrink-0 flex-col rounded-sm border border-white/10 bg-white/[0.03]",
+        "flex w-full shrink-0 flex-col rounded-sm border border-border bg-card",
         className
       )}
     >
       <div className="shrink-0 px-5 pt-5 pb-4">
         <header className="mb-3 flex items-start justify-between gap-3">
           <div>
-            <p className="text-5xl leading-none font-semibold tracking-tight text-white">
+            <p className="text-5xl leading-none font-semibold tracking-tight text-foreground">
               {current.score}
-              <span className="ml-2 text-2xl font-medium text-white/45">/100</span>
+              <span className="ml-2 text-2xl font-medium text-muted-foreground">/100</span>
             </p>
             <p className="mt-3 flex items-center gap-1 text-base font-semibold text-emerald-400">
               <ArrowUpRight className="size-4" />
               {current.trend}
-              <span className="font-normal text-white/45">{current.text}</span>
+              <span className="font-normal text-muted-foreground">{current.text}</span>
             </p>
           </div>
           <div className="flex flex-col items-end gap-2 pt-1">
             <div className="flex items-center gap-2">
-              <h2 className="text-lg leading-none font-semibold text-white">Productivity</h2>
+              <h2 className="text-lg leading-none font-semibold text-foreground">Productivity</h2>
               <span
-                className="text-white/35"
+                className="text-muted-foreground"
                 title="From habits, deadlines, and todos"
               >
                 <Info className="size-4" aria-hidden />
@@ -294,7 +294,7 @@ export function ProductivityBoard({
               </span>
             </div>
             {!score && (
-              <div className="flex items-center rounded-lg border border-white/10 p-0.5">
+              <div className="flex items-center rounded-lg border border-border p-0.5">
                 {(["Day", "Week", "Month"] as const).map((option) => (
                   <button
                     key={option}
@@ -303,8 +303,8 @@ export function ProductivityBoard({
                     className={cn(
                       "rounded-md px-2 py-1 text-xs font-medium",
                       timeframe === option
-                        ? "bg-white/10 text-white"
-                        : "text-white/45 hover:text-white"
+                        ? "bg-muted text-foreground"
+                        : "text-muted-foreground hover:text-foreground"
                     )}
                   >
                     {option}
@@ -320,9 +320,9 @@ export function ProductivityBoard({
         </div>
       </div>
 
-      <div className="mx-4 h-px bg-white/10" />
+      <div className="mx-4 h-px bg-muted" />
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2.5 text-[11px] text-white/50">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2.5 text-[11px] text-muted-foreground">
         <span className="inline-flex items-center gap-1.5">
           <span className="size-2 rounded-full" style={{ backgroundColor: DONE }} />
           Done
@@ -339,7 +339,7 @@ export function ProductivityBoard({
 
       {queueRows.map((queue) => (
         <div key={queue.key}>
-          <div className="mx-4 h-px bg-white/10" />
+          <div className="mx-4 h-px bg-muted" />
           <QueueBar label={queue.label} slice={queue.slice} />
         </div>
       ))}

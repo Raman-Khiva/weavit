@@ -29,9 +29,9 @@ export function NavSecondary({
               <SidebarMenuButton
                 asChild
                 size="sm"
-                className="text-foreground hover:text-foreground transition-colors [&_svg]:text-foreground/45"
+                className="text-muted-foreground transition-colors hover:text-foreground [&_svg]:text-muted-foreground/70"
               >
-                <a href={item.url} className="flex items-center gap-2.5">
+                <a href={item.url} className="flex items-center gap-3">
                   <span className="shrink-0 [&_svg]:size-4">{item.icon}</span>
                   <span className="text-[12.5px] font-medium">{item.title}</span>
                 </a>

@@ -76,7 +76,7 @@ function Tick({ item, onToggle }: { item: Deadline; onToggle?: (d: Deadline) => 
         "flex size-5 items-center justify-center rounded-full border-2 transition-colors",
         item.done
           ? "border-emerald-400 bg-emerald-400 text-emerald-950 motion-safe:animate-[check-pop_380ms_cubic-bezier(0.34,1.56,0.64,1)]"
-          : cn("bg-neutral-950", RING[item.priority], onToggle && "group-hover/check:bg-white/10")
+          : cn("bg-background", RING[item.priority], onToggle && "group-hover/check:bg-muted")
       )}
     >
       {item.done && <Check className="size-3" strokeWidth={3.5} />}
@@ -90,7 +90,7 @@ function Tick({ item, onToggle }: { item: Deadline; onToggle?: (d: Deadline) => 
       aria-checked={!!item.done}
       aria-label={`Mark "${item.title}" ${item.done ? "not done" : "done"}`}
       onClick={() => onToggle(item)}
-      className="group/check rounded-full outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+      className="group/check rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       {circle}
     </button>
@@ -103,7 +103,7 @@ function RailLine({ first, last, gap }: { first: boolean; last: boolean; gap: nu
   return (
     <span
       aria-hidden
-      className="absolute left-[calc(4.5rem+0.625rem)] w-px -translate-x-1/2 bg-white/10"
+      className="absolute left-[calc(4.5rem+0.625rem)] w-px -translate-x-1/2 bg-muted"
       style={{
         top: first ? "50%" : 0,
         bottom: last ? `calc((100% - ${gap}px) / 2)` : 0,
@@ -136,8 +136,8 @@ export function Deadlines({ deadlines, onOpen, onToggle, className }: DeadlinesP
   // until mounted, render only the header so server and client markup match
   if (!now) {
     return (
-      <section aria-label="Deadlines" aria-busy className={cn(shell, "border-white/[0.08] bg-white/[0.02]")}>
-        <h3 className="text-sm font-semibold text-white/85">Deadlines</h3>
+      <section aria-label="Deadlines" aria-busy className={cn(shell, "border-border bg-card")}>
+        <h3 className="text-sm font-semibold text-foreground">Deadlines</h3>
       </section>
     );
   }
@@ -179,28 +179,28 @@ export function Deadlines({ deadlines, onOpen, onToggle, className }: DeadlinesP
 
   const statusText = (e: Entry): { text: string; tone: string } => {
     const s = statusOf(e);
-    if (s === "done") return { text: "Done", tone: "text-emerald-300/80" };
+    if (s === "done") return { text: "Done", tone: "text-emerald-600 dark:text-emerald-600 dark:text-emerald-300/80" };
     if (s === "overdue") {
       return e.dayDiff < 0
-        ? { text: `${Math.abs(e.dayDiff)} ${Math.abs(e.dayDiff) === 1 ? "day" : "days"} overdue`, tone: "text-red-300" }
-        : { text: `${span(nowKey - e.key)} late`, tone: "text-red-300" };
+        ? { text: `${Math.abs(e.dayDiff)} ${Math.abs(e.dayDiff) === 1 ? "day" : "days"} overdue`, tone: "text-red-600 dark:text-red-300" }
+        : { text: `${span(nowKey - e.key)} late`, tone: "text-red-600 dark:text-red-300" };
     }
     if (!e.d.dueTime) {
       return e.dayDiff === 0
-        ? { text: "due today", tone: "text-amber-300" }
-        : { text: e.dayDiff === 1 ? "tomorrow" : `in ${e.dayDiff} days`, tone: "text-white/45" };
+        ? { text: "due today", tone: "text-amber-600 dark:text-amber-300" }
+        : { text: e.dayDiff === 1 ? "tomorrow" : `in ${e.dayDiff} days`, tone: "text-muted-foreground" };
     }
     const diff = e.key - nowKey;
-    if (diff <= 60) return { text: `in ${span(diff)}`, tone: "text-amber-300" };
-    if (diff < 48 * 60) return { text: `in ${span(diff)}`, tone: "text-white/55" };
-    return { text: `in ${e.dayDiff} days`, tone: "text-white/45" };
+    if (diff <= 60) return { text: `in ${span(diff)}`, tone: "text-amber-600 dark:text-amber-300" };
+    if (diff < 48 * 60) return { text: `in ${span(diff)}`, tone: "text-muted-foreground" };
+    return { text: `in ${e.dayDiff} days`, tone: "text-muted-foreground" };
   };
 
   const SEG: Record<Status, string> = {
     done: "bg-emerald-400",
     overdue: "bg-red-400",
     soon: "bg-amber-400",
-    upcoming: "bg-white/20",
+    upcoming: "bg-muted-foreground/30",
   };
 
   const counts = {
@@ -230,14 +230,14 @@ export function Deadlines({ deadlines, onOpen, onToggle, className }: DeadlinesP
       aria-label="Deadlines"
       className={cn(
         shell,
-        allDone ? "border-emerald-400/30 bg-emerald-500/[0.05]" : "border-white/[0.08] bg-white/[0.02]"
+        allDone ? "border-emerald-400/30 bg-emerald-500/[0.05]" : "border-border bg-card"
       )}
     >
       {/* header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-white/85">Deadlines</h3>
+        <h3 className="text-sm font-semibold text-foreground">Deadlines</h3>
         {allDone && (
-          <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-300">
+          <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-300">
             <Check className="size-3.5" strokeWidth={3} />
             All done
           </span>
@@ -245,12 +245,12 @@ export function Deadlines({ deadlines, onOpen, onToggle, className }: DeadlinesP
       </div>
 
       {entries.length === 0 ? (
-        <p className="mt-3 text-sm text-white/45">Nothing due.</p>
+        <p className="mt-3 text-sm text-muted-foreground">Nothing due.</p>
       ) : (
         <>
           {shownPast.length > 0 && (
             <div className="mt-3 overflow-hidden rounded-xl border border-red-400/30 bg-red-400/[0.06]">
-              <p className="px-3 pt-2 text-[11px] font-medium text-red-300">
+              <p className="px-3 pt-2 text-[11px] font-medium text-red-600 dark:text-red-300">
                 Overdue · {counts.overdue}
               </p>
               <ul>
@@ -268,7 +268,7 @@ export function Deadlines({ deadlines, onOpen, onToggle, className }: DeadlinesP
                 ))}
               </ul>
               {hiddenOverdue > 0 && (
-                <p className="px-3 pb-2 text-xs text-red-300/80">+{hiddenOverdue} more overdue</p>
+                <p className="px-3 pb-2 text-xs text-red-600/80 dark:text-red-600 dark:text-red-300/80">+{hiddenOverdue} more overdue</p>
               )}
             </div>
           )}
@@ -304,7 +304,7 @@ export function Deadlines({ deadlines, onOpen, onToggle, className }: DeadlinesP
                     className="relative grid grid-cols-[4.5rem_1.25rem_1fr] items-center"
                   >
                     <RailLine first={first} last={last} gap={0} />
-                    <span className="pr-2 text-right text-[11px] font-medium tabular-nums text-emerald-300">
+                    <span className="pr-2 text-right text-[11px] font-medium tabular-nums text-emerald-600 dark:text-emerald-300">
                       {fmt12(`${pad(now.getHours())}:${pad(now.getMinutes())}`)}
                     </span>
                     <span className="relative z-10 flex size-2.5 justify-self-center">
@@ -312,10 +312,10 @@ export function Deadlines({ deadlines, onOpen, onToggle, className }: DeadlinesP
                       <span className="relative size-2.5 rounded-full bg-emerald-400" />
                     </span>
                     <div className="flex items-center gap-2 px-2 py-1" aria-hidden>
-                      <span className="text-[11px] font-medium text-emerald-300">Now</span>
+                      <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-300">Now</span>
                       <span className="h-px flex-1 bg-emerald-400/40" />
                       {nextUp && (
-                        <span className="text-[11px] tabular-nums text-white/45">
+                        <span className="text-[11px] tabular-nums text-muted-foreground">
                           next in {span(nextUp.key - nowKey)}
                         </span>
                       )}
@@ -335,7 +335,7 @@ export function Deadlines({ deadlines, onOpen, onToggle, className }: DeadlinesP
                   onMouseLeave={() => setHover(null)}
                 >
                   <RailLine first={first} last={last} gap={0} />
-                  <span className="pr-2 text-right text-[11px] tabular-nums text-white/55">
+                  <span className="pr-2 text-right text-[11px] tabular-nums text-muted-foreground">
                     {e.d.dueTime ? fmt12(e.d.dueTime) : "Any time"}
                   </span>
                   <span className="relative z-10 flex justify-center">
@@ -346,20 +346,20 @@ export function Deadlines({ deadlines, onOpen, onToggle, className }: DeadlinesP
                     onClick={() => onOpen?.(e.d)}
                     className={cn(
                       "group flex min-w-0 items-center gap-2 rounded-lg px-2 py-1 text-left outline-none transition-colors",
-                      "focus-visible:ring-2 focus-visible:ring-white/40",
-                      hover === e.d.id ? "bg-white/[0.06]" : "hover:bg-white/[0.05]"
+                      "focus-visible:ring-2 focus-visible:ring-ring",
+                      hover === e.d.id ? "bg-muted/60" : "hover:bg-muted/40"
                     )}
                   >
                     <span
                       className={cn(
                         "min-w-0 flex-1 truncate text-sm font-medium",
-                        e.d.done ? "text-white/45" : "text-white"
+                        e.d.done ? "text-muted-foreground" : "text-foreground"
                       )}
                     >
                       {e.d.title}
                     </span>
                     <span className={cn("shrink-0 text-xs tabular-nums", st.tone)}>{st.text}</span>
-                    <ChevronRight className="size-3.5 shrink-0 text-white/20 transition-colors group-hover:text-white/60" />
+                    <ChevronRight className="size-3.5 shrink-0 text-muted-foreground/40 transition-colors group-hover:text-muted-foreground" />
                   </button>
                 </li>
               );
@@ -367,8 +367,8 @@ export function Deadlines({ deadlines, onOpen, onToggle, className }: DeadlinesP
           </ol>
 
           {shownUpcoming.length > 0 && (
-            <div className="mt-3 overflow-hidden rounded-xl border border-white/10 bg-white/[0.03]">
-              <p className="px-3 pt-2 text-[11px] font-medium text-white/45">
+            <div className="mt-3 overflow-hidden rounded-xl border border-border bg-muted/30">
+              <p className="px-3 pt-2 text-[11px] font-medium text-muted-foreground">
                 Upcoming · {counts.upcoming}
               </p>
               <ul>
@@ -377,7 +377,7 @@ export function Deadlines({ deadlines, onOpen, onToggle, className }: DeadlinesP
                     key={e.d.id}
                     entry={e}
                     label={upcomingLabel(e, nowKey)}
-                    tone="text-white/45"
+                    tone="text-muted-foreground"
                     hover={hover === e.d.id}
                     onHover={setHover}
                     onOpen={onOpen}
@@ -386,7 +386,7 @@ export function Deadlines({ deadlines, onOpen, onToggle, className }: DeadlinesP
                 ))}
               </ul>
               {hiddenLater > 0 && (
-                <p className="px-3 pb-2 text-xs text-white/40">+{hiddenLater} later</p>
+                <p className="px-3 pb-2 text-xs text-muted-foreground">+{hiddenLater} later</p>
               )}
             </div>
           )}
@@ -452,11 +452,11 @@ function SpecialRow({
         type="button"
         onClick={() => onOpen?.(entry.d)}
         className={cn(
-          "flex min-w-0 flex-1 items-center gap-2 rounded-md px-1 py-0.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-white/40",
-          hover && "bg-white/[0.04]"
+          "flex min-w-0 flex-1 items-center gap-2 rounded-md px-1 py-0.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          hover && "bg-muted/50"
         )}
       >
-        <span className="min-w-0 flex-1 truncate text-sm font-medium text-white">{entry.d.title}</span>
+        <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">{entry.d.title}</span>
         <span className={cn("shrink-0 text-xs tabular-nums", tone)}>{label}</span>
       </button>
     </li>

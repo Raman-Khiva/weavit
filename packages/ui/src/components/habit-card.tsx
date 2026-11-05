@@ -42,7 +42,7 @@ export function HabitCard({
         "focus-visible:ring-2 focus-visible:ring-emerald-400/60 active:scale-[0.99]",
         completed
           ? "border-emerald-400/35"
-          : "border-white/[0.08] bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]"
+          : "border-border bg-card hover:border-border hover:bg-accent/40"
       )}
     >
       {/* Completion fill: sweeps across the card left to right */}
@@ -67,7 +67,7 @@ export function HabitCard({
             "relative flex size-9 items-center justify-center rounded-full border-2 transition-colors duration-200",
             completed
               ? "border-emerald-400 bg-emerald-400 text-emerald-950 shadow-[0_0_6px_rgba(52,211,153,0.18)] motion-safe:animate-[check-pop_380ms_cubic-bezier(0.34,1.56,0.64,1)]"
-              : "border-white/25 text-transparent group-hover:border-emerald-400/70 group-hover:text-emerald-400/40"
+              : "border-muted-foreground/30 text-transparent group-hover:border-emerald-400/70 group-hover:text-emerald-400/40"
           )}
         >
           <Check className="size-5" strokeWidth={3} />
@@ -79,14 +79,14 @@ export function HabitCard({
         <p
           className={cn(
             "truncate text-[15px] font-semibold leading-tight",
-            completed ? "text-white" : "text-white/90"
+            completed ? "text-foreground" : "text-foreground/90"
           )}
         >
           {title}
         </p>
 
         {showDescription && (
-          <p className="mt-0.5 truncate text-xs text-white/40">{description}</p>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">{description}</p>
         )}
 
         <div className="mt-2 flex items-center gap-1" aria-hidden>
@@ -97,8 +97,8 @@ export function HabitCard({
                 key={i}
                 className={cn(
                   "h-1.5 w-5 rounded-full transition-colors duration-300",
-                  done ? "bg-emerald-400/70" : "bg-white/10",
-                  isToday && !done && "ring-1 ring-inset ring-white/30",
+                  done ? "bg-emerald-400/70" : "bg-muted",
+                  isToday && !done && "ring-1 ring-inset ring-border",
                   isToday &&
                     done &&
                     "bg-emerald-300 shadow-[0_0_3px_rgba(110,231,183,0.28)] motion-safe:animate-[check-pop_380ms_cubic-bezier(0.34,1.56,0.64,1)]"
@@ -115,7 +115,7 @@ export function HabitCard({
           "flex w-8 shrink-0 flex-col items-center gap-0.5 rounded-lg border py-1 text-xs font-semibold tabular-nums leading-none transition-colors duration-300",
           completed
             ? "border-orange-400/30 bg-orange-400/10 text-orange-300"
-            : "border-white/10 text-white/40"
+            : "border-border text-muted-foreground"
         )}
       >
         <Flame

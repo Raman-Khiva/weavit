@@ -26,15 +26,13 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn(
-        "antialiased",
-        fontMono.variable,
-        "font-sans",
-        geist.variable,
-        "min-h-screen w-full bg-background text-foreground"
-      )}
+      className={cn(fontMono.variable, geist.variable)}
     >
-      <body>
+      <body
+        className={cn(
+          "min-h-screen w-full bg-background font-sans text-foreground antialiased"
+        )}
+      >
         <ThemeProvider>
           <Provider store={store}>
             <ClerkProvider

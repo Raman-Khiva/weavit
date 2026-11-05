@@ -141,7 +141,7 @@ function CenterBottomRail({
       className="flex h-80 shrink-0 gap-1 overflow-hidden px-1 pb-1"
     >
       <PlansOverview className="min-h-0 min-w-0 flex-1" projects={projects} max={3} />
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-sm border border-white/10 bg-white/[0.03]">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-sm border border-border bg-card">
         <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <Deadlines
             className="max-w-none border-0 bg-transparent p-0"
@@ -360,7 +360,7 @@ export default function Page(): React.ReactElement {
       <HeaderIslands events={events} />
 
       <div className="flex min-h-0 flex-1 items-stretch gap-1 px-1 pt-1">
-        <div className="flex w-96 shrink-0 flex-col overflow-y-auto rounded-sm border border-white/10 bg-white/[0.03] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex w-96 shrink-0 flex-col overflow-y-auto rounded-sm border border-border bg-card [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <SectionRule label="Habits" />
           <Habits
             habits={habits ?? []}
@@ -433,7 +433,7 @@ export default function Page(): React.ReactElement {
           <FloatingDockDemo habits={habits ?? []} projects={data ?? []} />
         </div>
         <div className="flex flex-1 justify-center">
-          <div className="flex items-center gap-2 rounded-full border border-border/60 bg-white/[0.03] px-3.5 py-1.5 text-xs font-semibold text-muted-foreground shadow-xs backdrop-blur-md">
+          <div className="flex items-center gap-2 rounded-full border border-border/60 bg-card px-3.5 py-1.5 text-xs font-semibold text-muted-foreground shadow-xs backdrop-blur-md">
             <span className="font-bold text-emerald-500">⚡ {focusScore.score}%</span>
             <span>Focus Velocity</span>
           </div>

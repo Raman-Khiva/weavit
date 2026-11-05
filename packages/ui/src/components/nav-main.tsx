@@ -39,7 +39,7 @@ export function NavMain({
 }) {
   return (
     <SidebarGroup>
-      <SidebarGroupLabel className="px-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+      <SidebarGroupLabel className="px-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80">
         Workspace
       </SidebarGroupLabel>
       <SidebarMenu>
@@ -60,26 +60,26 @@ export function NavMain({
                   className={cn(
                     "relative group/nav-item rounded-lg px-2.5 transition-all duration-150",
                     isItemActive
-                      ? "bg-sidebar-accent font-semibold text-foreground shadow-2xs"
-                      : "text-foreground hover:bg-sidebar-accent/60 hover:text-foreground"
+                      ? "bg-sidebar-accent font-medium text-foreground shadow-2xs"
+                      : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground"
                   )}
                 >
-                  <a href={item.url} className="flex items-center gap-2.5 w-full">
+                  <a href={item.url} className="flex w-full items-center gap-3">
                     {/* Active accent bar on the left */}
                     {isItemActive && (
                       <span className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-1 rounded-r-full bg-primary" />
                     )}
                     <span
                       className={cn(
-                        "flex items-center justify-center shrink-0 transition-colors",
+                        "flex shrink-0 items-center justify-center transition-colors",
                         isItemActive
-                          ? "text-foreground/70"
-                          : "text-foreground/45 group-hover/nav-item:text-foreground/60"
+                          ? "text-foreground/55"
+                          : "text-muted-foreground/70 group-hover/nav-item:text-muted-foreground"
                       )}
                     >
                       {item.icon}
                     </span>
-                    <span className="truncate flex-1 text-[13.5px] font-semibold">{item.title}</span>
+                    <span className="flex-1 truncate text-[13px] font-medium">{item.title}</span>
                     {item.badge && (
                       <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-muted/60 text-muted-foreground shrink-0">
                         {item.badge}

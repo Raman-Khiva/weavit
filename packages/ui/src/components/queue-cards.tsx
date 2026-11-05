@@ -8,9 +8,9 @@ import { cn } from "@workspace/ui/lib/utils";
 export function SectionHeader({ title, count }: { title: string; count?: number }) {
   return (
     <div className="mb-2 mt-4 flex items-center gap-2 px-1 first:mt-0">
-      <h3 className="text-sm font-semibold text-white/80">{title}</h3>
+      <h3 className="text-sm font-semibold text-foreground/80">{title}</h3>
       {count !== undefined && (
-        <span className="rounded-full bg-white/[0.06] px-1.5 py-0.5 text-[11px] font-medium tabular-nums text-white/50">
+        <span className="rounded-full bg-muted px-1.5 py-0.5 text-[11px] font-medium tabular-nums text-muted-foreground">
           {count}
         </span>
       )}
@@ -25,21 +25,21 @@ type Priority = "high" | "medium" | "low";
 const PRIORITY: Record<Priority, { label: string; bar: string; dot: string; badge: string }> = {
   high: {
     label: "High",
-    bar: "bg-red-400",
-    dot: "bg-red-400",
-    badge: "border-red-400/30 bg-red-400/10 text-red-300",
+    bar: "bg-red-500",
+    dot: "bg-red-500",
+    badge: "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
   },
   medium: {
     label: "Medium",
-    bar: "bg-amber-400",
-    dot: "bg-amber-400",
-    badge: "border-amber-400/30 bg-amber-400/10 text-amber-300",
+    bar: "bg-amber-500",
+    dot: "bg-amber-500",
+    badge: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
   },
   low: {
     label: "Low",
-    bar: "bg-sky-400",
-    dot: "bg-sky-400",
-    badge: "border-sky-400/30 bg-sky-400/10 text-sky-300",
+    bar: "bg-sky-500",
+    dot: "bg-sky-500",
+    badge: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
   },
 };
 
@@ -68,9 +68,9 @@ function dueInfo(date: string) {
 }
 
 const DUE_TONE = {
-  overdue: "text-red-300",
-  today: "text-amber-300",
-  upcoming: "text-white/45",
+  overdue: "text-red-600 dark:text-red-300",
+  today: "text-amber-600 dark:text-amber-300",
+  upcoming: "text-muted-foreground",
 };
 
 type TaskCardProps = {
@@ -89,8 +89,8 @@ export function TaskCard({ title, description, dueDate, priority, onClick }: Tas
     <div
       onClick={onClick}
       className={cn(
-        "relative overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02] py-3.5 pl-5 pr-3.5",
-        "transition-colors duration-200 hover:border-white/15 hover:bg-white/[0.04]",
+        "relative overflow-hidden rounded-xl border border-border bg-card py-3.5 pl-5 pr-3.5",
+        "transition-colors duration-200 hover:bg-muted/40",
         onClick && "cursor-pointer"
       )}
     >
@@ -98,7 +98,7 @@ export function TaskCard({ title, description, dueDate, priority, onClick }: Tas
       <span aria-hidden className={cn("absolute inset-y-0 left-0 w-1", p.bar)} />
 
       <div className="flex items-start justify-between gap-3">
-        <h4 className="text-[15px] font-semibold leading-snug text-white">{title}</h4>
+        <h4 className="text-[15px] font-semibold leading-snug text-foreground">{title}</h4>
         <span
           className={cn(
             "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-medium",
@@ -111,7 +111,7 @@ export function TaskCard({ title, description, dueDate, priority, onClick }: Tas
       </div>
 
       {description && (
-        <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-white/55">{description}</p>
+        <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{description}</p>
       )}
 
       <div className={cn("mt-3 flex items-center gap-1.5 text-xs font-medium", DUE_TONE[due.tone])}>
@@ -136,29 +136,29 @@ export function PlanItemCard({ title, planName, topic, onClick }: PlanItemCardPr
     <div
       onClick={onClick}
       className={cn(
-        "group flex items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.02] px-3.5 py-3",
-        "transition-colors duration-200 hover:border-white/15 hover:bg-white/[0.04]",
+        "group flex items-center gap-3 rounded-xl border border-border bg-card px-3.5 py-3",
+        "transition-colors duration-200 hover:bg-muted/40",
         onClick && "cursor-pointer"
       )}
     >
       <div className="min-w-0 flex-1">
-        <h4 className="text-[15px] font-semibold leading-snug text-white">{title}</h4>
+        <h4 className="text-[15px] font-semibold leading-snug text-foreground">{title}</h4>
 
         {/* Wraps instead of truncating so the full path stays readable */}
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-white/45">
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-muted-foreground">
           <BookOpen className="size-3.5 shrink-0" strokeWidth={2} />
           <span>{planName}</span>
           {topic && (
             <>
-              <ChevronRight className="size-3 shrink-0 text-white/25" />
-              <span className="text-white/60">{topic}</span>
+              <ChevronRight className="size-3 shrink-0 text-muted-foreground/60" />
+              <span className="text-foreground/70">{topic}</span>
             </>
           )}
         </div>
       </div>
 
       <ChevronRight
-        className="size-4 shrink-0 text-white/25 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-white/60"
+        className="size-4 shrink-0 text-muted-foreground/50 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-muted-foreground"
         strokeWidth={2}
       />
     </div>

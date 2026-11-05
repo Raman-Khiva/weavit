@@ -20,14 +20,64 @@ import { Message, MessageContent, MessageResponse } from "@workspace/ui/componen
 import { ChainOfThought, ChainOfThoughtHeader, ChainOfThoughtContent, ChainOfThoughtStep } from "@workspace/ui/components/ai-elements/chain-of-thought";
 import { PlanPreview as PlanPreviewView } from "@/components/agent/plan-preview";
 import { SequencedAchievementList, type SequencedAchievementItem, type SequencedAchievementProgress } from "@workspace/ui/components/achievement-list";
-import { CheckIcon, BotIcon, Loader2Icon, ChevronRightIcon, DownloadIcon, PlusIcon, Target, Layers, CalendarClock, ClipboardCheck, ArrowRight, LayoutDashboard } from "lucide-react";
+import { CheckIcon, BotIcon, Loader2Icon, ChevronRightIcon, DownloadIcon, PlusIcon, Target, Layers, CalendarClock, ClipboardCheck, ArrowRight } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { cn } from "@workspace/ui/lib/utils";
 import { v4 as uuidv4 } from "uuid";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useAgentRuntime } from "@/features/agent/use-agent-runtime";
-import type { PlanPreview as AgentPlanPreview } from "@/features/agent/schema.agent";
+import type {
+  ActionItem,
+  PlanPreview as AgentPlanPreview,
+} from "@/features/agent/schema.agent";
+import type { AgentWorkspaceState } from "@/features/agent/actions.agent";
+import { ActionCard } from "@/features/agent/ActionCard";
+
+const AGENT_NAV = [
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/workspace", label: "Workspace" },
+  { href: "/workspace/projects", label: "Plans" },
+  { href: "/workspace/habits", label: "Habits" },
+  { href: "/workspace/timeline", label: "Timeline" },
+] as const;
+
+function AgentTopBar({ subtitle }: { subtitle: string }) {
+  return (
+    <header className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-border bg-background/95 px-4 py-3 backdrop-blur sm:px-5">
+      <div className="flex min-w-0 items-center gap-2.5">
+        <Link href="/dashboard" className="shrink-0">
+          <img
+            src="/logo-weavit.png"
+            alt="Weavit"
+            className="size-8 rounded-xl object-contain sm:size-9"
+          />
+        </Link>
+        <div className="min-w-0">
+          <h1 className="truncate text-sm font-semibold text-foreground">
+            weavit agent
+          </h1>
+          <p className="truncate text-[11px] text-muted-foreground sm:text-xs">
+            {subtitle}
+          </p>
+        </div>
+      </div>
+
+      <nav className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+        {AGENT_NAV.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="rounded-lg px-2 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground sm:px-2.5 sm:text-xs"
+          >
+            {item.label}
+          </Link>
+        ))}
+      </nav>
+    </header>
+  );
+}
 
 // ============================================================================
 // Types
@@ -68,6 +118,9 @@ interface AgentMessage {
       }>;
     };
   }>;
+  actions?: ActionItem[];
+  failedActionIndexes?: number[];
+  failureReasons?: Record<number, string>;
 }
 
 type PlaybackStage = "thoughts" | "collapse" | "message" | "cards" | "closing" | "done";
@@ -129,9 +182,11 @@ function nextStage(intro: string, cards: SequencedAchievementItem[], closing: st
 function AgentMessageBubble({
   message,
   onAssembly,
+  workspaceState,
 }: {
   message: AgentMessage;
   onAssembly?: (state: SequencedAchievementProgress) => void;
+  workspaceState: AgentWorkspaceState;
 }) {
   const intro = message.parts.find((part) => part.type === "text" && part.text)?.text ?? "";
   const closing = [...message.parts].reverse().find((part) => part.type === "text" && part.text)?.text ?? "";
@@ -158,6 +213,10 @@ function AgentMessageBubble({
       })),
     ];
   }, [message.parts]);
+
+  const actions = message.actions ?? [];
+  const failedIndexes = message.failedActionIndexes ?? [];
+  const failureReasons = message.failureReasons ?? {};
 
   const [stage, setStage] = useState<PlaybackStage>(thoughts.length > 0 ? "thoughts" : nextStage(intro, cards, closingText, "thoughts"));
   const [thoughtCount, setThoughtCount] = useState(0);
@@ -192,6 +251,7 @@ function AgentMessageBubble({
   const showMessage = stage === "message" || stage === "cards" || stage === "closing" || stage === "done";
   const showCards = stage === "cards" || stage === "closing" || stage === "done";
   const showClosing = stage === "closing" || stage === "done";
+  const showActions = showMessage && actions.length > 0;
 
   return (
     <Message from="assistant">
@@ -216,6 +276,26 @@ function AgentMessageBubble({
             onComplete={() => setStage(nextStage(intro, cards, closingText, "message"))}
           />
         )}
+
+        {showActions ? (
+          <div className="mt-4 flex flex-col gap-2">
+            <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+              Actions
+              {failedIndexes.length > 0
+                ? ` · ${failedIndexes.length} failed`
+                : " · applied"}
+            </p>
+            {actions.map((action, i) => (
+              <ActionCard
+                key={`${message.id}-${action.actionType}-${i}`}
+                action={action}
+                state={workspaceState}
+                failed={failedIndexes.includes(i)}
+                reason={failureReasons[i]}
+              />
+            ))}
+          </div>
+        ) : null}
 
         {showCards && cards.length > 0 && (
           <SequencedAchievementList
@@ -286,12 +366,14 @@ function AgentSidebar({
   onSubmit,
   isLoading,
   onAssembly,
+  workspaceState,
   layout = "split",
 }: {
   messages: AgentMessage[];
   onSubmit: (text: string) => void;
   isLoading: boolean;
   onAssembly?: (state: SequencedAchievementProgress) => void;
+  workspaceState: AgentWorkspaceState;
   /** full = no preview panel; chat owns the whole viewport */
   layout?: "full" | "split";
 }) {
@@ -316,19 +398,7 @@ function AgentSidebar({
         !isFull && "border-r border-border"
       )}
     >
-      <div className="sticky top-0 z-10 border-b border-border bg-background/95 px-4 py-3 backdrop-blur">
-        <div className="flex items-center gap-3">
-          <img
-            src="/logo-weavit.png"
-            alt="Weavit"
-            className="size-9 rounded-xl object-contain"
-          />
-          <div>
-            <h1 className="font-semibold text-foreground">weavit agent</h1>
-            <p className="text-xs text-muted-foreground">Your AI planning assistant</p>
-          </div>
-        </div>
-      </div>
+      <AgentTopBar subtitle="Your AI planning assistant" />
 
       <Conversation className="min-h-0 flex-1">
         <ConversationContent
@@ -343,6 +413,7 @@ function AgentSidebar({
                   <AgentMessageBubble
                     key={message.id}
                     message={message}
+                    workspaceState={workspaceState}
                     onAssembly={
                       message.id === messages[messages.length - 1]?.id
                         ? onAssembly
@@ -483,27 +554,7 @@ function AgentEmptyState({ onSubmit }: { onSubmit: (text: string) => void }) {
 
   return (
     <div className="flex h-screen flex-col text-foreground">
-      <header className="flex items-center justify-between border-b px-5 py-3">
-        <div className="flex items-center gap-2">
-          <img
-            src="/logo-weavit.png"
-            alt="Weavit"
-            className="size-7 rounded-lg object-contain"
-          />
-          <div>
-            <span className="text-sm font-semibold">weavit agent</span>
-            <p className="text-[11px] text-muted-foreground">
-              Full agent · live workspace preview
-            </p>
-          </div>
-        </div>
-        <Button asChild variant="ghost" size="sm" className="gap-1.5 text-xs text-muted-foreground">
-          <a href="/dashboard">
-            <LayoutDashboard className="size-3.5" />
-            Dashboard drawer
-          </a>
-        </Button>
-      </header>
+      <AgentTopBar subtitle="Full agent · live workspace preview" />
 
       <div className="flex flex-1 flex-col items-center justify-center overflow-y-auto px-6 py-8">
         <div className="mb-8 flex flex-col items-center gap-3 text-center">
@@ -602,6 +653,7 @@ export default function AgentPage(): JSX.Element {
     signedIn,
     run,
     savePreviewToWorkspace,
+    workspaceState,
     isLoading: agentLoading,
   } = useAgentRuntime();
   const [messages, setMessages] = useState<AgentMessage[]>([]);
@@ -667,12 +719,27 @@ export default function AgentPage(): JSX.Element {
           setSaved(false);
         }
 
-        const failNote =
-          result.failed.length > 0
-            ? `\n\n_${result.failed.length} action(s) failed._`
-            : "";
+        // Don't show plan-seed actions as "executed" — those stay preview-only
+        const planSeed = new Set([
+          "create_project",
+          "create_phase",
+          "create_task",
+        ]);
+        const displayActions = result.actions.filter(
+          (a) => !planSeed.has(a.actionType)
+        );
+        const failedIndexes: number[] = [];
+        const failureReasons: Record<number, string> = {};
+        for (const f of result.failed) {
+          const idx = displayActions.indexOf(f.action);
+          if (idx >= 0) {
+            failedIndexes.push(idx);
+            failureReasons[idx] = f.message;
+          }
+        }
+
         const previewHint =
-          uiPlan && !failNote
+          uiPlan && result.failed.length === 0
             ? "\n\n_Preview ready on the right — click **Add to workspace** when you want it saved._"
             : "";
 
@@ -680,9 +747,12 @@ export default function AgentPage(): JSX.Element {
           id: uuidv4(),
           role: "assistant",
           parts: [
-            { type: "text", text: `${result.message}${failNote}${previewHint}` },
+            { type: "text", text: `${result.message}${previewHint}` },
             ...(uiPlan ? [{ type: "plan" as const, plan: uiPlan }] : []),
           ],
+          actions: displayActions,
+          failedActionIndexes: failedIndexes,
+          failureReasons,
         };
         setMessages((prev) => [...prev, assistantMessage]);
       } catch (err) {
@@ -749,6 +819,7 @@ export default function AgentPage(): JSX.Element {
           onSubmit={handleSubmit}
           isLoading={busy}
           onAssembly={setAssembly}
+          workspaceState={workspaceState}
           layout="full"
         />
       </div>
@@ -765,6 +836,7 @@ export default function AgentPage(): JSX.Element {
             onSubmit={handleSubmit}
             isLoading={busy}
             onAssembly={setAssembly}
+            workspaceState={workspaceState}
             layout="split"
           />
         </ResizablePanel>

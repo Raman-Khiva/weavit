@@ -7,7 +7,7 @@ import { cn } from "@workspace/ui/lib/utils";
 
 const island =
   "pointer-events-auto relative flex h-11 items-center overflow-hidden rounded-full " +
-  "border border-white/10 bg-neutral-950/70 backdrop-blur-xl shadow-lg shadow-black/40";
+  "border border-border bg-card/90 backdrop-blur-xl shadow-lg shadow-black/10";
 
 /* ---------- types ---------- */
 
@@ -51,11 +51,11 @@ function NowIsland({ now, events }: { now: Date | null; events: ScheduleEvent[] 
   return (
     <div className={cn(island, "gap-3.5 px-5")}>
       <div className="flex items-baseline gap-1 tabular-nums">
-        <span className="text-[17px] font-semibold leading-none text-white">{hhmm}</span>
-        <span className="text-[11px] font-medium text-white/50">{meridiem}</span>
+        <span className="text-[17px] font-semibold leading-none text-foreground">{hhmm}</span>
+        <span className="text-[11px] font-medium text-muted-foreground">{meridiem}</span>
       </div>
 
-      <span aria-hidden className="h-5 w-px bg-white/10" />
+      <span aria-hidden className="h-5 w-px bg-border" />
 
       {current ? (
         <div className="flex min-w-0 items-center gap-2">
@@ -63,13 +63,13 @@ function NowIsland({ now, events }: { now: Date | null; events: ScheduleEvent[] 
             <span className="absolute inset-0 rounded-full bg-emerald-400/60 motion-safe:animate-ping" />
             <span className="relative size-2 rounded-full bg-emerald-400" />
           </span>
-          <span className="max-w-[200px] truncate text-sm font-medium text-white">{current.title}</span>
-          <span className="shrink-0 text-xs tabular-nums text-white/45">
+          <span className="max-w-[200px] truncate text-sm font-medium text-foreground">{current.title}</span>
+          <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
             until {fmtShort(current.end)}
           </span>
         </div>
       ) : (
-        <span className="text-sm text-white/45">Nothing scheduled</span>
+        <span className="text-sm text-muted-foreground">Nothing scheduled</span>
       )}
 
       {current && (
