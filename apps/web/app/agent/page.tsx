@@ -15,14 +15,24 @@ import {
   PromptInputActionMenuContent,
   PromptInputActionMenuItem,
 } from "@workspace/ui/components/ai-elements/prompt-input";
-import { Conversation, ConversationContent } from "@workspace/ui/components/ai-elements/conversation";
+import {
+  Conversation,
+  ConversationContent,
+  ConversationScrollButton,
+} from "@workspace/ui/components/ai-elements/conversation";
 import { Message, MessageContent, MessageResponse } from "@workspace/ui/components/ai-elements/message";
 import { ChainOfThought, ChainOfThoughtHeader, ChainOfThoughtContent, ChainOfThoughtStep } from "@workspace/ui/components/ai-elements/chain-of-thought";
 import { PlanPreview as PlanPreviewView } from "@/components/agent/plan-preview";
 import { SequencedAchievementList, type SequencedAchievementItem, type SequencedAchievementProgress } from "@workspace/ui/components/achievement-list";
-import { CheckIcon, BotIcon, Loader2Icon, ChevronRightIcon, DownloadIcon, PlusIcon, Target, Layers, CalendarClock, ClipboardCheck, ArrowRight } from "lucide-react";
+import { CheckIcon, BotIcon, Loader2Icon, ChevronRightIcon, DownloadIcon, PlusIcon, Target, Layers, CalendarClock, ClipboardCheck, ArrowRight, MoreHorizontal } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Textarea } from "@workspace/ui/components/textarea";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu";
 import { cn } from "@workspace/ui/lib/utils";
 import { v4 as uuidv4 } from "uuid";
 import Link from "next/link";
@@ -52,7 +62,7 @@ function AgentTopBar({
   signedIn?: boolean
 }) {
   return (
-    <header className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-border bg-background/95 px-4 py-3 backdrop-blur sm:px-5">
+    <header className="z-10 flex shrink-0 items-center justify-between gap-4 border-b border-border bg-background px-4 py-3 sm:px-5">
       <div className="flex min-w-0 items-center gap-2.5">
         <Link href="/dashboard" className="shrink-0">
           <WeavitLogo
@@ -361,19 +371,86 @@ function AgentMessageBubble({
   );
 }
 
+const USER_MESSAGE_COLLAPSED_MAX_PX = 160;
+
 function UserMessageBubble({ message }: { message: AgentMessage }) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+
+  const text = useMemo(
+    () =>
+      message.parts
+        .filter((part) => part.type === "text" && part.text)
+        .map((part) => part.text)
+        .join("\n\n"),
+    [message.parts]
+  );
+
+  useEffect(() => {
+    const el = contentRef.current;
+    if (!el) return;
+
+    const measure = () => {
+      // Compare full scroll height against the collapsed cap
+      setOverflows(el.scrollHeight > USER_MESSAGE_COLLAPSED_MAX_PX + 4);
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [text]);
+
   return (
-    <Message from="user">
-      <MessageContent>
-        {message.parts.map((part, index) => {
-          if (part.type === "text" && part.text) {
-            return (
-              <MessageResponse key={index} className="prose prose-sm dark:prose-invert max-w-none" children={part.text} />
-            );
-          }
-          return null;
-        })}
-      </MessageContent>
+    <Message from="user" className="group/user-msg items-end">
+      <div className="flex max-w-[min(100%,36rem)] flex-col items-end gap-1">
+        <MessageContent className="relative max-w-full">
+          <div
+            ref={contentRef}
+            className={cn(
+              "relative",
+              !expanded && overflows && "overflow-hidden"
+            )}
+            style={
+              !expanded && overflows
+                ? { maxHeight: USER_MESSAGE_COLLAPSED_MAX_PX }
+                : undefined
+            }
+          >
+            <MessageResponse className="prose prose-sm dark:prose-invert max-w-none">
+              {text}
+            </MessageResponse>
+            {!expanded && overflows ? (
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-secondary to-transparent"
+              />
+            ) : null}
+          </div>
+        </MessageContent>
+
+        {overflows ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="size-7 text-muted-foreground opacity-70 transition-opacity hover:opacity-100"
+                aria-label="Message options"
+              >
+                <MoreHorizontal className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-36">
+              <DropdownMenuItem onSelect={() => setExpanded((v) => !v)}>
+                {expanded ? "See less" : "See more"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : null}
+      </div>
     </Message>
   );
 }
@@ -455,8 +532,8 @@ function AgentSidebar({
       <Conversation className="min-h-0 flex-1">
         <ConversationContent
           className={cn(
-            "gap-8 py-6",
-            isFull && "mx-auto w-full max-w-3xl px-4 sm:px-6"
+            "gap-8 px-4 py-6",
+            isFull && "mx-auto w-full max-w-3xl sm:px-6"
           )}
         >
           {messages.length === 0 ? null : (
@@ -481,6 +558,7 @@ function AgentSidebar({
             </>
           )}
         </ConversationContent>
+        <ConversationScrollButton />
       </Conversation>
 
       <div className="bg-background/95 px-4 pb-4 pt-2 backdrop-blur">
@@ -1016,7 +1094,7 @@ function PlanPreviewPanel({
 
   return (
     <div className="flex h-full flex-col bg-background">
-      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background/95 px-4 py-3 backdrop-blur">
+      <div className="z-10 flex shrink-0 items-center justify-between border-b border-border bg-background px-4 py-3">
         <div className="min-w-0">
           <h1 className="truncate text-sm font-semibold text-foreground">
             {planData.title}
