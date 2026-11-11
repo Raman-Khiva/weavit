@@ -9,8 +9,6 @@
 | **Agent** | `/agent` (full page + live roadmap preview) · dashboard drawer for quick check-ins |
 | **Local** | Web `:3000` · API `:4000` |
 
-> **Showcase note:** This README is written so a recruiter or engineer can understand *what the product is*, *how it’s built*, and *what engineering work it demonstrates* without digging the whole monorepo first. Deep pointers to code paths are included for follow-up.
-
 ---
 
 ## Highlights (60-second scan)
