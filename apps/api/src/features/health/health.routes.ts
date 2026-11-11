@@ -1,27 +1,20 @@
-import { Request, Response } from "express"
+import { Router } from "express"
+import {
+  getRoot,
+  getHealth,
+  getTest,
+  getRandom,
+  getAnyend,
+  getDopplerTest,
+} from "./health.controllers"
 
-export const getRoot = (req: Request, res: Response) => {
-  res.json({ message: "Hello from Express API", openapi: "/openapi.json" })
-}
+const router = Router()
 
-export const getHealth = (req: Request, res: Response) => {
-  res
-    .status(200)
-    .json({ status: "ok", health: "100%", timestamp: new Date().toISOString() })
-}
+router.get("/", getRoot)
+router.get("/health", getHealth)
+router.get("/test", getTest)
+router.get("/random", getRandom)
+router.get("/anyend", getAnyend)
+router.get("/doppler-test", getDopplerTest)
 
-export const getTest = (req: Request, res: Response) => {
-  res.status(200).json({ status: "ok", test: "successfull" })
-}
-
-export const getRandom = (req: Request, res: Response) => {
-  res.status(200).json({ status: "ok", message: "nothing just something random" })
-}
-
-export const getAnyend = (req: Request, res: Response) => {
-  res.status(200).json({ status: "ok", message: "go back from any end" })
-}
-
-export const getDopplerTest = (req: Request, res: Response) => {
-  res.status(200).json({ status: 'ok', message: `App is ${(process.env.DOPPLER === "OK") ? "" : "not"} getting secrets from doppler` })
-}
+export default router
