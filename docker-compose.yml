@@ -1,12 +1,18 @@
 
 services:
+   
+   redis:
+     image: redis:alpine
+     container_name: redis
+     ports:
+        - "6379:6379"
    api:
-
     build:
       context: .
       dockerfile: apps/api/Dockerfile
     environment:
       DOPPLER_TOKEN: ${DOPPLER_TOKEN_API}
+      REDIS_URL: "redis:6379"
     ports:
      - "0.0.0.0:4000:4000"
     volumes:

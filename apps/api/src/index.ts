@@ -1,10 +1,10 @@
 import express, { application, NextFunction, Request, response, Response } from "express"
-import { clerkMiddleware, getAuth } from "@clerk/express"
+import { clerkMiddleware, getAuth} from "@clerk/express"
 import { prisma } from '../src/config/db'
 import swaggerUi from "swagger-ui-express"
 import openapiSpec from "../openapi.json"
 import cors from "cors"
-import { Habit, User } from "@prisma/client"
+import { Habit, User} from "@prisma/client" 
 import pinoHttp from "pino-http"
 import {
   DeleteProjectsIdParams,
@@ -61,6 +61,31 @@ import {
   toggleCompletedDate,
   utcDateString,
 } from "./lib/habitDates"
+import {createClient} from "redis"
+
+
+
+
+// create redis client
+
+const redis = createClient({
+  url : "redis://redis:6379"
+})
+
+redis.on("error", (err) => {
+  console.error("Redis error:", err);
+});
+
+redis.on("connect", () => {
+  console.log("Redis connection established");
+});
+
+redis.on("ready", () => {
+  console.log("Redis is ready to accept commands");
+});
+
+redis.connect();
+
 
 // Map DB event → API shape (calendar id field matches CalendarWeek)
 function mapCalendarEvent(ev: {
@@ -656,6 +681,13 @@ app.get('/projects', async (req: Request, res: Response) => {
     const userId = await getUserId(req, res);
     if (!userId) return;
 
+    let projectsKey = `projects:user:${userId}`
+    const cached = await redis.get(projectsKey)
+
+    if(cached){
+      return res.status(200).json(JSON.parse(cached))
+    }
+
     // Bug fix: was missing `await` — projects was a Promise, not an array
     const projects = await prisma.project.findMany({
       where: { userId },
@@ -670,6 +702,8 @@ app.get('/projects', async (req: Request, res: Response) => {
         error: validateRes.error.flatten()
       })
     }
+
+    await redis.set(projectsKey,JSON.stringify(validateRes.data));
 
     return res.status(200).json(validateRes.data);
 
