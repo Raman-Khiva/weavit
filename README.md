@@ -13,7 +13,7 @@
 
 ## Highlights (60-second scan)
 
-- **Agentic product, not a todo clone** — LLM gets a full workspace snapshot + “now”; replies are grounded in real titles/dates; mutations are an allowlisted action schema executed via RTK → Express.
+- **Agentic product** — LLM gets a full workspace snapshot + “now”; replies are grounded in real titles/dates; mutations are an allowlisted action schema executed via RTK → Express.
 - **Safe roadmap UX** — multi-phase plans render in a **live preview**; user confirms **Add to workspace** → one nested `POST /projects` (phases/tasks/notes). No unbounded tool loop.
 - **Typed end-to-end contract** — OpenAPI → Zod (API) + generated client types (`@weavit/api-contract` / `@weavit/api-types`) + RTK Query.
 - **Auth that scopes data** — Clerk sessions; `POST /syncUser` upserts Prisma `User`; every resource query is user-scoped.
