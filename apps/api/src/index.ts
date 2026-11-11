@@ -303,6 +303,13 @@ app.get("/habits", async (req: Request, res: Response) => {
     // getUserId already wrote 401/404 when auth fails
     if (!userId) return;
 
+    let habitsKey = `habits:user:${userId}`
+    const cached = await redis.get(habitsKey)
+
+    if(cached){
+      return res.status(200).json(JSON.parse(cached))
+    }
+
     const habits: Habit[] = await prisma.habit.findMany({
       where: {
         userId
@@ -315,6 +322,7 @@ app.get("/habits", async (req: Request, res: Response) => {
       return invalidRes(res, validateResponse.error)
     }
 
+    await redis.set(habitsKey,JSON.stringify(validateResponse.data));
 
     return res.status(200).json(validateResponse.data);
 
@@ -524,6 +532,13 @@ app.get('/todos', async (req: Request, res: Response) => {
 
     if (!userId) return;
 
+    let todosKey = `todos:user:${userId}`
+    const cached = await redis.get(todosKey)
+
+    if(cached){
+      return res.status(200).json(JSON.parse(cached))
+    }
+
     const todos = await prisma.todo.findMany({
       where: {
         userId
@@ -540,6 +555,8 @@ app.get('/todos', async (req: Request, res: Response) => {
     }
 
     const validResponse = result.data;
+
+    await redis.set(todosKey,JSON.stringify(validResponse));
 
     return res.status(200).json(validResponse)
 
@@ -730,6 +747,13 @@ app.get('/projects/:projectId', async(req : Request<{projectId : string}>, res :
       return invalidParamas(res);
     }
 
+    let projectKey = `project:user:${userId}:${projectId}`
+    const cached = await redis.get(projectKey)
+
+    if(cached){
+      return res.status(200).json(JSON.parse(cached))
+    }
+
     const foundedProject = await prisma.project.findUnique({
       where : {
         userId,
@@ -743,6 +767,8 @@ app.get('/projects/:projectId', async(req : Request<{projectId : string}>, res :
     if(!validateResponse.success){
       return invalidRes(res,validateResponse.error);
     }
+
+    await redis.set(projectKey,JSON.stringify(validateResponse.data));
 
     return res.status(200).json(validateResponse.data);
 
@@ -1230,6 +1256,13 @@ app.get('/deadlines', async (req: Request, res: Response) => {
 
     if (!userId) return;
 
+    let deadlinesKey = `deadlines:user:${userId}`
+    const cached = await redis.get(deadlinesKey)
+
+    if(cached){
+      return res.status(200).json(JSON.parse(cached))
+    }
+
     const deadlines = await prisma.deadline.findMany({
       where: {
         userId
@@ -1244,6 +1277,8 @@ app.get('/deadlines', async (req: Request, res: Response) => {
         error: validateDeadlinesResponse.error.flatten()
       })
     }
+
+    await redis.set(deadlinesKey,JSON.stringify(validateDeadlinesResponse.data));
 
     return res.status(200).json(validateDeadlinesResponse.data)
 
@@ -1306,6 +1341,13 @@ app.get('/timeline', async (req: Request, res: Response) => {
     const userId = await getUserId(req, res)
     if (!userId) return
 
+    let timelineKey = `timeline:user:${userId}`
+    const cached = await redis.get(timelineKey)
+
+    if(cached){
+      return res.status(200).json(JSON.parse(cached))
+    }
+
     const calendars = await prisma.calendar.findMany({ where: { userId } })
     const events = await prisma.calendarEvent.findMany({ where: { userId } })
 
@@ -1316,6 +1358,8 @@ app.get('/timeline', async (req: Request, res: Response) => {
 
     const validateRes = GetTimelineResponse.safeParse(JSON.parse(JSON.stringify(payload)))
     if (!validateRes.success) return invalidRes(res, validateRes.error)
+
+    await redis.set(timelineKey,JSON.stringify(validateRes.data));
 
     return res.status(200).json(validateRes.data)
   } catch (error) {
@@ -1329,10 +1373,19 @@ app.get('/calendars', async (req: Request, res: Response) => {
     const userId = await getUserId(req, res)
     if (!userId) return
 
+    let calendarsKey = `calendars:user:${userId}`
+    const cached = await redis.get(calendarsKey)
+
+    if(cached){
+      return res.status(200).json(JSON.parse(cached))
+    }
+
     const calendars = await prisma.calendar.findMany({ where: { userId } })
 
     const validateRes = GetCalendarsResponse.safeParse(JSON.parse(JSON.stringify(calendars)))
     if (!validateRes.success) return invalidRes(res, validateRes.error)
+
+    await redis.set(calendarsKey,JSON.stringify(validateRes.data));
 
     return res.status(200).json(validateRes.data)
   } catch (error) {
@@ -1422,11 +1475,20 @@ app.get('/calendar-events', async (req: Request, res: Response) => {
     const userId = await getUserId(req, res)
     if (!userId) return
 
+    let calendarEventsKey = `calendar-events:user:${userId}`
+    const cached = await redis.get(calendarEventsKey)
+
+    if(cached){
+      return res.status(200).json(JSON.parse(cached))
+    }
+
     const events = await prisma.calendarEvent.findMany({ where: { userId } })
     const mapped = events.map(mapCalendarEvent)
 
     const validateRes = GetCalendarEventsResponse.safeParse(JSON.parse(JSON.stringify(mapped)))
     if (!validateRes.success) return invalidRes(res, validateRes.error)
+
+    await redis.set(calendarEventsKey,JSON.stringify(validateRes.data));
 
     return res.status(200).json(validateRes.data)
   } catch (error) {
