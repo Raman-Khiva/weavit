@@ -20,6 +20,7 @@ Get a token from a signed-in browser session (Clerk session JWT), or from whatev
 | --- | --- | --- |
 | `health.ts` | `GET /health` only | none |
 | `testGetProjects.ts` | `GET /projects` only | `API_TOKEN` (existing DB user) |
+| `smokeRead.ts` | Read-only smoke: public + authenticated GETs only (no writes, no `syncUser`) | `API_TOKEN` (existing DB user) |
 | `smoke.ts` | Full API smoke: public routes, auth bootstrap (`POST /syncUser`), CRUD for habits/todos/projects/deadlines/calendars, then cleanup | `API_TOKEN` |
 
 Supporting pieces:
@@ -36,9 +37,10 @@ Supporting pieces:
 | Variable | Required by | Description |
 | --- | --- | --- |
 | `BASE_URL` | all scripts | API origin, no trailing slash (e.g. `http://localhost:4000` or `https://api.weavit.tech`) |
-| `API_TOKEN` | `smoke.ts`, `testGetProjects.ts` | Clerk session JWT (`Authorization: Bearer …`) |
-| `VUS` | `smoke.ts`, `testGetProjects.ts` (optional) | Virtual users (default `1`) |
-| `ITERATIONS` | `smoke.ts`, `testGetProjects.ts` (optional) | Total iterations shared across VUs (default `1`) |
+| `API_TOKEN` | `smoke.ts`, `smokeRead.ts`, `testGetProjects.ts` | Clerk session JWT (`Authorization: Bearer …`) |
+| `VUS` | `smoke.ts`, `smokeRead.ts`, `testGetProjects.ts` (optional) | Virtual users (default `1`) |
+| `ITERATIONS` | `smoke.ts`, `smokeRead.ts`, `testGetProjects.ts` (optional) | Total iterations shared across VUs (default `1`) |
+| `PROJECT_ID` | `smokeRead.ts` (optional) | Also hits `GET /projects/:projectId` |
 | `LEETCODE_USERNAME` | `smoke.ts` (optional) | If set, also hits `GET /leetcode/:username` |
 | `CLERK_TOKEN` | generated client helpers only | Same idea as `API_TOKEN`; used by `config/enviornment.ts` |
 
